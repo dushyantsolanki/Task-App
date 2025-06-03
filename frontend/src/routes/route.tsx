@@ -3,6 +3,8 @@ import AuthLayout from "@/layout/AuthLayout";
 import ForgotPasswordForm from "@/form/ForgotPasswordForm";
 import ProtectedRoute from "@/components/app/ProtectedRoute";
 import PublicOnlyRoute from "@/components/app/PublicOnlyRoute";
+import { Button } from "@/components/ui/button";
+import { useNavigate } from 'react-router-dom'
 
 const LoginForm = lazy(() => import("@/form/LoginForm"));
 const RegisterForm = lazy(() => import("@/form/RegisterForm"));
@@ -13,6 +15,20 @@ const Home = () => {
   return <div>Home</div>;
 };
 
+
+
+const Btn = () => {
+  const navigate = useNavigate()
+  return (<>
+    <Button
+      variant={'secondary'}
+      onClick={() => { navigate('/login') }}
+      className="p-1.5 md:p-2"
+    >
+      Login
+    </Button >
+  </>)
+}
 type RouteChild = {
   path: string;
   element: JSX.Element;
@@ -30,6 +46,7 @@ export const routes: RouteConfig[] = [
     layout: AuthLayout,
     guard: PublicOnlyRoute,
     children: [
+      { path: '/', element: <Btn /> },
       { path: "/login", element: <LoginForm /> },
       { path: "/register", element: <RegisterForm /> },
       { path: "/verify-otp", element: <OtpVerifyForm /> },

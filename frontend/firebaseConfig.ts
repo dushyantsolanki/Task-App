@@ -11,8 +11,6 @@ const firebaseConfig = {
   measurementId: import.meta.env.VITE_MEASUREMENTID,
 };
 
-console.log('firebase config ::: ', firebaseConfig);
-
 const app = initializeApp(firebaseConfig);
 
 export const messaging = getMessaging(app);

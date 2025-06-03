@@ -5,16 +5,13 @@ class SocketManager {
 
   connect(userId: string) {
     if (!this.socket) {
-      this.socket = io(
-        import.meta.env.VITE_SOCKET_URL || ('https://task-mate-full-stack.onrender.com' as string),
-        {
-          auth: {
-            userId,
-          },
-          transports: ['websocket'],
-          reconnection: true,
+      this.socket = io(import.meta.env.VITE_SOCKET_URL as string, {
+        auth: {
+          userId,
         },
-      );
+        transports: ['websocket'],
+        reconnection: true,
+      });
     }
 
     if (!this.socket.connected) {
