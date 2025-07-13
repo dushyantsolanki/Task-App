@@ -18,7 +18,7 @@ export const XBreadcrumb: React.FC<CustomBreadcrumbProps> = ({ items }) => {
   const lastIndex = items.length - 1;
 
   return (
-    <div className="flex items-center gap-2 px-4">
+    <div className="flex items-center gap-2  mb-8 ">
       <Breadcrumb>
         <BreadcrumbList>
           {items.map((item, index) => (

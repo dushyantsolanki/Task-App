@@ -1,4 +1,5 @@
 import { initializeApp } from 'firebase/app';
+import { getAuth, GithubAuthProvider, GoogleAuthProvider } from 'firebase/auth';
 import { getMessaging, onMessage } from 'firebase/messaging';
 
 const firebaseConfig = {
@@ -12,10 +13,13 @@ const firebaseConfig = {
 };
 
 const app = initializeApp(firebaseConfig);
+const auth = getAuth(app);
+const googleProvider = new GoogleAuthProvider();
+const githubProvider = new GithubAuthProvider();
 
 export const messaging = getMessaging(app);
 
-export const onMessageListener = () => {
+const onMessageListener = () => {
   return new Promise((resolve) => {
     onMessage(messaging, (payload) => {
       console.log('message payload :>>', payload);
@@ -23,3 +27,5 @@ export const onMessageListener = () => {
     });
   });
 };
+
+export { auth, googleProvider, githubProvider, onMessageListener };

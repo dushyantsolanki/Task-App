@@ -1,17 +1,12 @@
-import * as React from "react"
+
 import {
-  BookOpen,
-  Bot,
-  Frame,
+  LayoutDashboard,
+  ListTodo,
+  Search,
   GalleryVerticalEnd,
-  Map,
-  PieChart,
-  Settings2,
-  SquareTerminal,
 } from "lucide-react"
 
 import { NavMain } from "@/components/nav-main"
-import { NavProjects } from "@/components/nav-projects"
 import { NavUser } from "@/components/nav-user"
 import {
   Sidebar,
@@ -22,84 +17,127 @@ import {
   SidebarRail,
 } from "@/components/ui/sidebar"
 import { useAuthStore } from "@/store/authStore"
+import Greeting from "./app/Greeting"
 
-interface AppSidebarProps extends React.ComponentProps<typeof Sidebar> {
-  greeting: string
-}
 
-// This is sample data.
+
 const data = {
-  user: {
-    name: "shadcn",
-    email: "m@example.com",
-    avatar: "/avatars/shadcn.jpg",
-  },
+  // ...user and company as before
   company: {
     name: "Task Mate",
     logo: () => <GalleryVerticalEnd className="size-4" />,
   },
   navMain: [
     {
-      title: "Playground",
-      url: "#",
-      icon: SquareTerminal,
-      isActive: true,
-      items: [
-        {
-          title: "History",
-          url: "#",
-        },
-        {
-          title: "Starred",
-          url: "#",
-        },
-        {
-          title: "Settings",
-          url: "#",
-        },
-      ],
+      title: "Dashboard",
+      url: "/dashboard",
+      icon: LayoutDashboard,
     },
     {
-      title: "Models",
-      url: "#",
-      icon: Bot,
+      title: "AI Search",
+      url: "/search",
+      icon: Search,
     },
-    {
-      title: "Documentation",
-      url: "#",
-      icon: BookOpen,
 
-    },
     {
-      title: "Settings",
-      url: "#",
-      icon: Settings2,
+      title: "ToDo",
+      url: "/todo",
+      icon: ListTodo,
+    },
+    // {
+    //   title: "Settings",
+    //   // url: "/settings",
+    //   icon: Settings2,
+    //   items: [
 
-    },
-  ],
-
-  projects: [
-    {
-      name: "Design Engineering",
-      url: "#",
-      icon: Frame,
-    },
-    {
-      name: "Sales & Marketing",
-      url: "#",
-      icon: PieChart,
-    },
-    {
-      name: "Travel",
-      url: "#",
-      icon: Map,
-    },
+    //     {
+    //       title: "Profile",
+    //       url: "/settings/profile",
+    //     },
+    //     {
+    //       title: "Security",
+    //       url: "/settings/security",
+    //     },
+    //   ],
+    // }
   ],
 }
 
+// // This is sample data.
+// const data = {
+//   user: {
+//     name: "shadcn",
+//     email: "m@example.com",
+//     avatar: "/avatars/shadcn.jpg",
+//   },
+//   company: {
+//     name: "Task Mate",
+//     logo: () => <GalleryVerticalEnd className="size-4" />,
+//   },
+//   navMain: [
+//     {
+//       title: "Playground",
+//       url: "#",
+//       icon: SquareTerminal,
+//       isActive: true,
+//       items: [
+//         {
+//           title: "History",
+//           url: "#",
+//         },
+//         {
+//           title: "Starred",
+//           url: "#",
+//         },
+//         {
+//           title: "Settings",
+//           url: "#",
+//         },
+//       ],
+//     },
+//     {
+//       title: "Models",
+//       url: "#",
+//       icon: Bot,
+//     },
+//     {
+//       title: "Documentation",
+//       url: "#",
+//       icon: BookOpen,
 
-export function AppSidebar({ greeting, ...props }: AppSidebarProps) {
+//     },
+//     {
+//       title: "Settings",
+//       url: "#",
+//       icon: Settings2,
+
+//     },
+//   ],
+
+//   projects: [
+//     {
+//       name: "Design Engineering",
+//       url: "#",
+//       icon: Frame,
+//     },
+//     {
+//       name: "Sales & Marketing",
+//       url: "#",
+//       icon: PieChart,
+//     },
+//     {
+//       name: "Travel",
+//       url: "#",
+//       icon: Map,
+//     },
+//   ],
+// }
+
+
+export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
   const { user } = useAuthStore()
+
+  console.log('user ', user)
 
   return (
     <Sidebar collapsible="icon" {...props}>
@@ -113,14 +151,14 @@ export function AppSidebar({ greeting, ...props }: AppSidebarProps) {
           </div>
           <div className="grid flex-1 text-left text-sm leading-tight">
             <span className="truncate font-medium">{data.company.name}</span>
-            <span className="truncate text-xs">{greeting}</span>
+            <Greeting />
           </div>
 
         </SidebarMenuButton>
       </SidebarHeader>
       <SidebarContent>
-        <NavMain items={data.navMain} />
-        <NavProjects projects={data.projects} />
+        <NavMain items={data.navMain as any} />
+        {/* <NavProjects projects={data.projects} /> */}
       </SidebarContent>
       <SidebarFooter>
         <NavUser user={user as any} />

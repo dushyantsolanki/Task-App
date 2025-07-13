@@ -12,7 +12,7 @@ import { Label } from '@/components/ui/label';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { XInputField } from '@/components/custom/XInputField';
 import { XTextareaField } from '@/components/custom/XTextareaField';
-import moment from 'moment-timezone'; // Use moment-timezone
+import moment from 'moment-timezone';
 import AxiousInstance from '@/helper/AxiousInstance';
 import { toast } from 'sonner';
 
@@ -228,8 +228,8 @@ const BigCalendar = () => {
     };
 
     return (
-        <div className="w-full min-h-screen bg-background">
-            <div className="p-3 md:p-6">
+        <div className="w-full min-h-screen bg-background ">
+            <div className="p-3 md:p-6 ">
                 {/* Calendar Navigation */}
                 <div className="flex items-center justify-between mb-4 md:mb-6">
                     <div className="flex items-center gap-1 md:gap-2">
@@ -413,20 +413,20 @@ const BigCalendar = () => {
                         aspectRatio={isMobile ? 1.5 : 2.5}
                         dayHeaderFormat={{ weekday: 'short' }}
                         dayHeaderContent={isMobile ? undefined : (date) => date.date.toLocaleDateString('en-US', { weekday: 'long' })}
-                        dayHeaderClassNames="!border-b !border-border !p-2 md:!p-4 !text-xs md:!text-sm !font-medium !text-muted-foreground !bg-card"
-                        dayCellClassNames="!border-r !border-b !border-border hover:!bg-accent/20 !transition-colors !p-2 md:!p-3"
-                        eventClassNames="!text-xs !rounded-sm !border !border-[var(--border)] !p-0.5 md:!p-1 !mb-0.5 !truncate !cursor-pointer hover:!opacity-80 !transition-opacity !flex !items-center !gap-1.5 !bg-transparent"
+                        dayHeaderClassNames="!border-b !border-border !p-2 md:!p-4 !text-xs md:!text-sm !font-medium !text-muted-foreground !bg-card "
+                        dayCellClassNames="!border-r !border-b !border-border hover:!bg-accent/20 !transition-colors !p-2 md:!p-3 "
+                        eventClassNames="!text-xs !rounded-sm !border !border-[var(--border)] !p-0.5 md:!p-1 !mb-0.5 !truncate !cursor-pointer hover:!opacity-80 !transition-opacity !flex !items-center !gap-1.5 !bg-transparent "
                         datesSet={handleDateSet}
                         eventContent={(eventInfo) => {
                             const dotColor = eventInfo.event.backgroundColor || '#3b82f6';
                             return (
-                                <div className="w-full flex items-center gap-1.5 !pr-4 !pl-1 !py-1.5">
+                                <div className="w-full  flex items-center gap-1.5 !pr-4 !pl-1 !py-1.5">
                                     <span
                                         className="w-2.5 h-2.5 rounded-full"
                                         style={{ backgroundColor: dotColor }}
                                     ></span>
                                     <div className="flex items-center gap-1.5">
-                                        <span className="font-medium text-xs leading-tight !text-[var(--foreground)]">
+                                        <span className="font-medium text-xs leading-tight !text-[var(--foreground)]  ">
                                             {eventInfo.event.title}
                                         </span>
                                         <span className="opacity-75 text-xs leading-tight !text-[var(--foreground)]">
@@ -437,7 +437,6 @@ const BigCalendar = () => {
                             );
                         }}
                         eventClick={(eventInfo) => {
-                            console.log(eventInfo.event)
                             openEditEventSheet(eventInfo.event);
                         }}
                         dateClick={(dateInfo) => {

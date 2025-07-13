@@ -12,6 +12,10 @@ import { toast } from "sonner"
 import { useLocalStorage } from "@reactuses/core"
 import { useState } from "react"
 import { Label } from "@/components/ui/label"
+import { signInWithPopup } from "firebase/auth"
+import { auth, githubProvider, googleProvider } from "@/firebase/firebaseConfig"
+import { useAuthStore } from "@/store/authStore"
+import { useSocket } from "@/hooks/useSocket"
 // import { UseLocalStorage } from "@reactuses/core"
 
 
@@ -40,6 +44,64 @@ export default function RegisterForm({
     const [, setValue] = useLocalStorage("email", "");
     const navigate = useNavigate()
     const [showPassword, setShowPassword] = useState(false)
+    const { login } = useAuthStore()
+    const { connect } = useSocket();
+
+    const signInWithGoogle = async () => {
+        try {
+            const result = await signInWithPopup(auth, googleProvider);
+            const idToken = await result.user.getIdToken();
+
+            const response = await axios.post(
+                `${import.meta.env.VITE_API_BASE_URL}/auth/google`,
+                {},
+                {
+                    headers: {
+                        Authorization: `Bearer ${idToken}`,
+                    },
+                    withCredentials: true,
+                }
+            );
+
+            if (response.status === 200) {
+                toast.success("Login successful");
+                login(response.data.user)
+                connect(response.data.user.id)
+                navigate("/dashboard");
+            }
+        } catch (error: any) {
+            console.error("Frontend Google login failed:", error);
+            toast.error(error.response.data.message || "Internal server error")
+        }
+    };
+    const signInWithGithub = async () => {
+        try {
+            const result = await signInWithPopup(auth, githubProvider);
+            const idToken = await result.user.getIdToken();
+
+            const response = await axios.post(
+                `${import.meta.env.VITE_API_BASE_URL}/auth/github`,
+                {},
+                {
+                    headers: {
+                        Authorization: `Bearer ${idToken}`,
+                    },
+                    withCredentials: true,
+                }
+            );
+
+            if (response.status === 200) {
+                toast.success("Login successful");
+                login(response.data.user)
+                connect(response.data.user.id)
+                navigate("/dashboard");
+            }
+        } catch (error: any) {
+            console.error("Frontend Github login failed:", error);
+            toast.error(error.response.data.message || "Internal server error")
+        }
+    };
+
 
     const handleRegister = async (values: Payload) => {
         try {
@@ -198,6 +260,7 @@ export default function RegisterForm({
                 <Button
                     variant="outline"
                     className="w-full md:w-5/12 flex items-center justify-center "
+                    onClick={signInWithGoogle}
                 >
                     <svg
                         className="h-5 w-5"
@@ -228,6 +291,7 @@ export default function RegisterForm({
                 <Button
                     variant="outline"
                     className="w-full md:w-5/12 flex items-center justify-center"
+                    onClick={signInWithGithub}
                 >
                     <svg
                         xmlns="http://www.w3.org/2000/svg"

@@ -2,7 +2,8 @@ import pino from 'pino';
 import { join } from 'path';
 import fs from 'fs';
 
-const isDevelopment = process.env.NODE_ENV !== 'production';
+// const isDevelopment = process.env.NODE_ENV !== 'production';
+const isDevelopment = process.env.NODE_ENV === 'development';
 
 const logFilePath = join(process.cwd(), 'logs', 'app.log');
 
@@ -22,17 +23,17 @@ const transport = pino.transport({
         singleLine: true,
       },
     },
-    {
-      target: 'pino/file', // built-in file transport
-      level: 'info',
-      options: {
-        colorize: false,
-        translateTime: 'SYS:standard',
-        ignore: 'pid,hostname',
-        singleLine: true,
-        destination: logFilePath,
-      },
-    },
+    // {
+    //   target: 'pino/file', // built-in file transport
+    //   level: 'info',
+    //   options: {
+    //     colorize: false,
+    //     translateTime: 'SYS:standard',
+    //     ignore: 'pid,hostname',
+    //     singleLine: true,
+    //     destination: logFilePath,
+    //   },
+    // },
   ],
 });
 

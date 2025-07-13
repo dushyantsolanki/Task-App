@@ -5,7 +5,7 @@ import { routes } from '@/routes/route.tsx';
 import { useSocket } from './hooks/useSocket';
 import { useAuthStore } from './store/authStore.ts';
 import AxiousInstance from './helper/AxiousInstance.tsx';
-import { messaging } from '../firebaseConfig.ts';
+import { messaging } from './firebase/firebaseConfig.ts';
 import { getToken } from 'firebase/messaging';
 import { getCookie } from './lib/utils.ts';
 

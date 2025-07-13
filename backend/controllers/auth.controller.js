@@ -4,6 +4,7 @@ import { User } from '../models/index.js';
 import { sendVerificationMail } from '../templates/email/mailer.js';
 import { generateAccessToken, generateOTP, generateRefreshToken } from '../utils/utils.js';
 import jwt from 'jsonwebtoken';
+import { verifyIdToken } from '../configs/firebase.config.js';
 
 const COOKIE_OPTIONS = {
   httpOnly: false,
@@ -14,7 +15,29 @@ const COOKIE_OPTIONS = {
 
 export const loginWithGoogle = async (req, res) => {
   try {
-    const user = req.user;
+    const idToken = req.headers.authorization?.split(' ')[1];
+
+    if (!idToken) return res.status(401).json({ success: false, message: 'No token provided' });
+
+    const decodedUser = await verifyIdToken(idToken); // custom util
+    const { email, name, picture, uid } = decodedUser;
+
+    // Check if user exists or create one
+    let user = await User.findOne({ email });
+
+    if (!user) {
+      user = await User.create({
+        email,
+        name,
+
+        authProvider: 'google',
+        oauthId: uid,
+        avatar: picture,
+        googleId: uid,
+        role: 'Member',
+        isVerified: true,
+      });
+    }
 
     const accessToken = generateAccessToken(user);
     const refreshToken = generateRefreshToken(user);
@@ -38,12 +61,32 @@ export const loginWithGoogle = async (req, res) => {
       });
   } catch (err) {
     logger.error(err, 'Error in loginWithGoogle');
+    res.status(500).json({ success: false, message: 'Internal Server Error' });
   }
 };
 
-export const loginWithGithub = async (req, res) => {
+export const loginWithGitHub = async (req, res) => {
   try {
-    const user = req.user;
+    const idToken = req.headers.authorization?.split(' ')[1];
+    if (!idToken) return res.status(401).json({ success: false, message: 'Missing token' });
+
+    const decoded = await verifyIdToken(idToken);
+
+    const { email, name, picture, uid } = decoded;
+
+    let user = await User.findOne({ email });
+
+    if (!user) {
+      user = await User.create({
+        email,
+        name,
+        avatar: picture,
+        authProvider: 'github',
+        oauthId: uid,
+        role: 'Member',
+        isVerified: true,
+      });
+    }
 
     const accessToken = generateAccessToken(user);
     const refreshToken = generateRefreshToken(user);
@@ -56,7 +99,7 @@ export const loginWithGithub = async (req, res) => {
       .cookie('refreshToken', refreshToken, COOKIE_OPTIONS)
       .json({
         success: true,
-        message: 'Login successful',
+        message: 'GitHub login successful',
         user: {
           id: user._id,
           name: user.name,
@@ -66,7 +109,8 @@ export const loginWithGithub = async (req, res) => {
         },
       });
   } catch (err) {
-    logger.error(err, 'Error in loginWithGithub');
+    console.error('Error in loginWithGitHub:', err);
+    res.status(500).json({ success: false, message: 'Internal Server Error' });
   }
 };
 

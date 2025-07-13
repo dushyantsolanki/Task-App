@@ -15,6 +15,13 @@ import './configs/firebase.config.js';
 import './crons/calendar.jobs.js';
 import Notification from './models/notification.model.js';
 import path from 'path';
+// import { ai } from './configs/genkit.config.js';
+import puppeteer from 'puppeteer';
+import { Builder, By } from 'selenium-webdriver';
+import { runGroqSearchQA } from './configs/langchai.config.js';
+import chrome from 'selenium-webdriver/chrome.js';
+import Task from './models/task.js';
+import { faker } from '@faker-js/faker';
 // passport configurations
 configurePassport();
 
@@ -77,7 +84,6 @@ app.use((req, res, next) => {
 app.use('/api/v1', indexRoute);
 
 //  Frontend files serving via a backend
-
 app.use(express.static(path.join(__dirname, '/frontend/dist')));
 app.get('/', (req, res) => {
   res.sendFile(path.resolve(__dirname, 'frontend', 'dist', 'index.html'));
@@ -134,7 +140,201 @@ const notification_data = [
   },
 ];
 
+const statuses = ['pending', 'processing', 'success', 'failed'];
+const priorities = ['low', 'medium', 'high'];
+
+/**
+ * Generate a single fake task
+ */
+
+const generateFakeTask = () => {
+  return {
+    title: faker.lorem.words(3),
+    description: faker.lorem.sentence(),
+    label: faker.hacker.noun(),
+    status: faker.helpers.arrayElement(statuses),
+    priority: faker.helpers.arrayElement(priorities),
+    createdBy: '684832c80652542b2dcc5302',
+    isDeleted: false,
+    createdAt: faker.date.between({
+      from: new Date('2024-01-01T00:00:00.000Z'),
+      to: new Date('2025-06-16T23:59:59.999Z'),
+    }),
+    updatedAt: new Date(),
+  };
+};
+
+const migrateTasks = async () => {
+  try {
+    const fakeTasks = Array.from({ length: 100 }, generateFakeTask);
+
+    await Task.insertMany(fakeTasks);
+    console.log(`Inserted ${fakeTasks.length} fake tasks`);
+
+    console.log('Disconnected from MongoDB');
+  } catch (err) {
+    console.error('Migration failed:', err);
+    process.exit(1);
+  }
+};
+// migrateTasks();
 // notification_migration(notification_data);
+
+// Web scraping example using a pupeeter and selinium
+
+// Step 1: User-agent pool
+const userAgents = [
+  'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/114.0.0.0 Safari/537.36',
+  'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/605.1.15 (KHTML, like Gecko) Version/15.1 Safari/605.1.15',
+  'Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/113.0.0.0 Safari/537.36',
+  'Mozilla/5.0 (iPhone; CPU iPhone OS 15_2 like Mac OS X) AppleWebKit/605.1.15 (KHTML, like Gecko) Version/15.2 Mobile/15E148 Safari/604.1',
+];
+
+// Step 2: Get random user-agent
+function getRandomUserAgent() {
+  return userAgents[Math.floor(Math.random() * userAgents.length)];
+}
+
+// Main Function
+async function scrapeFullPage(url) {
+  const userAgent = getRandomUserAgent();
+
+  const options = new chrome.Options();
+  options.addArguments(
+    `--user-agent=${userAgent}`,
+    '--disable-blink-features=AutomationControlled',
+    '--disable-infobars',
+    '--disable-gpu',
+    '--no-sandbox',
+    '--disable-dev-shm-usage',
+    '--headless=new',
+    '--blink-settings=imagesEnabled=false', // Disable images to speed up loading
+    '--disable-javascript', // Disable JavaScript if not needed for content
+  );
+
+  const driver = await new Builder().forBrowser('chrome').setChromeOptions(options).build();
+
+  try {
+    await driver.get(url);
+    await driver.sleep(3000);
+
+    const body = await driver.findElement(By.tagName('body'));
+    const content = await body.getText();
+
+    const imageElements = await driver.findElements(By.css('img'));
+    const imageUrls = [];
+
+    for (const img of imageElements) {
+      const src = await img.getAttribute('src');
+      const alt = await img.getAttribute('alt');
+      const width = parseInt((await img.getAttribute('width')) || '0', 10);
+      const height = parseInt((await img.getAttribute('height')) || '0', 10);
+
+      if (
+        !src ||
+        src.startsWith('data:') ||
+        !src.startsWith('http') ||
+        width < 50 ||
+        height < 50 ||
+        /(sprite|logo|icon|arrow|ads|blank|pixel)/i.test(src) ||
+        (alt && /(icon|logo|arrow|social)/i.test(alt))
+      ) {
+        continue;
+      }
+
+      imageUrls.push(src);
+    }
+
+    const videoUrls = [];
+
+    const videoElements = await driver.findElements(By.css('video source, video'));
+    for (const vid of videoElements) {
+      const src = await vid.getAttribute('src');
+      if (src && src.startsWith('http')) {
+        videoUrls.push(src);
+      }
+    }
+
+    const iframeElements = await driver.findElements(By.css('iframe'));
+    for (const iframe of iframeElements) {
+      const src = await iframe.getAttribute('src');
+      if (
+        src &&
+        (src.includes('youtube.com/embed') ||
+          src.includes('player.vimeo.com') ||
+          src.includes('dailymotion.com/embed'))
+      ) {
+        videoUrls.push(src);
+      }
+    }
+
+    return { content, images: imageUrls, videos: videoUrls };
+  } catch (error) {
+    console.error('Error scraping full page:', error);
+    return { content: '', images: [], videos: [] };
+  } finally {
+    await driver.quit();
+  }
+}
+
+async function scrapeBing(query) {
+  const browser = await puppeteer.launch({
+    headless: 'new',
+    args: ['--no-sandbox', '--disable-setuid-sandbox'],
+  });
+  const page = await browser.newPage();
+  await page.setUserAgent(
+    'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 Chrome/120 Safari/537.36',
+  );
+  await page.goto(`https://www.bing.com/search?q=${encodeURIComponent(query)}`, {
+    waitUntil: 'networkidle2', // use this for better load reliability
+    timeout: 30000,
+  });
+
+  const results = await page.evaluate(() => {
+    const items = [];
+    document.querySelectorAll('li.b_algo').forEach((el) => {
+      const h2 = el.querySelector('h2');
+      const link = h2?.querySelector('a')?.href;
+      const title = h2?.innerText || '';
+      const snippet = el.querySelector('p')?.innerText || '';
+
+      if (link && title) {
+        const domain = new URL(link).hostname.replace('www.', '');
+        const favicon = `https://www.google.com/s2/favicons?sz=64&domain_url=${link}`;
+        items.push({ title, link, snippet, source: domain, favicon });
+      }
+    });
+    return items;
+  });
+
+  await browser.close();
+  return results;
+}
+
+app.get('/api/overview', async (req, res) => {
+  const { q } = req.query;
+  if (!q) return res.status(400).json({ error: 'Query is required' });
+
+  try {
+    const sources = await scrapeBing(q);
+
+    if (!sources.length) {
+      return res.status(404).json({ error: 'No search results found' });
+    }
+
+    const firstResultUrl = sources[0].link;
+
+    const { content, images, videos } = await scrapeFullPage(firstResultUrl);
+
+    const summary = await runGroqSearchQA(content, q);
+
+    res.json({ summary, sources, media: { images, videos } });
+  } catch (err) {
+    console.error(err);
+    res.status(500).json({ error: err.message });
+  }
+});
 
 server.listen(PORT, async () => {
   await connectDB();
