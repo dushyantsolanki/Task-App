@@ -9,7 +9,7 @@ import {
     type SortingState,
     useReactTable,
 } from "@tanstack/react-table";
-import { ArrowUpDown, ChevronLeft, ChevronRight, Trash2, Share2, Plus, DownloadIcon } from "lucide-react";
+import { ArrowUpDown, ChevronLeft, ChevronRight, Trash2, Plus, DownloadIcon } from "lucide-react";
 import * as Yup from "yup";
 import { useFormik } from "formik";
 

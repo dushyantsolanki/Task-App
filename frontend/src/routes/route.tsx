@@ -6,16 +6,13 @@ import PublicOnlyRoute from "@/components/app/PublicOnlyRoute";
 import { Search } from "@/pages/Search";
 import { Dashboard } from "@/components/app/components/Dashboard";
 import { Todo } from "@/components/app/components/Todo";
-import Profile from "@/components/app/components/Profile";
 
 const LoginForm = lazy(() => import("@/form/LoginForm"));
 const RegisterForm = lazy(() => import("@/form/RegisterForm"));
 const OtpVerifyForm = lazy(() => import("@/form/OtpVerifyForm"));
 const DashboardLayout = lazy(() => import("@/layout/DashboardLayout"));
 
-const Home = () => {
-  return <div>Home</div>;
-};
+
 
 type RouteChild = {
   path: string;
@@ -48,7 +45,6 @@ export const routes: RouteConfig[] = [
       { path: "/dashboard", element: <Dashboard /> },
       { path: "/search", element: <Search /> },
       { path: "/todo", element: <Todo /> },
-      { path: "/settings/profile", element: <Profile /> },
       // { path: '/dashboard/profile', element: <Profile /> },
       // {
       //   path: '/dashboard/admin',

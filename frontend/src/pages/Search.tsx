@@ -273,7 +273,6 @@ const MarkdownRenderer = ({ content }: { content: string }) => {
 
 
 function SearchResults({ summary, sources }: { summary: string, sources: Source[] }) {
-    const [showAll, setShowAll] = useState(false);
     const displayedSources = sources;
 
     return (
