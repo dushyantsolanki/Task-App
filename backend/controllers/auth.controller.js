@@ -10,7 +10,7 @@ const COOKIE_OPTIONS = {
   httpOnly: false,
   secure: process.env.NODE_ENV === 'production',
   sameSite: 'Lax',
-  maxAge: 7 * 24 * 60 * 60 * 1000, // 7 days
+  maxAge: 15 * 24 * 60 * 60 * 1000, // 15 days
 };
 
 export const loginWithGoogle = async (req, res) => {
@@ -46,7 +46,7 @@ export const loginWithGoogle = async (req, res) => {
     await user.save();
 
     res
-      .cookie('accessToken', accessToken, { ...COOKIE_OPTIONS, maxAge: 15 * 60 * 1000 }) // 15 min
+      .cookie('accessToken', accessToken, { ...COOKIE_OPTIONS, maxAge: 7 * 24 * 60 * 60 * 1000 }) // 7 days
       .cookie('refreshToken', refreshToken, COOKIE_OPTIONS)
       .json({
         success: true,
@@ -95,7 +95,7 @@ export const loginWithGitHub = async (req, res) => {
     await user.save();
 
     res
-      .cookie('accessToken', accessToken, { ...COOKIE_OPTIONS, maxAge: 15 * 60 * 1000 })
+      .cookie('accessToken', accessToken, { ...COOKIE_OPTIONS, maxAge: 7 * 24 * 60 * 60 * 1000 })
       .cookie('refreshToken', refreshToken, COOKIE_OPTIONS)
       .json({
         success: true,
@@ -146,7 +146,7 @@ export const login = async (req, res) => {
     await user.save();
 
     return res
-      .cookie('accessToken', accessToken, { ...COOKIE_OPTIONS, maxAge: 15 * 60 * 1000 }) // 15 min
+      .cookie('accessToken', accessToken, { ...COOKIE_OPTIONS, maxAge: 7 * 24 * 60 * 60 * 1000 }) // 7 days
       .cookie('refreshToken', refreshToken, COOKIE_OPTIONS)
       .status(200)
       .json({
@@ -192,10 +192,7 @@ export const refreshAccessToken = async (req, res) => {
 
     res
       .cookie('accessToken', newAccessToken, {
-        httpOnly: false,
-        secure: process.env.NODE_ENV === 'production',
-        sameSite: 'Lax',
-        maxAge: 15 * 60 * 1000, // 15 minutes
+     ...COOKIE_OPTIONS , maxAge: 7 * 24 * 60 * 60 * 1000
       })
       .cookie('refreshToken', newRefreshToken, COOKIE_OPTIONS);
 
