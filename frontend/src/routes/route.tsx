@@ -1,4 +1,5 @@
 import { lazy, type FC, type JSX, type LazyExoticComponent } from "react";
+import { Navigate } from "react-router-dom";
 import AuthLayout from "@/layout/AuthLayout";
 import ForgotPasswordForm from "@/form/ForgotPasswordForm";
 import ProtectedRoute from "@/components/app/ProtectedRoute";
@@ -32,6 +33,7 @@ export const routes: RouteConfig[] = [
     layout: AuthLayout,
     guard: PublicOnlyRoute,
     children: [
+      { path: '/', element: <Navigate to='/login'></Navigate> },
       { path: "/login", element: <LoginForm /> },
       { path: "/register", element: <RegisterForm /> },
       { path: "/verify-otp", element: <OtpVerifyForm /> },
