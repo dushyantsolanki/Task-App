@@ -34,14 +34,14 @@ initSocketIO(server);
 app.use(cookieParser());
 app.use(
   cors({
-    origin: [
-      'http://localhost:5173',
-      'http://192.168.0.133:5173',
-      'http://localhost:4173',
-      'http://192.168.83.111:5173',
-      'https://task-app-wfv1.onrender.com',
-    ],
-    // origin: ['*'],
+    // origin: [
+    //   'http://localhost:5173',
+    //   'http://192.168.0.133:5173',
+    //   'http://localhost:4173',
+    //   'http://192.168.83.111:5173',
+    //   'https://task-app-wfv1.onrender.com',
+    // ],
+    origin: ['*'],
     credentials: true,
   }),
 );
