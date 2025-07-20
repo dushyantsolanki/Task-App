@@ -3,6 +3,7 @@ import authRoute from './auth.route.js';
 import calendarRoute from './calendar.route.js';
 import notificationRoute from './notification.route.js';
 import taskRoute from './task.route.js';
+import portfolioRoute from './portfolio.route.js';
 import { notificationTest, saveUserToken } from '../controllers/public.controller.js';
 
 const router = express.Router();
@@ -14,6 +15,7 @@ router.use('/auth', authRoute);
 router.use('/calendar', calendarRoute);
 router.use('/notification', notificationRoute);
 router.use('/task', taskRoute);
+router.use('/portfolio', portfolioRoute);
 
 // public apis
 router.post('/firebase/:id/token', saveUserToken);

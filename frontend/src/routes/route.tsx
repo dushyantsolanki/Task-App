@@ -33,7 +33,7 @@ export const routes: RouteConfig[] = [
     layout: AuthLayout,
     guard: PublicOnlyRoute,
     children: [
-      { path: '/', element: <Navigate to='/login'></Navigate> },
+      { path: '/', element: <Navigate to='/login' /> },
       { path: "/login", element: <LoginForm /> },
       { path: "/register", element: <RegisterForm /> },
       { path: "/verify-otp", element: <OtpVerifyForm /> },

@@ -20,7 +20,7 @@ import puppeteer from 'puppeteer';
 import { Builder, By } from 'selenium-webdriver';
 import { runGroqSearchQA } from './configs/langchai.config.js';
 import chrome from 'selenium-webdriver/chrome.js';
-import Task from './models/task.js';
+import { Task } from './models/index.js';
 import { faker } from '@faker-js/faker';
 // passport configurations
 configurePassport();

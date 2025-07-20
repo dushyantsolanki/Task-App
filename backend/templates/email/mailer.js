@@ -4,6 +4,7 @@ import resendOTPTemplate from './resendOTPTemplate.js';
 import dotenv from 'dotenv';
 import { forgotPassTemplate } from './forgotPassTemplate.js';
 import logger from '../../configs/pino.config.js';
+import portfolioQueryTemplate from './portfolioQueryTemplate.js';
 dotenv.config();
 
 const transporter = nodemailer.createTransport({
@@ -27,6 +28,9 @@ const sendVerificationMail = async (to, surname, OTP, expiredIn, purpose) => {
   if (purpose === 'forgot_password') {
     html = forgotPassTemplate(surname, OTP, expiredIn);
   }
+  if (purpose === 'portfolio_query') {
+    html = portfolioQueryTemplate(name, message);
+  }
 
   const mailOptions = {
     from: '"Take Mate" <' + process.env.EMAIL_USER + '>',
@@ -46,4 +50,29 @@ const sendVerificationMail = async (to, surname, OTP, expiredIn, purpose) => {
   }
 };
 
-export { sendVerificationMail };
+const sendPortfolioQueryMail = async (name, to, message, purpose) => {
+  let html;
+
+  if (purpose === 'portfolio_query') {
+    html = portfolioQueryTemplate(to, name, message);
+  }
+
+  const mailOptions = {
+    from: '"Take Mate" <' + process.env.EMAIL_USER + '>',
+    to,
+    subject: 'Portfolio Contact',
+    html,
+  };
+
+  try {
+    const info = await transporter.sendMail(mailOptions);
+    logger.info({ func: 'sendPortfolioQueryMail', message: `${info.response}` });
+
+    return info;
+  } catch (err) {
+    logger.error(err, 'Error in sendPortfolioQueryMail');
+    throw err;
+  }
+};
+
+export { sendVerificationMail, sendPortfolioQueryMail };

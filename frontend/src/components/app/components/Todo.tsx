@@ -48,8 +48,9 @@ import { toast } from "sonner";
 import AxiousInstance from "@/helper/AxiousInstance";
 
 // Define interfaces
-interface Payment {
+interface Todo {
     _id?: string;
+    taskId: string,
     status: "pending" | "processing" | "success" | "failed";
     title?: string;
     description?: string;
@@ -76,8 +77,8 @@ const validationSchema = Yup.object({
 
 export function Todo() {
     const [sorting, setSorting] = React.useState<SortingState>([]);
-    const [tableData, setTableData] = React.useState<Payment[]>([]);
-    const [initialValues, setInitialValues] = React.useState<Payment | null>(null);
+    const [tableData, setTableData] = React.useState<Todo[]>([]);
+    const [initialValues, setInitialValues] = React.useState<Todo | null>(null);
     const [isSheetOpen, setIsSheetOpen] = React.useState(false);
 
     const [isEdit, setIsEdit] = React.useState(false);
@@ -92,7 +93,7 @@ export function Todo() {
         },
         validationSchema,
         enableReinitialize: true,
-        onSubmit: (values) => {
+        onSubmit: (values: any) => {
             handleAddTask(values, isEdit);
         },
     });
@@ -110,7 +111,7 @@ export function Todo() {
         }
     }
 
-    const addTask = async (task: Partial<Payment>) => {
+    const addTask = async (task: Partial<Todo>) => {
         try {
             const response = await AxiousInstance.post('/task', task);
             if (response.status === 201) {
@@ -121,12 +122,12 @@ export function Todo() {
             toast.error(error.response.data.message || "Failed to add task");
         }
     };
-    const updateTask = async (task: Payment) => {
+    const updateTask = async (task: Todo) => {
         try {
-            const response = await AxiousInstance.put(`/task/${task._id}`, task);
+            const response = await AxiousInstance.put(`/task/${task.taskId}`, task);
             if (response.status === 200) {
                 setTableData((prev) =>
-                    prev.map((item) => (item._id === task._id ? { ...item, ...task } : item))
+                    prev.map((item) => (item.taskId === task.taskId ? { ...item, ...task } : item))
                 );
                 toast.success(response.data.message || "Task updated successfully");
             }
@@ -169,9 +170,9 @@ export function Todo() {
     };
 
     // Define columns
-    const columns: ColumnDef<Payment>[] = [
+    const columns: ColumnDef<Todo>[] = [
         {
-            accessorKey: "_id",
+            accessorKey: "taskId",
             header: ({ column }) => (
                 <Button
                     variant="ghost"
@@ -182,7 +183,7 @@ export function Todo() {
                 </Button>
             ),
             cell: ({ row }: { row: any }) => (
-                <div className="font-medium text-primary">Task {row.getValue("_id").slice(-5)}</div>
+                <div className="font-medium text-primary"> {row.getValue("taskId")}</div>
             ),
         },
         {
@@ -282,10 +283,10 @@ export function Todo() {
         },
     });
 
-    const handleAddTask = (values: Payment, isEdit = false) => {
+    const handleAddTask = (values: Todo, isEdit = false) => {
         if (isEdit && initialValues) {
 
-            updateTask({ ...values, "_id": initialValues._id });
+            updateTask({ ...values, "taskId": initialValues.taskId });
         } else {
             addTask(values)
         }
@@ -295,8 +296,8 @@ export function Todo() {
     };
 
 
-    const handleRowClick = (task: Payment, columnId: string) => {
-        if (columnId === "_id" || columnId === "title") {
+    const handleRowClick = (task: Todo, columnId: string) => {
+        if (columnId === "taskId" || columnId === "title") {
             setInitialValues(task);
             setIsSheetOpen(true);
             setIsEdit(true);
@@ -368,7 +369,7 @@ export function Todo() {
                                                 value={formik.values.title}
                                                 onChange={formik.handleChange}
                                                 onBlur={formik.handleBlur}
-                                                error={formik.touched.title && formik.errors.title}
+                                                error={formik.touched.title && formik.errors.title as string}
                                             />
 
                                         </div>
@@ -381,7 +382,7 @@ export function Todo() {
                                                 value={formik.values.description}
                                                 onChange={formik.handleChange}
                                                 onBlur={formik.handleBlur}
-                                                error={formik.touched.description && formik.errors.description}
+                                                error={formik.touched.description && formik.errors.description as string}
                                             />
                                         </div>
                                         <div>
@@ -395,7 +396,7 @@ export function Todo() {
                                                 value={formik.values.label}
                                                 onChange={formik.handleChange}
                                                 onBlur={formik.handleBlur}
-                                                error={formik.touched.label && formik.errors.label}
+                                                error={formik.touched.label && formik.errors.label as string}
                                             />
 
                                         </div>
@@ -407,7 +408,7 @@ export function Todo() {
                                                 name="status"
                                                 value={formik.values.status}
                                                 onValueChange={(value) =>
-                                                    formik.setFieldValue("status", value as Payment["status"])
+                                                    formik.setFieldValue("status", value as Todo["status"])
                                                 }
                                             >
                                                 <SelectTrigger className={`${formik.touched.status && formik.errors.status ? 'border-red-500' : ''} w-full py-[21px]  `}>
@@ -421,7 +422,7 @@ export function Todo() {
                                                 </SelectContent>
                                             </Select>
                                             {formik.touched.status && formik.errors.status && (
-                                                <p className="mt-1 text-sm text-destructive">{formik.errors.status}</p>
+                                                <p className="mt-1 text-sm text-destructive">{formik.errors.status as string}</p>
                                             )}
                                         </div>
                                         <div>
@@ -432,7 +433,7 @@ export function Todo() {
                                                 name="priority"
                                                 value={formik.values.priority}
                                                 onValueChange={(value) =>
-                                                    formik.setFieldValue("priority", value as Payment["priority"])
+                                                    formik.setFieldValue("priority", value as Todo["priority"])
                                                 }
                                             >
                                                 <SelectTrigger className={`${formik.touched.priority && formik.errors.priority ? 'border-red-500' : ''} w-full py-[21px]  `}>
@@ -445,7 +446,7 @@ export function Todo() {
                                                 </SelectContent>
                                             </Select>
                                             {formik.touched.priority && formik.errors.priority && (
-                                                <p className="mt-1 text-sm text-destructive">{formik.errors.priority}</p>
+                                                <p className="mt-1 text-sm text-destructive">{formik.errors.priority as string}</p>
                                             )}
                                         </div>
                                         <Button type="submit" className="w-full">

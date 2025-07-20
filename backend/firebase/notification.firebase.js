@@ -1,6 +1,6 @@
 import logger from '../configs/pino.config.js';
 import { User } from '../models/index.js';
-import admin from 'firebase-admin';
+import { admin } from '../configs/firebase.config.js';
 
 /**
  * Send FCM notification based on mode

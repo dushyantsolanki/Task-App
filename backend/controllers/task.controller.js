@@ -3,6 +3,7 @@ import ExcelJS from 'exceljs';
 import logger from '../configs/pino.config.js';
 import { Task } from '../models/index.js';
 import { sendTaskUpdate } from '../sockets/events/task.event.js';
+import { getNextSequence } from '../utils/utils.js';
 
 export const getTasks = async (req, res) => {
   try {
@@ -23,12 +24,15 @@ export const createTask = async (req, res) => {
     const { userId } = req.user;
     const { title, description, label, status, priority } = req.body;
 
+    const counter = await getNextSequence('Task');
+
     const task = await Task.create({
       title,
       description,
       label,
       status,
       priority,
+      taskId: 'Task - ' + counter,
       createdBy: userId,
     });
 
@@ -46,8 +50,8 @@ export const updateTask = async (req, res) => {
     const { id } = req.params;
     const updates = req.body;
 
-    const task = await Task.findByIdAndUpdate(
-      id,
+    const task = await Task.findOneAndUpdate(
+      { taskId: id },
       { ...updates, createdBy: userId },
       { new: true, runValidators: true },
     );
@@ -82,7 +86,7 @@ export const deleteTask = async (req, res) => {
 
 export const exportTasksToExcel = async (req, res) => {
   try {
-    const { userId } = req.user; // assuming req.user is populated via auth middleware
+    const { userId } = req.user;
 
     // Fetch tasks
     const tasks = await Task.find({ createdBy: userId, isDeleted: false }).populate(
