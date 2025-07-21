@@ -38,10 +38,10 @@ export default function (name, message) {
     <!-- Footer -->
     <div style="padding: 20px 24px; border-top: 1px solid #e5e7eb; text-align: center; background-color: #f9fafb; border-radius: 0 0 8px 8px;">
       <p style="margin: 0; font-size: 12px; color: #6b7280;">
-        This is an automated response from [Your Name]'s portfolio contact system
+        This is an automated response from Dushyant's portfolio contact system
       </p>
       <p style="margin: 8px 0 0; font-size: 12px; color: #6b7280;">
-        For immediate assistance, email <a href="mailto:your-email@example.com" style="color: #2563eb; text-decoration: none;">your-email@example.com</a>
+        For immediate assistance, email <a href="mailto:dushyantsolanki.dev@gmail.com" style="color: #2563eb; text-decoration: none;">dushyantsolanki.dev@gmail.com</a>
       </p>
     </div>
     
