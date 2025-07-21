@@ -4,6 +4,7 @@ import resendOTPTemplate from './resendOTPTemplate.js';
 import dotenv from 'dotenv';
 import { forgotPassTemplate } from './forgotPassTemplate.js';
 import logger from '../../configs/pino.config.js';
+import portfolioQueryCopyTemplate from './portfolioQueryCopyTemplate.js';
 import portfolioQueryTemplate from './portfolioQueryTemplate.js';
 dotenv.config();
 
@@ -52,17 +53,27 @@ const sendVerificationMail = async (to, surname, OTP, expiredIn, purpose) => {
 
 const sendPortfolioQueryMail = async (name, to, message, purpose) => {
   let html;
+  let mailOptions;
 
-  if (purpose === 'portfolio_query') {
-    html = portfolioQueryTemplate(to, name, message);
+  if (purpose === 'portfolio_query_copy') {
+    mailOptions = {
+      from: '"Take Mate" <' + process.env.EMAIL_USER + '>',
+      to,
+      subject: 'Portfolio Contact',
+      html,
+    };
+    html = portfolioQueryCopyTemplate(name, message);
   }
 
-  const mailOptions = {
-    from: '"Take Mate" <' + process.env.EMAIL_USER + '>',
-    to,
-    subject: 'Portfolio Contact',
-    html,
-  };
+  if (purpose === 'portfolio_query') {
+    mailOptions = {
+      from: to,
+      to: '"Take Mate" <' + process.env.EMAIL_USER + '>',
+      subject: 'Portfolio Contact',
+      html,
+    };
+    html = portfolioQueryTemplate(to, name, message);
+  }
 
   try {
     const info = await transporter.sendMail(mailOptions);

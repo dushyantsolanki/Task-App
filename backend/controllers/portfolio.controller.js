@@ -12,10 +12,26 @@ export const createQuery = async (req, res) => {
       message,
     });
 
-    const emailResponse = await sendPortfolioQueryMail(fullName, email, message, 'portfolio_query'); // Send email
-    if (!emailResponse?.messageId) {
+    const emailResponse1 = await sendPortfolioQueryMail(
+      fullName,
+      email,
+      message,
+      'portfolio_query_copy',
+    ); // Send email
+    if (!emailResponse1?.messageId) {
       return res.status(500).json({ success: false, message: 'Failed to send email' });
     }
+
+    const emailResponse2 = await sendPortfolioQueryMail(
+      fullName,
+      email,
+      message,
+      'portfolio_query',
+    ); // Send email
+    if (!emailResponse2?.messageId) {
+      return res.status(500).json({ success: false, message: 'Failed to send email' });
+    }
+
     return res.status(201).json({ success: true, message: 'Query submitted successfully' });
   } catch (err) {
     logger.error(err, 'Error in createQuery');
