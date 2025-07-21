@@ -17,7 +17,7 @@ export const createQuery = async (req, res) => {
       email,
       message,
       'portfolio_query_copy',
-    ); // Send email
+    );
     if (!emailResponse1?.messageId) {
       return res.status(500).json({ success: false, message: 'Failed to send email' });
     }
@@ -27,7 +27,7 @@ export const createQuery = async (req, res) => {
       email,
       message,
       'portfolio_query',
-    ); // Send email
+    );
     if (!emailResponse2?.messageId) {
       return res.status(500).json({ success: false, message: 'Failed to send email' });
     }
@@ -51,7 +51,7 @@ export const getVisitor = async (req, res) => {
     await visit.save();
 
     return res.status(200).json({ success: true, visit: visit.count });
-  } catch (error) {
+  } catch (err) {
     logger.error(err, 'Error in getVisitor');
     return res.status(400).json({ success: false, message: err.message });
   }

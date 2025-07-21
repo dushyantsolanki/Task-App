@@ -32,14 +32,7 @@ export default function (name, message) {
       <p style="margin: 0 0 24px; font-size: 16px; line-height: 1.5;">
         I’ll review your message and get back to you as soon as possible, typically within 1-2 business days. If your matter is urgent, please feel free to send a follow-up email.
       </p>
-      
-      <!-- Call to Action -->
-      <div style="text-align: center;">
-        <a href="mailto:your-email@example.com?subject=Follow-up: Contact Form Submission" 
-           style="display: inline-block; padding: 12px 24px; background-color: #2563eb; color: #ffffff; text-decoration: none; border-radius: 6px; font-weight: 600; font-size: 16px;">
-          Send a Follow-up
-        </a>
-      </div>
+    
     </div>
     
     <!-- Footer -->

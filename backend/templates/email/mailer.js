@@ -56,23 +56,23 @@ const sendPortfolioQueryMail = async (name, to, message, purpose) => {
   let mailOptions;
 
   if (purpose === 'portfolio_query_copy') {
+    html = portfolioQueryCopyTemplate(name, message);
     mailOptions = {
-      from: '"Take Mate" <' + process.env.EMAIL_USER + '>',
+      from: '"Dushyant Portfolio" <' + process.env.EMAIL_USER + '>',
       to,
       subject: 'Portfolio Contact',
       html,
     };
-    html = portfolioQueryCopyTemplate(name, message);
   }
 
   if (purpose === 'portfolio_query') {
+    html = portfolioQueryTemplate(to, name, message);
     mailOptions = {
-      from: to,
-      to: '"Take Mate" <' + process.env.EMAIL_USER + '>',
+      from: '"Dushyant Portfolio" <' + process.env.EMAIL_USER + '>',
+      to: 'dushyantsolanki.dev@gmail.com',
       subject: 'Portfolio Contact',
       html,
     };
-    html = portfolioQueryTemplate(to, name, message);
   }
 
   try {
