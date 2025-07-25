@@ -16,10 +16,10 @@ import './crons/calendar.jobs.js';
 import Notification from './models/notification.model.js';
 import path from 'path';
 // import { ai } from './configs/genkit.config.js';
-import puppeteer from 'puppeteer';
-import { Builder, By } from 'selenium-webdriver';
+import puppeteer, { executablePath } from 'puppeteer';
+// import { Builder, By } from 'selenium-webdriver';
 import { runGroqSearchQA } from './configs/langchai.config.js';
-import chrome from 'selenium-webdriver/chrome.js';
+// import chrome from 'selenium-webdriver/chrome.js';
 import { Task } from './models/index.js';
 import { faker } from '@faker-js/faker';
 // passport configurations
@@ -201,6 +201,7 @@ function getRandomUserAgent() {
 async function scrapeFullPage(url) {
   const browser = await puppeteer.launch({
     headless: true,
+    executablePath: executablePath(),
     args: ['--no-sandbox', '--disable-setuid-sandbox'],
   });
 
