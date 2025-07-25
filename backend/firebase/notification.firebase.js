@@ -19,6 +19,7 @@ export const sendFirebaseNotification = async ({
   title,
   body,
   imageUrl,
+  pageLink,
 }) => {
   try {
     let tokens = [];
@@ -61,6 +62,11 @@ export const sendFirebaseNotification = async ({
     const message = {
       notification: { title, body, ...(imageUrl && { image: imageUrl }) },
       tokens,
+      webpush: {
+        fcm_options: {
+          link: `${pageLink}`,
+        },
+      },
     };
 
     const response = await admin.messaging().sendEachForMulticast(message);

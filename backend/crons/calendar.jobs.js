@@ -37,6 +37,7 @@ cron.schedule('* * * * *', async () => {
           timeZone: 'Asia/Kolkata',
         })}`,
         imageUrl: 'https://i.ibb.co/wFTKB6gw/Calendar-and-Bell-Icons-Lit-Vibrantly.png',
+        pageLink: '/dashboard',
       });
 
       /* 
