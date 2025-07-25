@@ -197,99 +197,72 @@ function getRandomUserAgent() {
   return userAgents[Math.floor(Math.random() * userAgents.length)];
 }
 
-// Main Function
+// Scrape full page content, images, and videos from a URL
 async function scrapeFullPage(url) {
-  const userAgent = getRandomUserAgent();
-
-  const options = new chrome.Options();
-  options.addArguments(
-    `--user-agent=${userAgent}`,
-    '--disable-blink-features=AutomationControlled',
-    '--disable-infobars',
-    '--disable-gpu',
-    '--no-sandbox',
-    '--disable-dev-shm-usage',
-    '--headless=new',
-    '--blink-settings=imagesEnabled=false', // Disable images to speed up loading
-    '--disable-javascript', // Disable JavaScript if not needed for content
-  );
-
-  const driver = await new Builder().forBrowser('chrome').setChromeOptions(options).build();
-
-  try {
-    await driver.get(url);
-    await driver.sleep(3000);
-
-    const body = await driver.findElement(By.tagName('body'));
-    const content = await body.getText();
-
-    const imageElements = await driver.findElements(By.css('img'));
-    const imageUrls = [];
-
-    for (const img of imageElements) {
-      const src = await img.getAttribute('src');
-      const alt = await img.getAttribute('alt');
-      const width = parseInt((await img.getAttribute('width')) || '0', 10);
-      const height = parseInt((await img.getAttribute('height')) || '0', 10);
-
-      if (
-        !src ||
-        src.startsWith('data:') ||
-        !src.startsWith('http') ||
-        width < 50 ||
-        height < 50 ||
-        /(sprite|logo|icon|arrow|ads|blank|pixel)/i.test(src) ||
-        (alt && /(icon|logo|arrow|social)/i.test(alt))
-      ) {
-        continue;
-      }
-
-      imageUrls.push(src);
-    }
-
-    const videoUrls = [];
-
-    const videoElements = await driver.findElements(By.css('video source, video'));
-    for (const vid of videoElements) {
-      const src = await vid.getAttribute('src');
-      if (src && src.startsWith('http')) {
-        videoUrls.push(src);
-      }
-    }
-
-    const iframeElements = await driver.findElements(By.css('iframe'));
-    for (const iframe of iframeElements) {
-      const src = await iframe.getAttribute('src');
-      if (
-        src &&
-        (src.includes('youtube.com/embed') ||
-          src.includes('player.vimeo.com') ||
-          src.includes('dailymotion.com/embed'))
-      ) {
-        videoUrls.push(src);
-      }
-    }
-
-    return { content, images: imageUrls, videos: videoUrls };
-  } catch (error) {
-    console.error('Error scraping full page:', error);
-    return { content: '', images: [], videos: [] };
-  } finally {
-    await driver.quit();
-  }
-}
-
-async function scrapeBing(query) {
   const browser = await puppeteer.launch({
-    headless: 'new',
+    headless: true,
     args: ['--no-sandbox', '--disable-setuid-sandbox'],
   });
+
+  const page = await browser.newPage();
+  await page.goto(url, { waitUntil: 'domcontentloaded', timeout: 30000 });
+
+  const content = await page.evaluate(() => document.body.innerText);
+
+  // Extract images
+  const images = await page.evaluate(() => {
+    return Array.from(document.querySelectorAll('img'))
+      .map((img) => ({
+        src: img.src,
+        alt: img.alt,
+        width: img.width,
+        height: img.height,
+      }))
+      .filter(
+        (img) =>
+          img.src &&
+          img.src.startsWith('http') &&
+          img.width > 50 &&
+          img.height > 50 &&
+          !/sprite|icon|logo|arrow|ads|pixel|blank/i.test(img.src) &&
+          !/icon|logo|social/i.test(img.alt),
+      )
+      .map((img) => img.src);
+  });
+
+  // Extract videos
+  const videos = await page.evaluate(() => {
+    const videoSources = Array.from(document.querySelectorAll('video source, video'))
+      .map((v) => v.src)
+      .filter(Boolean);
+    const iframeVideos = Array.from(document.querySelectorAll('iframe'))
+      .map((i) => i.src)
+      .filter(
+        (src) =>
+          src.includes('youtube.com/embed') ||
+          src.includes('player.vimeo.com') ||
+          src.includes('dailymotion.com/embed'),
+      );
+    return [...videoSources, ...iframeVideos];
+  });
+
+  await browser.close();
+  return { content, images, videos };
+}
+
+// Scrape Bing search results
+async function scrapeBing(query) {
+  const browser = await puppeteer.launch({
+    headless: true,
+    args: ['--no-sandbox', '--disable-setuid-sandbox'],
+  });
+
   const page = await browser.newPage();
   await page.setUserAgent(
     'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 Chrome/120 Safari/537.36',
   );
   await page.goto(`https://www.bing.com/search?q=${encodeURIComponent(query)}`, {
-    waitUntil: 'networkidle2', // use this for better load reliability
+    waitUntil: 'networkidle2',
     timeout: 30000,
   });
 
@@ -300,7 +273,6 @@ async function scrapeBing(query) {
       const link = h2?.querySelector('a')?.href;
       const title = h2?.innerText || '';
       const snippet = el.querySelector('p')?.innerText || '';
-
       if (link && title) {
         const domain = new URL(link).hostname.replace('www.', '');
         const favicon = `https://www.google.com/s2/favicons?sz=64&domain_url=${link}`;
@@ -325,9 +297,9 @@ app.get('/api/overview', async (req, res) => {
       return res.status(404).json({ error: 'No search results found' });
     }
 
-    const firstResultUrl = sources[0].link;
-
-    const { content, images, videos } = await scrapeFullPage(firstResultUrl);
+    // Run 3 scrapes in parallel, take the first one that finishes
+    const scrapePromises = sources.slice(0, 3).map((s) => scrapeFullPage(s.link));
+    const { content, images, videos } = await Promise.any(scrapePromises);
 
     const summary = await runGroqSearchQA(content, q);
 
