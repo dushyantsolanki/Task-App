@@ -33,9 +33,10 @@ cron.schedule('* * * * *', async () => {
         mode: 'creator',
         creatorId: event.createdBy?.toString(),
         title: 'Event Reminder',
-        body: `Your event "${event.title}" starts at ${event.start.toLocaleTimeString()}`,
-        imageUrl:
-          'https://www.shutterstock.com/image-photo/label-word-open-sample-shop-260nw-346535579.jpg',
+        body: `Your event "${event.title}" starts at ${event.start.toLocaleTimeString('en-IN', {
+          timeZone: 'Asia/Kolkata',
+        })}`,
+        imageUrl: 'https://i.ibb.co/wFTKB6gw/Calendar-and-Bell-Icons-Lit-Vibrantly.png',
       });
 
       /* 
