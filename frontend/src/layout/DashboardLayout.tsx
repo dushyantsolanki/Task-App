@@ -14,9 +14,11 @@ import {
 import { Outlet } from "react-router-dom"
 import { useAuthStore } from "@/store/authStore"
 import Notification from "@/components/app/components/Notification"
+import { ThemeSwitcher } from "@/components/app/components/ThemeSwitcher"
 
 
-export default function Page() {
+
+export default function DashboardLayout() {
     const { user } = useAuthStore()
     return (
         <SidebarProvider>
@@ -30,22 +32,25 @@ export default function Page() {
 
                     {/* Right side content */}
                     <div className="ml-auto flex items-center gap-2 sm:gap-4 pr-4">
+                        <ThemeSwitcher />
 
                         {/* Notifications */}
                         <Notification />
+
                         {/* User Profile */}
                         <div className="flex items-center gap-2 mr-2">
                             <div className="hidden sm:block text-right">
                                 <div className="text-sm font-medium leading-none">{user.name}</div>
                                 <div className="text-xs text-muted-foreground mt-1">{user.role}</div>
                             </div>
-
                             <Avatar className="h-12 w-12">
                                 <AvatarImage src={user?.avatar || ''} alt={user?.name || ''} />
                                 <AvatarFallback>
                                     {user?.name?.split(' ').map(n => n[0]).join('').toUpperCase()}
                                 </AvatarFallback>
                             </Avatar>
+
+
 
                         </div>
                     </div>
