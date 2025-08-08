@@ -28,11 +28,13 @@ export default function LoginForm({
 }: React.ComponentPropsWithoutRef<"form">) {
     const { login } = useAuthStore()
     const { connect } = useSocket();
+    const [loading, setLoading] = useState(false)
     const [showPassword, setShowPassword] = useState(false)
     const navigate = useNavigate()
 
     const signInWithGoogle = async () => {
         try {
+            setLoading(true)
             const result = await signInWithPopup(auth, googleProvider);
             const idToken = await result.user.getIdToken();
 
@@ -57,9 +59,13 @@ export default function LoginForm({
             console.error("Frontend Google login failed:", error);
             toast.error(error.response.data.message || "Internal server error")
         }
+        finally {
+            setLoading(false)
+        }
     };
     const signInWithGithub = async () => {
         try {
+            setLoading(true)
             const result = await signInWithPopup(auth, githubProvider);
             const idToken = await result.user.getIdToken();
 
@@ -83,6 +89,9 @@ export default function LoginForm({
         } catch (error: any) {
             console.error("Frontend Github login failed:", error);
             toast.error(error.response.data.message || "Internal server error")
+        }
+        finally {
+            setLoading(false)
         }
     };
 
@@ -192,11 +201,11 @@ export default function LoginForm({
                 {/* Google Login Button */}
                 <Button
                     variant="outline"
-                    className="w-full md:w-1/2 flex items-center justify-center "
+                    className="w-full md:w-1/2 flex items-center justify-center"
                     onClick={signInWithGoogle}
                 >
                     <svg
-                        className="h-5 w-5"
+                        className={`h-5 w-5 ${loading ? 'animate-spin' : ''}`}
                         xmlns="http://www.w3.org/2000/svg"
                         viewBox="0 0 48 48"
                     >
@@ -229,7 +238,7 @@ export default function LoginForm({
                     <svg
                         xmlns="http://www.w3.org/2000/svg"
                         viewBox="0 0 24 24"
-                        className="h-5 w-5"
+                        className={`h-5 w-5 ${loading ? 'animate-spin' : ''}`}
                         fill="currentColor"
                     >
                         <path
