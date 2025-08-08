@@ -43,14 +43,14 @@ export default function RegisterForm({
 }: React.ComponentPropsWithoutRef<"form">) {
     const [, setValue] = useLocalStorage("email", "");
     const navigate = useNavigate()
-    const [loading, setLoading] = useState(false)
+    const [loading, setLoading] = useState({ google: false, github: false })
     const [showPassword, setShowPassword] = useState(false)
     const { login } = useAuthStore()
     const { connect } = useSocket();
 
     const signInWithGoogle = async () => {
         try {
-            setLoading(true)
+            setLoading({ ...loading, google: true })
             const result = await signInWithPopup(auth, googleProvider);
             const idToken = await result.user.getIdToken();
 
@@ -76,12 +76,12 @@ export default function RegisterForm({
             toast.error(error.response.data.message || "Internal server error")
         }
         finally {
-            setLoading(false)
+            setLoading({ ...loading, google: false })
         }
     };
     const signInWithGithub = async () => {
         try {
-            setLoading(true)
+            setLoading({ ...loading, github: true })
             const result = await signInWithPopup(auth, githubProvider);
             const idToken = await result.user.getIdToken();
 
@@ -107,7 +107,7 @@ export default function RegisterForm({
             toast.error(error.response.data.message || "Internal server error")
         }
         finally {
-            setLoading(false)
+            setLoading({ ...loading, github: false })
         }
     };
 
@@ -272,7 +272,7 @@ export default function RegisterForm({
                     onClick={signInWithGoogle}
                 >
                     <svg
-                        className={`h-5 w-5 ${loading ? 'animate-spin' : ''}`}
+                        className={`h-5 w-5 ${loading.google ? 'animate-spin' : ''}`}
                         xmlns="http://www.w3.org/2000/svg"
                         viewBox="0 0 48 48"
                     >
@@ -305,7 +305,7 @@ export default function RegisterForm({
                     <svg
                         xmlns="http://www.w3.org/2000/svg"
                         viewBox="0 0 24 24"
-                        className={`h-5 w-5 ${loading ? 'animate-spin' : ''}`}
+                        className={`h-5 w-5 ${loading.github ? 'animate-spin' : ''}`}
                         fill="currentColor"
                     >
                         <path
