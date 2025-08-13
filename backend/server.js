@@ -279,16 +279,9 @@ async function scrapeFullPage(url) {
   }
 }
 
-async function getChromePath() {
-  // Ye dynamically Puppeteer ke install path ko detect karega
-  return puppeteer.executablePath('chrome');
-}
-
 async function scrapeBing(query) {
-  const chromePath = await getChromePath();
   const browser = await puppeteer.launch({
     headless: 'new',
-    executablePath: chromePath,
     args: ['--no-sandbox', '--disable-setuid-sandbox'],
   });
   const page = await browser.newPage();
