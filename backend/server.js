@@ -280,9 +280,11 @@ async function scrapeFullPage(url) {
 }
 
 async function scrapeBing(query) {
+  console.log('PUPPITER PATH :: ', puppeteer.executablePath('chrome'));
   const browser = await puppeteer.launch({
     headless: 'new',
     args: ['--no-sandbox', '--disable-setuid-sandbox'],
+    executablePath: puppeteer.executablePath(),
   });
   const page = await browser.newPage();
   await page.setUserAgent(
