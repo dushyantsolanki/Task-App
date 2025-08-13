@@ -279,10 +279,16 @@ async function scrapeFullPage(url) {
   }
 }
 
+async function getChromePath() {
+  // Ye dynamically Puppeteer ke install path ko detect karega
+  return puppeteer.executablePath('chrome');
+}
+
 async function scrapeBing(query) {
+  const chromePath = await getChromePath();
   const browser = await puppeteer.launch({
     headless: 'new',
-    executablePath: '/opt/render/.cache/puppeteer/chrome/linux-138.0.7204.94/chrome-linux64/chrome',
+    executablePath: chromePath,
     args: ['--no-sandbox', '--disable-setuid-sandbox'],
   });
   const page = await browser.newPage();
