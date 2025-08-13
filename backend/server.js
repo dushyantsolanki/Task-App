@@ -280,12 +280,10 @@ async function scrapeFullPage(url) {
 }
 
 async function scrapeBing(query) {
-  console.log('PUPPITER PATH :: ', puppeteer.executablePath('chrome'));
   const browser = await puppeteer.launch({
     headless: 'new',
     executablePath: '/opt/render/.cache/puppeteer/chrome/linux-138.0.7204.94/chrome-linux64/chrome',
     args: ['--no-sandbox', '--disable-setuid-sandbox'],
-    executablePath: '/opt/render/.cache/puppeteer/chrome/linux-138.0.7204.94/chrome-linux64/chrome',
   });
   const page = await browser.newPage();
   await page.setUserAgent(
