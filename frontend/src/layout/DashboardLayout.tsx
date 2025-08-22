@@ -43,13 +43,13 @@ export default function DashboardLayout() {
                                 <div className="text-xs text-muted-foreground mt-1">{user.email}</div>
                             </div>
 
-                            <Avatar className="h-12 w-12 rounded-sm border flex items-center justify-center ">
+                            <Avatar className="h-12 w-12 rounded-full border flex items-center justify-center ">
                                 <AvatarImage
                                     src={user.avatar?.startsWith('https://') ? user.avatar : import.meta.env.VITE_IMAGE_BASE_URL + user.avatar}
                                     alt={user.name as any}
                                     className="object-contain max-w-full max-h-full"
                                 />
-                                <AvatarFallback className="rounded-sm">
+                                <AvatarFallback className="rounded-full">
                                     {user?.name?.split(' ').map(n => n[0]).join('').toUpperCase()}
                                 </AvatarFallback>
                             </Avatar>

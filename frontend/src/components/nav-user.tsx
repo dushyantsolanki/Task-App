@@ -48,13 +48,13 @@ export function NavUser({
               size="lg"
               className="data-[state=open]:bg-sidebar-accent data-[state=open]:text-sidebar-accent-foreground"
             >
-              <Avatar className="h-10 w-10 rounded-sm border flex items-center justify-center ">
+              <Avatar className="h-10 w-10 rounded-full border flex items-center justify-center ">
                 <AvatarImage
                   src={user.avatar?.startsWith('https://') ? user.avatar : import.meta.env.VITE_IMAGE_BASE_URL + user.avatar}
                   alt={user.name}
                   className="object-contain max-w-full max-h-full"
                 />
-                <AvatarFallback className="rounded-sm">
+                <AvatarFallback className="rounded-full">
                   {user.name.split(' ').map(n => n[0]).join('').toUpperCase()}
                 </AvatarFallback>
               </Avatar>
@@ -73,13 +73,13 @@ export function NavUser({
           >
             <DropdownMenuLabel className="p-0 font-normal">
               <div className="flex items-center gap-2 px-1 py-1.5 text-left text-sm">
-                <Avatar className="h-10 w-10 rounded-sm border flex items-center justify-center ">
+                <Avatar className="h-10 w-10 rounded-full border flex items-center justify-center ">
                   <AvatarImage
                     src={user.avatar?.startsWith('https://') ? user.avatar : import.meta.env.VITE_IMAGE_BASE_URL + user.avatar}
                     alt={user.name}
                     className="object-contain max-w-full max-h-full"
                   />
-                  <AvatarFallback className="rounded-sm">
+                  <AvatarFallback className="rounded-full">
                     {user.name.split(' ').map(n => n[0]).join('').toUpperCase()}
                   </AvatarFallback>
                 </Avatar>
