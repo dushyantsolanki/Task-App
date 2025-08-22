@@ -1,5 +1,4 @@
 import { AppSidebar } from "@/components/app-sidebar"
-// import { XBreadcrumb } from "@/components/custom/XBreadcrumb"
 import {
     Avatar,
     AvatarFallback,
@@ -41,15 +40,19 @@ export default function DashboardLayout() {
                         <div className="flex items-center gap-2 mr-2">
                             <div className="hidden sm:block text-right">
                                 <div className="text-sm font-medium leading-none">{user.name}</div>
-                                <div className="text-xs text-muted-foreground mt-1">{user.role}</div>
+                                <div className="text-xs text-muted-foreground mt-1">{user.email}</div>
                             </div>
-                            <Avatar className="h-12 w-12">
-                                <AvatarImage src={user?.avatar || ''} alt={user?.name || ''} />
-                                <AvatarFallback>
+
+                            <Avatar className="h-12 w-12 rounded-sm border flex items-center justify-center ">
+                                <AvatarImage
+                                    src={user.avatar?.startsWith('https://') ? user.avatar : import.meta.env.VITE_IMAGE_BASE_URL + user.avatar}
+                                    alt={user.name as any}
+                                    className="object-contain max-w-full max-h-full"
+                                />
+                                <AvatarFallback className="rounded-sm">
                                     {user?.name?.split(' ').map(n => n[0]).join('').toUpperCase()}
                                 </AvatarFallback>
                             </Avatar>
-
 
 
                         </div>

@@ -203,9 +203,13 @@ export default function LoginForm({
                     variant="outline"
                     className="w-full md:w-1/2 flex items-center justify-center"
                     onClick={signInWithGoogle}
+                    disabled={loading.google}
                 >
-                    <svg
-                        className={`h-5 w-5 ${loading.google ? 'animate-spin' : ''}`}
+                    {loading.google ? <>
+                        <span className="mr-2 h-4 w-4 animate-spin rounded-full border-2 border-primary border-t-transparent"></span>
+                        Please wait...
+                    </> : <>   <svg
+                        className={`h-5 w-5`}
                         xmlns="http://www.w3.org/2000/svg"
                         viewBox="0 0 48 48"
                     >
@@ -226,7 +230,8 @@ export default function LoginForm({
                             d="M47.5 24c0-1.58-.14-3.11-.39-4.59H24v9.19h13.31c-.57 2.88-2.16 5.33-4.55 6.99l6.86 5.63C44.74 37.05 47.5 31.08 47.5 24z"
                         />
                     </svg>
-                    Login with Google
+                        Login with Google</>}
+
                 </Button>
 
                 {/* GitHub Login Button */}
@@ -234,15 +239,21 @@ export default function LoginForm({
                     variant="outline"
                     className="w-full md:w-1/2 flex items-center justify-center"
                     onClick={signInWithGithub}
+                    disabled={loading.github}
                 >
-                    <svg
-                        xmlns="http://www.w3.org/2000/svg"
-                        viewBox="0 0 24 24"
-                        className={`h-5 w-5 ${loading.github ? 'animate-spin' : ''}`}
-                        fill="currentColor"
-                    >
-                        <path
-                            d="M12 .297C5.373.297 0 5.67 0 12.297c0 5.303 3.438 
+
+                    {loading.github ? <>
+                        <span className="mr-2 h-4 w-4 animate-spin rounded-full border-2 border-primary border-t-transparent"></span>
+                        Please wait...
+                    </> : <>
+                        <svg
+                            xmlns="http://www.w3.org/2000/svg"
+                            viewBox="0 0 24 24"
+                            className={`h-5 w-5`}
+                            fill="currentColor"
+                        >
+                            <path
+                                d="M12 .297C5.373.297 0 5.67 0 12.297c0 5.303 3.438 
       9.8 8.205 11.385.6.113.82-.258.82-.577 
       0-.285-.01-1.04-.015-2.04-3.338.724-4.042-1.61-4.042-1.61C4.422 
       18.07 3.633 17.7 3.633 17.7c-1.087-.744.084-.729.084-.729 
@@ -260,9 +271,10 @@ export default function LoginForm({
       0 .315.21.69.825.57C20.565 
       22.092 24 17.592 24 12.297 
       24 5.67 18.627.297 12 .297z"
-                        />
-                    </svg>
-                    Login with GitHub
+                            />
+                        </svg>
+                        Login with GitHub</>}
+
                 </Button>
             </div>
 

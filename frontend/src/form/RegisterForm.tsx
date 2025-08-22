@@ -1,7 +1,7 @@
 import { cn } from "@/lib/utils"
 import { Button } from "@/components/ui/button"
 import { XInputField } from "@/components/custom/XInputField"
-import { Eye, EyeOff, Mail, User } from "lucide-react"
+import { Eye, EyeOff, Mail, User, Phone, Calendar } from "lucide-react"
 import { AnimatedShinyText } from "@/components/magicui/animated-shiny-text"
 import { Link, useNavigate } from "react-router-dom"
 import { Select, SelectContent, SelectGroup, SelectItem, SelectLabel, SelectTrigger, SelectValue } from "@/components/ui/select"
@@ -16,14 +16,14 @@ import { signInWithPopup } from "firebase/auth"
 import { auth, githubProvider, googleProvider } from "@/firebase/firebaseConfig"
 import { useAuthStore } from "@/store/authStore"
 import { useSocket } from "@/hooks/useSocket"
-// import { UseLocalStorage } from "@reactuses/core"
-
 
 interface Payload {
     firstname: string;
     surname: string;
     email: string;
     password: string;
+    dateOfBirth: string;
+    mobileNumber: string;
 }
 
 const RegisterSchema = Yup.object().shape({
@@ -35,6 +35,12 @@ const RegisterSchema = Yup.object().shape({
         .matches(/^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)/, "Password must contain uppercase, lowercase, and number")
         .required("Password is required"),
     gender: Yup.string().required("Gender is required"),
+    dateOfBirth: Yup.string()
+        .required("Date of birth is required")
+        .matches(/^\d{4}-\d{2}-\d{2}$/, "Date of birth must be in YYYY-MM-DD format"),
+    mobileNumber: Yup.string()
+        .required("Mobile number is required")
+        .matches(/^\+?\d{10,15}$/, "Mobile number must be 10-15 digits, optionally starting with +")
 });
 
 export default function RegisterForm({
@@ -111,7 +117,6 @@ export default function RegisterForm({
         }
     };
 
-
     const handleRegister = async (values: Payload) => {
         try {
             const response = await axios.post(`${import.meta.env.VITE_API_BASE_URL || 'https://task-mate-full-stack.onrender.com/api/v1'}/auth/register`,
@@ -122,7 +127,6 @@ export default function RegisterForm({
                 toast.warning("Registration successful, please verify your email")
                 setValue(values.email)
                 navigate('/verify-otp')
-
             }
         } catch (error: any) {
             toast.error(error.response.data.message || "Registration failed")
@@ -137,10 +141,13 @@ export default function RegisterForm({
             email: "",
             password: "",
             gender: "male",
+            dateOfBirth: "",
+            mobileNumber: "",
         },
         validationSchema: RegisterSchema,
         onSubmit: handleRegister
     });
+
     return (
         <>
             <FormikProvider value={formik}>
@@ -220,8 +227,36 @@ export default function RegisterForm({
                             error={formik.touched.password && formik.errors.password}
                         />
 
+                        <XInputField
+                            id="dateOfBirth"
+                            name="dateOfBirth"
+                            label="Date of Birth"
+                            type="date"
+                            className="h-11"
+                            placeholder="YYYY-MM-DD"
+                            icon={<Calendar size={20} />}
+                            value={formik.values.dateOfBirth}
+                            onChange={formik.handleChange}
+                            onBlur={formik.handleBlur}
+                            error={formik.touched.dateOfBirth && formik.errors.dateOfBirth}
+                        />
+
+                        <XInputField
+                            id="mobileNumber"
+                            name="mobileNumber"
+                            label="Mobile Number"
+                            type="tel"
+                            className="h-11"
+                            placeholder="+1234567890"
+                            icon={<Phone size={20} />}
+                            value={formik.values.mobileNumber}
+                            onChange={formik.handleChange}
+                            onBlur={formik.handleBlur}
+                            error={formik.touched.mobileNumber && formik.errors.mobileNumber}
+                        />
+
                         <div className="grid gap-2">
-                            <Label htmlFor="color">Gender</Label>
+                            <Label htmlFor="gender">Gender</Label>
                             <Select
                                 value={formik.values.gender}
                                 onValueChange={(value) => formik.setFieldValue("gender", value)}
@@ -264,15 +299,19 @@ export default function RegisterForm({
                     </div>
                 </Form>
             </FormikProvider>
-            <div className="my-6 flex flex-col justify-center md:flex-row gap-4">
+            <div className="my-6 flex flex-col md:flex-row gap-4">
                 {/* Google Login Button */}
                 <Button
                     variant="outline"
-                    className="w-full md:w-5/12 flex items-center justify-center "
+                    className="w-full md:w-1/2 flex items-center justify-center"
                     onClick={signInWithGoogle}
+                    disabled={loading.google}
                 >
-                    <svg
-                        className={`h-5 w-5 ${loading.google ? 'animate-spin' : ''}`}
+                    {loading.google ? <>
+                        <span className="mr-2 h-4 w-4 animate-spin rounded-full border-2 border-primary border-t-transparent"></span>
+                        Please wait...
+                    </> : <>   <svg
+                        className={`h-5 w-5`}
                         xmlns="http://www.w3.org/2000/svg"
                         viewBox="0 0 48 48"
                     >
@@ -293,23 +332,29 @@ export default function RegisterForm({
                             d="M47.5 24c0-1.58-.14-3.11-.39-4.59H24v9.19h13.31c-.57 2.88-2.16 5.33-4.55 6.99l6.86 5.63C44.74 37.05 47.5 31.08 47.5 24z"
                         />
                     </svg>
-                    Login with Google
+                        Login with Google</>}
+
                 </Button>
 
                 {/* GitHub Login Button */}
                 <Button
                     variant="outline"
-                    className="w-full md:w-5/12 flex items-center justify-center"
+                    className="w-full md:w-1/2 flex items-center justify-center"
                     onClick={signInWithGithub}
+                    disabled={loading.github}
                 >
-                    <svg
-                        xmlns="http://www.w3.org/2000/svg"
-                        viewBox="0 0 24 24"
-                        className={`h-5 w-5 ${loading.github ? 'animate-spin' : ''}`}
-                        fill="currentColor"
-                    >
-                        <path
-                            d="M12 .297C5.373.297 0 5.67 0 12.297c0 5.303 3.438 
+                    {loading.github ? <>
+                        <span className="mr-2 h-4 w-4 animate-spin rounded-full border-2 border-primary border-t-transparent"></span>
+                        Please wait...
+                    </> : <>
+                        <svg
+                            xmlns="http://www.w3.org/2000/svg"
+                            viewBox="0 0 24 24"
+                            className={`h-5 w-5`}
+                            fill="currentColor"
+                        >
+                            <path
+                                d="M12 .297C5.373.297 0 5.67 0 12.297c0 5.303 3.438 
       9.8 8.205 11.385.6.113.82-.258.82-.577 
       0-.285-.01-1.04-.015-2.04-3.338.724-4.042-1.61-4.042-1.61C4.422 
       18.07 3.633 17.7 3.633 17.7c-1.087-.744.084-.729.084-.729 
@@ -327,16 +372,15 @@ export default function RegisterForm({
       0 .315.21.69.825.57C20.565 
       22.092 24 17.592 24 12.297 
       24 5.67 18.627.297 12 .297z"
-                        />
-                    </svg>
-                    Login with GitHub
+                            />
+                        </svg>
+                        Login with GitHub</>}
                 </Button>
             </div>
 
             <div className="text-center text-sm">
                 Don&apos;t have an account?{" "}
                 <Link to='/login' className="underline underline-offset-4">Login</Link>
-
             </div>
         </>
     )

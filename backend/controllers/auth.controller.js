@@ -5,6 +5,8 @@ import { sendVerificationMail } from '../templates/email/mailer.js';
 import { generateAccessToken, generateOTP, generateRefreshToken } from '../utils/utils.js';
 import jwt from 'jsonwebtoken';
 import { verifyIdToken } from '../configs/firebase.config.js';
+import mongoose from 'mongoose';
+import fs from 'fs';
 
 const COOKIE_OPTIONS = {
   httpOnly: false,
@@ -29,7 +31,6 @@ export const loginWithGoogle = async (req, res) => {
       user = await User.create({
         email,
         name,
-
         authProvider: 'google',
         oauthId: uid,
         avatar: picture,
@@ -57,6 +58,11 @@ export const loginWithGoogle = async (req, res) => {
           email: user.email,
           avatar: user.avatar,
           role: user.role,
+          authProvider: user.authProvider,
+          gender: user.gender,
+          dateOfBirth: user,
+          dateOfBirth: user.dateOfBirth,
+          mobileNumber: user.mobileNumber,
         },
       });
   } catch (err) {
@@ -106,6 +112,11 @@ export const loginWithGitHub = async (req, res) => {
           email: user.email,
           avatar: user.avatar,
           role: user.role,
+          authProvider: user.authProvider,
+          gender: user.gender,
+          dateOfBirth: user,
+          dateOfBirth: user.dateOfBirth,
+          mobileNumber: user.mobileNumber,
         },
       });
   } catch (err) {
@@ -159,6 +170,11 @@ export const login = async (req, res) => {
           email: user.email,
           avatar: user.avatar,
           role: user.role,
+          authProvider: user.authProvider,
+          gender: user.gender,
+          dateOfBirth: user,
+          dateOfBirth: user.dateOfBirth,
+          mobileNumber: user.mobileNumber,
         },
       });
   } catch (err) {
@@ -212,7 +228,7 @@ export const refreshAccessToken = async (req, res) => {
 
 export const register = async (req, res) => {
   try {
-    const { firstname, surname, email, password, gender } = req.body;
+    const { firstname, surname, email, password, gender, dateOfBirth, mobileNumber } = req.body;
 
     const existingUser = await User.findOne({
       email,
@@ -233,6 +249,8 @@ export const register = async (req, res) => {
       password,
       gender,
       otp,
+      dateOfBirth,
+      mobileNumber,
       otpPurpose: 'verify_account',
       otpExpiry: new Date(Date.now() + 2 * 60 * 1000), // 2 min expiry
     });
@@ -433,6 +451,150 @@ export const logout = async (req, res) => {
       .json({ success: true, message: 'Logged out successfully' });
   } catch (err) {
     logger.error(err, 'Error in logout');
-    return res.status(403).json({ success: false, message: 'Invalid or expired token' });
+    return res
+      .status(500)
+      .json({ success: false, message: err.message || 'Internal Server Error' });
+  }
+};
+
+export const updateProfile = async (req, res) => {
+  try {
+    const { firstname, surname, email, gender, dateOfBirth, mobileNumber, avatar } = req.body;
+    const { id } = req.params;
+
+    if (!id) {
+      return res.status(400).json({ success: false, message: 'User ID is required.' });
+    }
+
+    const user = await User.findByIdAndUpdate(
+      id,
+      {
+        name: `${firstname} ${surname}`,
+        email,
+        gender,
+        dateOfBirth,
+        mobileNumber,
+        avatar,
+      },
+      { new: true, runValidators: true },
+    );
+
+    if (!user) {
+      return res.status(404).json({ success: false, message: 'User not found.' });
+    }
+
+    return res.status(200).json({
+      success: true,
+      message: 'Profile updated successfully.',
+      user: {
+        id: user._id,
+        name: user.name,
+        email: user.email,
+        avatar: user.avatar,
+        role: user.role,
+        authProvider: user.authProvider,
+        gender: user.gender,
+        dateOfBirth: user,
+        dateOfBirth: user.dateOfBirth,
+        mobileNumber: user.mobileNumber,
+      },
+    });
+  } catch (err) {
+    logger.error(err, 'Error in updateProfile');
+    return res.status(500).json({
+      success: false,
+      message: err.message || 'Internal Server Error',
+    });
+  }
+};
+
+export const updateProfilePicture = async (req, res) => {
+  try {
+    const userId = req.user.userId;
+    const file = req.file;
+
+    if (!file) {
+      return res.status(400).json({ message: 'No file uploaded' });
+    }
+
+    // Construct image path
+    const imagePath = `/medias/profiles/${file.filename}`;
+
+    if (fs.existsSync(imagePath)) {
+      fs.unlinkSync(imagePath);
+    }
+
+    await User.findByIdAndUpdate(new mongoose.Types.ObjectId(userId), { avatar: imagePath });
+
+    res.status(200).json({
+      sucess: true,
+      message: 'Profile updated successfully',
+      imagePath: imagePath,
+    });
+  } catch (err) {
+    res.status(500).json({ sucess: false, message: err.message });
+  }
+};
+
+let OTPExp = {};
+export const sendOTP = async (req, res) => {
+  try {
+    const { surname, email } = req.body;
+
+    const existingUser = await User.findOne({
+      email,
+      isVerified: true,
+      authProvider: 'local',
+      isDeleted: false,
+    });
+
+    if (existingUser) {
+      return res.status(400).json({ message: 'Email already in use' });
+    }
+    const otp = generateOTP();
+
+    OTPExp.otp = otp;
+    OTPExp.otpExpiry = new Date(Date.now() + 2 * 60 * 1000); // 2 min expiry
+
+    const emailResponse = await sendVerificationMail(email, surname, otp, 2, 'verify_account'); // Send OTP email
+    if (!emailResponse?.messageId) {
+      return res.status(500).json({ success: false, message: 'Failed to send verification email' });
+    }
+
+    return res.status(201).json({
+      success: true,
+      message: 'User registered. OTP sent to email for verification.',
+    });
+  } catch (err) {
+    logger.error(err, 'Error in register');
+    return res.status(500).json({ message: err.message });
+  }
+};
+
+export const verifyOTP = async (req, res) => {
+  try {
+    const { otp } = req.body;
+
+    if (!OTPExp.otp || !OTPExp.otpExpiry) {
+      return res.status(400).json({ success: false, message: 'No OTP has been generated.' });
+    }
+
+    if (new Date() > OTPExp.otpExpiry) {
+      OTPExp = {};
+      return res
+        .status(400)
+        .json({ success: false, message: 'OTP has expired. Please request a new one.' });
+    }
+
+    if (OTPExp.otp !== otp) {
+      return res.status(400).json({ success: false, message: 'Invalid OTP. Please try again.' });
+    }
+
+    OTPExp = {};
+
+    return res.status(200).json({ success: true, message: 'OTP verified successfully.' });
+  } catch (err) {
+    console.error(err);
+    return res.status(500).json({ success: false, message: 'Internal server error.' });
   }
 };

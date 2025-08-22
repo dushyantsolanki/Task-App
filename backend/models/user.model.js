@@ -5,6 +5,27 @@ const userSchema = new mongoose.Schema(
   {
     name: { type: String, required: true, trim: true },
     email: { type: String, required: true, trim: true },
+    gender: {
+      type: String,
+      enum: ['female', 'male'],
+      required: function () {
+        return this.authProvider === 'local';
+      },
+    },
+    mobileNumber: {
+      type: String,
+      required: function () {
+        return this.authProvider === 'local';
+      },
+      trim: true,
+    },
+    dateOfBirth: {
+      type: String,
+      required: function () {
+        return this.authProvider === 'local';
+      },
+      trim: true,
+    },
     password: {
       type: String,
       select: false,
@@ -26,15 +47,8 @@ const userSchema = new mongoose.Schema(
     role: {
       type: String,
       ref: 'Role',
-      default: 'Member',
+      default: 'member',
     },
-    projects: [
-      {
-        type: mongoose.Schema.Types.ObjectId,
-        ref: 'Project',
-      },
-    ],
-
     refreshToken: {
       type: String,
       default: null,
@@ -43,7 +57,6 @@ const userSchema = new mongoose.Schema(
       type: [String],
       default: [],
     },
-
     otp: {
       type: String,
       select: false,
@@ -57,7 +70,6 @@ const userSchema = new mongoose.Schema(
       type: Date,
       select: false,
     },
-
     isVerified: {
       type: Boolean,
       default: false,

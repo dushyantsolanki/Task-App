@@ -74,7 +74,7 @@ export function NavMain({
                               <Link
                                 to={subItem.url}
                                 className={`block w-full text-left rounded-md px-2 py-1.5 transition-colors ${isActive
-                                  ? "bg-primary/10 text-primary font-medium"
+                                  ? " !text-primary "
                                   : "text-muted-foreground hover:bg-accent hover:text-foreground"
                                   }`}
                               >

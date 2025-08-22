@@ -22,6 +22,7 @@ import { runGroqSearchQA } from './configs/langchai.config.js';
 import chrome from 'selenium-webdriver/chrome.js';
 import { Task } from './models/index.js';
 import { faker } from '@faker-js/faker';
+import fs from 'fs';
 // passport configurations
 configurePassport();
 
@@ -84,7 +85,20 @@ app.use((req, res, next) => {
 });
 
 app.use('/api/v1', indexRoute);
+app.use('/upload', express.static(process.cwd() + 'medias'));
 
+app.get('/medias/:folder/:filename', (req, res) => {
+  const { folder, filename } = req.params;
+
+  const filePath = path.join(__dirname, 'medias', folder, filename);
+
+  fs.access(filePath, fs.constants.F_OK, (err) => {
+    if (err) {
+      return res.status(404).send('File not found');
+    }
+    res.sendFile(filePath);
+  });
+});
 //  Frontend files serving via a backend
 app.use(express.static(path.join(__dirname, '/frontend/dist')));
 app.get('/', (req, res) => {

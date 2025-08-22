@@ -7,11 +7,14 @@ import PublicOnlyRoute from "@/components/app/PublicOnlyRoute";
 import { Search } from "@/pages/Search";
 import { Dashboard } from "@/components/app/components/Dashboard";
 import { Todo } from "@/components/app/components/Todo";
+import DashboardLayout from "@/layout/DashboardLayout";
 
 const LoginForm = lazy(() => import("@/form/LoginForm"));
 const RegisterForm = lazy(() => import("@/form/RegisterForm"));
 const OtpVerifyForm = lazy(() => import("@/form/OtpVerifyForm"));
-const DashboardLayout = lazy(() => import("@/layout/DashboardLayout"));
+
+const Porfile = lazy(() => import('@/pages/Profile'))
+
 
 
 
@@ -38,6 +41,7 @@ export const routes: RouteConfig[] = [
       { path: "/register", element: <RegisterForm /> },
       { path: "/verify-otp", element: <OtpVerifyForm /> },
       { path: "/forgot-password", element: <ForgotPasswordForm /> },
+      { path: "*", element: <div> 404 NOT FOUND </div> },
     ],
   },
   {
@@ -47,7 +51,8 @@ export const routes: RouteConfig[] = [
       { path: "/dashboard", element: <Dashboard /> },
       { path: "/search", element: <Search /> },
       { path: "/todo", element: <Todo /> },
-      // { path: '/dashboard/profile', element: <Profile /> },
+      { path: "*", element: <div> 404 NOT FOUND </div> },
+      { path: '/settings/profile', element: <Porfile /> },
       // {
       //   path: '/dashboard/admin',
       //   element: <AdminPanel />,
@@ -55,4 +60,5 @@ export const routes: RouteConfig[] = [
       // },
     ],
   },
+
 ];

@@ -4,6 +4,7 @@ import {
   ListTodo,
   Search,
   GalleryVerticalEnd,
+  SettingsIcon,
 } from "lucide-react"
 
 import { NavMain } from "@/components/nav-main"
@@ -45,9 +46,9 @@ const data = {
       icon: ListTodo,
     },
     // {
-    //   title: "Settings",
+    //   title: "Bulk Mail",
     //   // url: "/settings",
-    //   icon: Settings2,
+    //   icon: MailPlusIcon,
     //   items: [
 
     //     {
@@ -59,7 +60,20 @@ const data = {
     //       url: "/settings/security",
     //     },
     //   ],
-    // }
+    // },
+    {
+      title: "Settings",
+      url: "/settings/profile",
+      icon: SettingsIcon,
+      items: [
+
+        {
+          title: "Profile",
+          url: "/settings/profile",
+        },
+
+      ],
+    }
   ],
 }
 
@@ -158,7 +172,6 @@ export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
       </SidebarHeader>
       <SidebarContent>
         <NavMain items={data.navMain as any} />
-        {/* <NavProjects projects={data.projects} /> */}
       </SidebarContent>
       <SidebarFooter>
         <NavUser user={user as any} />
