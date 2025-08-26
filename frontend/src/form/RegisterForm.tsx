@@ -16,6 +16,7 @@ import { signInWithPopup } from "firebase/auth"
 import { auth, githubProvider, googleProvider } from "@/firebase/firebaseConfig"
 import { useAuthStore } from "@/store/authStore"
 import { useSocket } from "@/hooks/useSocket"
+import { PhoneInput } from "@/components/custom/PhoneInput"
 
 interface Payload {
     firstname: string;
@@ -240,17 +241,12 @@ export default function RegisterForm({
                             onBlur={formik.handleBlur}
                             error={formik.touched.dateOfBirth && formik.errors.dateOfBirth}
                         />
-
-                        <XInputField
+                        <PhoneInput
                             id="mobileNumber"
                             name="mobileNumber"
-                            label="Mobile Number"
-                            type="tel"
-                            className="h-11"
-                            placeholder="+1234567890"
-                            icon={<Phone size={20} />}
+                            placeholder="+91 7620798520"
                             value={formik.values.mobileNumber}
-                            onChange={formik.handleChange}
+                            onChange={(value) => formik.setFieldValue("mobileNumber", value)}
                             onBlur={formik.handleBlur}
                             error={formik.touched.mobileNumber && formik.errors.mobileNumber}
                         />

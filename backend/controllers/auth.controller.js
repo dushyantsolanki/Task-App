@@ -540,6 +540,7 @@ let OTPExp = {};
 export const sendOTP = async (req, res) => {
   try {
     const { surname, email } = req.body;
+    const { type } = req.query;
 
     const existingUser = await User.findOne({
       email,
@@ -556,9 +557,20 @@ export const sendOTP = async (req, res) => {
     OTPExp.otp = otp;
     OTPExp.otpExpiry = new Date(Date.now() + 2 * 60 * 1000); // 2 min expiry
 
-    const emailResponse = await sendVerificationMail(email, surname, otp, 2, 'verify_account'); // Send OTP email
-    if (!emailResponse?.messageId) {
-      return res.status(500).json({ success: false, message: 'Failed to send verification email' });
+    if (type === 'forgot_password') {
+      const emailResponse = await sendVerificationMail(email, surname, otp, 2, 'forgot_password');
+      if (!emailResponse?.messageId) {
+        return res
+          .status(500)
+          .json({ success: false, message: 'Failed to send verification email' });
+      }
+    } else {
+      const emailResponse = await sendVerificationMail(email, surname, otp, 2, 'verify_account');
+      if (!emailResponse?.messageId) {
+        return res
+          .status(500)
+          .json({ success: false, message: 'Failed to send verification email' });
+      }
     }
 
     return res.status(201).json({
@@ -596,5 +608,35 @@ export const verifyOTP = async (req, res) => {
   } catch (err) {
     console.error(err);
     return res.status(500).json({ success: false, message: 'Internal server error.' });
+  }
+};
+
+export const resetProfilePassword = async (req, res) => {
+  try {
+    const { id } = req.params;
+    const { newPassword } = req.body;
+
+    const user = await User.findOne({
+      _id: new mongoose.Types.ObjectId(id),
+      isDeleted: false,
+      isVerified: true,
+    }).select('+password');
+
+    if (!user) {
+      return res
+        .status(400)
+        .json({ success: false, message: 'User either not verified or deleted' });
+    }
+
+    user.password = newPassword; // will be hashed by pre('save')
+
+    await user.save();
+
+    return res.status(200).json({
+      success: true,
+      message: 'Password reset successfully',
+    });
+  } catch (err) {
+    return res.status(500).json({ success: false, message: err.message });
   }
 };

@@ -9,11 +9,13 @@ import { toast } from "sonner"
 import { useLocalStorage } from "@reactuses/core"
 import { useState } from "react"
 import { useAuthStore } from "@/store/authStore"
-import { Calendar, Mail, Phone, SendIcon, User } from "lucide-react"
+import { Calendar, Mail, SendIcon, User } from "lucide-react"
 import { Card, CardContent } from "@/components/ui/card"
 import { XInputField } from "@/components/custom/XInputField"
 import AxiousInstance from "@/helper/AxiousInstance"
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar"
+import { PhoneInput } from "@/components/custom/PhoneInput"
+import PasswordResetForm from "@/form/PasswordRestForm"
 
 interface Payload {
     firstname: string
@@ -108,7 +110,6 @@ export default function UpdateProfileForm({
             const response = await AxiousInstance.post(
                 `/auth/profile/verify-otp`,
                 { email: formik.values.email, otp },
-                { withCredentials: true }
             )
             if (response.status === 200) {
                 toast.success("OTP verified successfully")
@@ -181,32 +182,34 @@ export default function UpdateProfileForm({
 
     return (
         <div className="flex min-h-[80vh] items-center justify-center bg-background">
-            <Card className="py-0 w-full max-w-4xl border-none shadow-none bg-transparent">
+            <Card className="py-0 w-full max-w-5xl border-none shadow-none bg-transparent">
                 <CardContent className="px-0">
                     <FormikProvider value={formik}>
                         <Form
-                            className={cn("flex flex-col lg:grid lg:grid-cols-12 gap-8", className)}
+                            className={cn("grid grid-cols-1 lg:grid-cols-12 gap-8", className)}
                             {...props}
                         >
-                            {/* Profile Picture - Left Side on Desktop */}
-                            <div className="flex flex-col items-center justify-start gap-6 lg:col-span-4">
-                                <div className="space-y-2 text-center">
-                                    <Label className="text-lg font-medium">
-                                        Profile Picture
-                                    </Label>
+                            {/* Left Column: Profile Picture + Reset Password */}
+                            <div className="flex flex-col items-center gap-8 lg:col-span-4">
+                                {/* Profile Picture */}
+                                <div className="w-full flex flex-col items-center gap-6">
+                                    <Label className="text-lg font-medium text-center">Profile Picture</Label>
                                     <div className="relative w-40 h-40 rounded-xl overflow-hidden border-2 border-border">
                                         {profilePicPreview ? (
-                                            <Avatar className="h-full w-full rounded-lg flex items-center justify-center ">
+                                            <Avatar className="h-full w-full rounded-lg flex items-center justify-center">
                                                 <AvatarImage
-                                                    src={user.avatar?.startsWith('https://') ? user.avatar : profilePicPreview as any}
+                                                    src={
+                                                        user.avatar?.startsWith("https://")
+                                                            ? user.avatar
+                                                            : (profilePicPreview as any)
+                                                    }
                                                     alt={user?.name as any}
                                                     className="object-contain"
                                                 />
                                                 <AvatarFallback className="rounded-lg">
-                                                    {user?.name?.split(' ').map(n => n[0]).join('').toUpperCase()}
+                                                    {user?.name?.split(" ").map((n) => n[0]).join("").toUpperCase()}
                                                 </AvatarFallback>
                                             </Avatar>
-
                                         ) : (
                                             <div className="w-full h-full bg-muted flex items-center justify-center">
                                                 <User size={60} className="text-muted-foreground" />
@@ -215,7 +218,7 @@ export default function UpdateProfileForm({
                                     </div>
                                     <Label htmlFor="profilePicture" className="cursor-pointer">
                                         <div className="w-full flex items-center justify-center">
-                                            <span className="text-sm  text-center py-2 px-2 rounded-md bg-primary text-white">
+                                            <span className="text-sm text-center py-2 px-2 rounded-md bg-primary text-white">
                                                 + New Upload
                                             </span>
                                         </div>
@@ -232,9 +235,16 @@ export default function UpdateProfileForm({
                                         <p className="text-sm text-destructive">{formik.errors.avatar}</p>
                                     )}
                                 </div>
+
+                                {/* Reset Password Form */}
+                                <div className="w-full">
+                                    <PasswordResetForm />
+                                </div>
                             </div>
-                            {/* Form Fields - Right Side on Desktop */}
+
+                            {/* Right Column: Form Fields */}
                             <div className="flex flex-col gap-6 lg:col-span-8">
+                                {/* Name Fields */}
                                 <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                                     <XInputField
                                         id="firstname"
@@ -264,6 +274,7 @@ export default function UpdateProfileForm({
                                     />
                                 </div>
 
+                                {/* Email + OTP */}
                                 <div className="space-y-4">
                                     <XInputField
                                         id="email"
@@ -277,13 +288,13 @@ export default function UpdateProfileForm({
                                         onChange={handleEmailChange}
                                         onBlur={formik.handleBlur}
                                         error={formik.touched.email && formik.errors.email}
-                                        disabled={!(user.authProvider === 'local')}
+                                        disabled={!(user.authProvider === "local")}
                                     />
                                     {isEmailChanged && !isOTPVerified && (
                                         <>
                                             <Button
                                                 type="button"
-                                                className="h-8 cursor-pointer  font-semibold rounded-sm transition-colors"
+                                                className="h-8 cursor-pointer font-semibold rounded-sm transition-colors"
                                                 onClick={handleSendOTP}
                                                 disabled={isOTPSent || !!formik.errors.email}
                                             >
@@ -305,7 +316,7 @@ export default function UpdateProfileForm({
                                                     />
                                                     <Button
                                                         type="button"
-                                                        className="h-8 mt-2 cursor-pointer  font-semibold rounded-sm transition-colors"
+                                                        className="h-8 mt-2 cursor-pointer font-semibold rounded-sm transition-colors"
                                                         onClick={handleVerifyOTP}
                                                         disabled={!otp}
                                                     >
@@ -317,6 +328,7 @@ export default function UpdateProfileForm({
                                     )}
                                 </div>
 
+                                {/* DOB */}
                                 <XInputField
                                     id="dateOfBirth"
                                     name="dateOfBirth"
@@ -331,20 +343,18 @@ export default function UpdateProfileForm({
                                     error={formik.touched.dateOfBirth && formik.errors.dateOfBirth}
                                 />
 
-                                <XInputField
+                                {/* Phone */}
+                                <PhoneInput
                                     id="mobileNumber"
                                     name="mobileNumber"
-                                    label="Mobile Number"
-                                    type="tel"
-                                    className="h-11"
-                                    placeholder="+1234567890"
-                                    icon={<Phone size={20} />}
+                                    placeholder="+91 7620798520"
                                     value={formik.values.mobileNumber}
-                                    onChange={formik.handleChange}
+                                    onChange={(value) => formik.setFieldValue("mobileNumber", value)}
                                     onBlur={formik.handleBlur}
                                     error={formik.touched.mobileNumber && formik.errors.mobileNumber}
                                 />
 
+                                {/* Gender */}
                                 <div className="grid gap-2">
                                     <Label htmlFor="gender">Gender</Label>
                                     <Select
@@ -370,9 +380,10 @@ export default function UpdateProfileForm({
                                     )}
                                 </div>
 
+                                {/* Submit */}
                                 <Button
                                     type="submit"
-                                    className="w-full h-10 bg-primary hover:bg-primary/90 text-primary-foreground font-semibold rounded-lg transition-colors"
+                                    className="w-full h-10 bg-primary hover:bg-primary/90 hover:cursor-pointer text-primary-foreground font-semibold rounded-lg transition-colors"
                                     disabled={formik.isSubmitting || (isEmailChanged && !isOTPVerified)}
                                 >
                                     {formik.isSubmitting ? (
@@ -390,5 +401,6 @@ export default function UpdateProfileForm({
                 </CardContent>
             </Card>
         </div>
+
     )
 }

@@ -12,6 +12,7 @@ import {
   register,
   resendOTP,
   resetPassword,
+  resetProfilePassword,
   sendOTP,
   updateProfile,
   updateProfilePicture,
@@ -76,6 +77,7 @@ router.post('/profile/send-otp', verifyToken, sendOTP);
 router.post('/profile/verify-otp', verifyToken, verifyOTP);
 router.get('/logout', logout);
 router.put('/profile/:id', updateProfile);
+router.patch('/profile/reset-password/:id', verifyToken, resetProfilePassword);
 router.patch('/profile/picture', verifyToken, upload.single('avatar'), updateProfilePicture);
 
 export default router;

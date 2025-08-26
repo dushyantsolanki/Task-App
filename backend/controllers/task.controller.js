@@ -8,11 +8,46 @@ import { getNextSequence } from '../utils/utils.js';
 export const getTasks = async (req, res) => {
   try {
     const { userId } = req.user;
-    const tasks = await Task.find({
+
+    const page = parseInt(req.query.page) || 1;
+    const limit = parseInt(req.query.limit) || 10;
+    const search = req.query.search || '';
+
+    // Calculate skip value for pagination
+    const skip = (page - 1) * limit;
+
+    const query = {
       createdBy: new mongoose.Types.ObjectId(userId),
       isDeleted: false,
+    };
+
+    if (search) {
+      query.$or = [
+        { title: { $regex: search, $options: 'i' } },
+        { label: { $regex: search, $options: 'i' } },
+      ];
+    }
+
+    const totalCount = await Task.countDocuments(query);
+
+    const totalPages = Math.ceil(totalCount / limit);
+
+    const tasks = await Task.find(query).sort({ createdAt: -1 }).skip(skip).limit(limit).lean(); // for better performance
+
+    const hasNextPage = page < totalPages;
+    const hasPrevPage = page > 1;
+
+    return res.status(200).json({
+      success: true,
+      message: 'Tasks fetched successfully',
+      tasks,
+      totalCount,
+      totalPages,
+      currentPage: page,
+      hasNextPage,
+      hasPrevPage,
+      pageSize: limit,
     });
-    return res.status(200).json({ success: true, message: 'Tasks fetched successfully', tasks });
   } catch (err) {
     logger.error(err, 'Error in getTasks');
     return res.status(400).json({ success: false, message: err.message });

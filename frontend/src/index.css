@@ -225,3 +225,16 @@ body {
 .fc .fc-daygrid-day {
   border: none !important;
 }
+
+@layer base {
+  input[type='date']::-webkit-calendar-picker-indicator {
+    @apply hidden;
+  }
+  input[type='date'] {
+    -moz-appearance: textfield;
+  }
+  input[type='tel'] {
+    -moz-appearance: textfield;
+    appearance: none;
+  }
+}

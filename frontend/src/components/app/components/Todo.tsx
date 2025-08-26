@@ -4,7 +4,6 @@ import {
     flexRender,
     getCoreRowModel,
     getFilteredRowModel,
-    getPaginationRowModel,
     getSortedRowModel,
     type SortingState,
     useReactTable,
@@ -50,7 +49,7 @@ import AxiousInstance from "@/helper/AxiousInstance";
 // Define interfaces
 interface Todo {
     _id?: string;
-    taskId: string,
+    taskId: string;
     status: "pending" | "processing" | "success" | "failed";
     title?: string;
     description?: string;
@@ -58,6 +57,19 @@ interface Todo {
     priority?: "low" | "medium" | "high";
 }
 
+interface PaginationState {
+    pageIndex: number;
+    pageSize: number;
+}
+
+interface ApiResponse {
+    tasks: Todo[];
+    totalCount: number;
+    totalPages: number;
+    currentPage: number;
+    hasNextPage: boolean;
+    hasPrevPage: boolean;
+}
 
 // Form validation schema
 const validationSchema = Yup.object({
@@ -80,8 +92,17 @@ export function Todo() {
     const [tableData, setTableData] = React.useState<Todo[]>([]);
     const [initialValues, setInitialValues] = React.useState<Todo | null>(null);
     const [isSheetOpen, setIsSheetOpen] = React.useState(false);
-
     const [isEdit, setIsEdit] = React.useState(false);
+    const [isLoading, setIsLoading] = React.useState(false);
+    const [titleFilter, setTitleFilter] = React.useState("");
+
+    const [pagination, setPagination] = React.useState<PaginationState>({
+        pageIndex: 0,
+        pageSize: 10,
+    });
+
+    const [totalCount, setTotalCount] = React.useState(0);
+    const [totalPages, setTotalPages] = React.useState(0);
 
     const formik = useFormik({
         initialValues: {
@@ -98,59 +119,87 @@ export function Todo() {
         },
     });
 
-
-    const getAllTask = async () => {
+    const getAllTask = async (pageIndex: number = pagination.pageIndex, pageSize: number = pagination.pageSize, titleFilter: string = "") => {
         try {
-            const response = await AxiousInstance.get('/task')
-            if (response.status === 200) {
-                setTableData(response.data.tasks || []);
+            setIsLoading(true);
+            const params = new URLSearchParams({
+                page: (pageIndex + 1).toString(), // Convert to 1-based indexing for backend
+                limit: pageSize.toString(),
+                ...(titleFilter && { search: titleFilter }),
+            });
 
+            const response = await AxiousInstance.get(`/task`, { params });
+
+            if (response.status === 200) {
+                const data: ApiResponse = response.data;
+                setTableData(data.tasks || []);
+                setTotalCount(data.totalCount || 0);
+                setTotalPages(data.totalPages || 0);
             }
         } catch (error: any) {
-            toast.error(error.response.data.message || "Failed to fetch tasks");
+            console.error("Fetch error:", error);
+            toast.error(error.response?.data?.message || "Failed to fetch tasks");
+            setTableData([]);
+            setTotalCount(0);
+            setTotalPages(0);
+        } finally {
+            setIsLoading(false);
         }
-    }
+    };
 
     const addTask = async (task: Partial<Todo>) => {
         try {
             const response = await AxiousInstance.post('/task', task);
             if (response.status === 201) {
-                setTableData((prev) => [...prev, response.data.task]);
                 toast.success(response.data.message || "Task added successfully");
+                // Refresh the current page data
+                await getAllTask(pagination.pageIndex, pagination.pageSize, titleFilter);
             }
         } catch (error: any) {
-            toast.error(error.response.data.message || "Failed to add task");
+            toast.error(error.response?.data?.message || "Failed to add task");
         }
     };
+
     const updateTask = async (task: Todo) => {
         try {
             const response = await AxiousInstance.put(`/task/${task.taskId}`, task);
             if (response.status === 200) {
-                setTableData((prev) =>
-                    prev.map((item) => (item.taskId === task.taskId ? { ...item, ...task } : item))
-                );
                 toast.success(response.data.message || "Task updated successfully");
+                // Refresh the current page data
+                await getAllTask(pagination.pageIndex, pagination.pageSize, titleFilter);
             }
         } catch (error: any) {
-            toast.error(error.response.data.message || "Failed to update task");
+            toast.error(error.response?.data?.message || "Failed to update task");
         }
     };
+
     const handleDelete = async (id: string) => {
         try {
             const response = await AxiousInstance.delete(`/task/${id}`);
             if (response.status === 200) {
-                setTableData((prev) => prev.filter((item) => item._id !== id));
                 toast.success(response.data.message || "Task deleted successfully");
+
+                // Check if current page will be empty after deletion
+                const remainingItems = tableData.length - 1;
+                if (remainingItems === 0 && pagination.pageIndex > 0) {
+                    // Go to previous page if current page becomes empty
+                    const newPageIndex = pagination.pageIndex - 1;
+                    setPagination(prev => ({ ...prev, pageIndex: newPageIndex }));
+                    await getAllTask(newPageIndex, pagination.pageSize, titleFilter);
+                } else {
+                    // Refresh current page
+                    await getAllTask(pagination.pageIndex, pagination.pageSize, titleFilter);
+                }
             }
         } catch (error: any) {
-            toast.error(error.response.data.message || "Failed to delete task");
+            toast.error(error.response?.data?.message || "Failed to delete task");
         }
     };
 
     const handleDownload = async () => {
         try {
             const response = await AxiousInstance.get('/task/export/excel', {
-                responseType: 'blob', // 👈 this is CRUCIAL
+                responseType: 'blob',
             });
 
             const blob = new Blob([response.data], {
@@ -169,7 +218,28 @@ export function Todo() {
         }
     };
 
-    // Define columns
+    // Handle pagination changes
+    const handlePaginationChange = React.useCallback((updatedPagination: PaginationState) => {
+        setPagination(updatedPagination);
+    }, []);
+
+    // Handle filter changes with debounce
+    const debouncedFilter = React.useRef<NodeJS.Timeout>(null);
+    const handleFilterChange = (value: string) => {
+        setTitleFilter(value);
+
+        if (debouncedFilter.current) {
+            clearTimeout(debouncedFilter.current);
+        }
+
+        debouncedFilter.current = setTimeout(() => {
+            // Reset to first page when filtering
+            const newPagination = { ...pagination, pageIndex: 0 };
+            setPagination(newPagination);
+            getAllTask(0, pagination.pageSize, value);
+        }, 500);
+    };
+
     const columns: ColumnDef<Todo>[] = [
         {
             accessorKey: "taskId",
@@ -249,7 +319,6 @@ export function Todo() {
                 const task = row.original as any;
                 return (
                     <div className="flex items-center space-x-2">
-
                         <Button
                             variant="ghost"
                             size="icon"
@@ -268,33 +337,34 @@ export function Todo() {
         },
     ];
 
-
+    // Configure table with server-side pagination
     const table = useReactTable({
         data: tableData,
         columns,
-        onSortingChange: setSorting,
-
-        getCoreRowModel: getCoreRowModel(),
-        getPaginationRowModel: getPaginationRowModel(),
-        getSortedRowModel: getSortedRowModel(),
-        getFilteredRowModel: getFilteredRowModel(),
+        pageCount: totalPages, // Tell table how many pages exist
         state: {
             sorting,
+            pagination,
         },
+        onSortingChange: setSorting,
+        onPaginationChange: handlePaginationChange as any,
+        getCoreRowModel: getCoreRowModel(),
+        getSortedRowModel: getSortedRowModel(),
+        getFilteredRowModel: getFilteredRowModel(),
+        manualPagination: true,
+        manualFiltering: true,
     });
 
     const handleAddTask = (values: Todo, isEdit = false) => {
         if (isEdit && initialValues) {
-
             updateTask({ ...values, "taskId": initialValues.taskId });
         } else {
-            addTask(values)
+            addTask(values);
         }
 
         setInitialValues(null);
         setIsSheetOpen(false);
     };
-
 
     const handleRowClick = (task: Todo, columnId: string) => {
         if (columnId === "taskId" || columnId === "title") {
@@ -304,9 +374,9 @@ export function Todo() {
         }
     };
 
-    // Pagination helpers
-    const pageIndex = table.getState().pagination.pageIndex;
-    const pageCount = table.getPageCount();
+    // Pagination helpers for UI
+    const pageIndex = pagination.pageIndex;
+    const pageCount = totalPages;
 
     const getPageNumbers = () => {
         const pages = [];
@@ -322,28 +392,40 @@ export function Todo() {
 
 
     React.useEffect(() => {
-        getAllTask()
+        getAllTask(pagination.pageIndex, pagination.pageSize, titleFilter);
+    }, [pagination.pageIndex, pagination.pageSize]);
+
+
+    React.useEffect(() => {
+        return () => {
+            if (debouncedFilter.current) {
+                clearTimeout(debouncedFilter.current);
+            }
+        };
     }, []);
 
     return (
-        <>   <XBreadcrumb
-            items={[
-                { label: "Dashboard", link: "/dashboard" },
-                { label: "Todo", link: "/todo" },
-            ]}
-        />
+        <>
+            <XBreadcrumb
+                items={[
+                    { label: "Dashboard", link: "/dashboard" },
+                    { label: "Todo", link: "/todo" },
+                ]}
+            />
             <div className="p-2">
-
                 <div className="mb-6 ">
                     <div className="flex  items-center justify-between gap-4 w-full sm:w-auto">
-
-                        <Sheet open={isSheetOpen} onOpenChange={() => { setIsSheetOpen(!isSheetOpen); setInitialValues(null); setIsEdit(false); formik.resetForm(); }}>
+                        <Sheet open={isSheetOpen} onOpenChange={() => {
+                            setIsSheetOpen(!isSheetOpen);
+                            setInitialValues(null);
+                            setIsEdit(false);
+                            formik.resetForm();
+                        }}>
                             <SheetTrigger asChild>
                                 <Button className="h-11 flex items-center gap-2">
                                     <Plus className="h-4 w-4" />
                                     <span className="hidden md:block"> New Task </span>
                                 </Button>
-
                             </SheetTrigger>
                             <SheetContent className="w-[90vw] sm:w-[400px] overflow-y-auto">
                                 <SheetHeader>
@@ -355,10 +437,8 @@ export function Todo() {
                                     </SheetDescription>
                                 </SheetHeader>
                                 <div className="mt-6">
-
                                     <form onSubmit={formik.handleSubmit} className="space-y-6 px-4">
                                         <div>
-
                                             <XInputField
                                                 id="title"
                                                 name="title"
@@ -371,7 +451,6 @@ export function Todo() {
                                                 onBlur={formik.handleBlur}
                                                 error={formik.touched.title && formik.errors.title as string}
                                             />
-
                                         </div>
                                         <div>
                                             <XTextareaField
@@ -398,7 +477,6 @@ export function Todo() {
                                                 onBlur={formik.handleBlur}
                                                 error={formik.touched.label && formik.errors.label as string}
                                             />
-
                                         </div>
                                         <div>
                                             <Label htmlFor="status" className="text-sm font-medium mb-1.5">
@@ -457,24 +535,20 @@ export function Todo() {
                             </SheetContent>
                         </Sheet>
                         <div className="flex items-center gap-2 w-full sm:w-auto">
-
                             <Input
                                 placeholder="Filter by title..."
-                                value={(table.getColumn("title")?.getFilterValue() as string) ?? ""}
-                                onChange={(event) =>
-                                    table.getColumn("title")?.setFilterValue(event.target.value)
-                                }
+                                value={titleFilter}
+                                onChange={(event) => handleFilterChange(event.target.value)}
                                 className="w-full h-11 sm:max-w-sm"
                             />
                             <Button onClick={handleDownload} variant="outline" className="h-11 gap-2 ">
                                 <DownloadIcon className="w-4 h-4" />
                                 <span className="hidden md:block">  Export </span>
-
                             </Button>
-
                         </div>
                     </div>
                 </div>
+
                 <div className="rounded-lg border max-h-[540px] overflow-y-auto scrollbar-hide ">
                     <Table>
                         <TableHeader className="bg-muted/40">
@@ -491,7 +565,17 @@ export function Todo() {
                             ))}
                         </TableHeader>
                         <TableBody>
-                            {table.getRowModel().rows?.length ? (
+                            {isLoading ? (
+                                <TableRow>
+                                    <TableCell colSpan={columns.length} className="h-24">
+                                        <div className="flex items-center justify-center h-full space-x-2">
+                                            <div className="h-6 w-6 animate-spin rounded-full border-4 border-primary border-t-transparent"></div>
+                                            <span className="text-muted-foreground">Loading tasks...</span>
+                                        </div>
+                                    </TableCell>
+                                </TableRow>
+
+                            ) : table.getRowModel().rows?.length ? (
                                 table.getRowModel().rows.map((row) => (
                                     <TableRow
                                         key={row.id}
@@ -521,18 +605,28 @@ export function Todo() {
                         </TableBody>
                     </Table>
                 </div>
+
                 <div className="flex flex-col sm:flex-row items-center justify-between gap-4 mt-4">
                     <div className="flex items-center gap-2">
-                        <span className="text-sm text-muted-foreground">Rows per page:</span>
+                        <span className="text-sm text-muted-foreground">
+                            Showing {Math.min((pageIndex * pagination.pageSize) + 1, totalCount)} to {Math.min((pageIndex + 1) * pagination.pageSize, totalCount)} of {totalCount} results
+                        </span>
                         <Select
-                            value={`${table.getState().pagination.pageSize}`}
-                            onValueChange={(value) => table.setPageSize(Number(value))}
+                            value={`${pagination.pageSize}`}
+                            onValueChange={(value) => {
+                                const newPageSize = Number(value);
+                                setPagination(prev => ({
+                                    ...prev,
+                                    pageSize: newPageSize,
+                                    pageIndex: 0 // Reset to first page
+                                }));
+                            }}
                         >
                             <SelectTrigger className="w-20">
                                 <SelectValue />
                             </SelectTrigger>
                             <SelectContent>
-                                {[10, 20, 30, 70, 100, 200].map((size) => (
+                                {[10, 20, 30, 50, 100].map((size) => (
                                     <SelectItem key={size} value={`${size}`}>
                                         {size}
                                     </SelectItem>
@@ -540,23 +634,28 @@ export function Todo() {
                             </SelectContent>
                         </Select>
                     </div>
+
+
+
                     <div className="flex items-center gap-2">
                         <Button
                             variant="outline"
                             size="icon"
-                            onClick={() => table.previousPage()}
-                            disabled={!table.getCanPreviousPage()}
+                            onClick={() => setPagination(prev => ({ ...prev, pageIndex: prev.pageIndex - 1 }))}
+                            disabled={pageIndex === 0 || isLoading}
                             className="h-8 w-8"
                         >
                             <ChevronLeft className="h-4 w-4" />
                         </Button>
+
                         <div className="flex items-center gap-1">
-                            {getPageNumbers().map((page) => (
+                            {pageCount > 0 && getPageNumbers().map((page) => (
                                 <Button
                                     key={page}
                                     variant={page === pageIndex ? "default" : "outline"}
                                     size="sm"
-                                    onClick={() => table.setPageIndex(page)}
+                                    onClick={() => setPagination(prev => ({ ...prev, pageIndex: page }))}
+                                    disabled={isLoading}
                                     className={cn(
                                         "h-8 w-8",
                                         page === pageIndex && "bg-primary text-primary-foreground"
@@ -566,11 +665,12 @@ export function Todo() {
                                 </Button>
                             ))}
                         </div>
+
                         <Button
                             variant="outline"
                             size="icon"
-                            onClick={() => table.nextPage()}
-                            disabled={!table.getCanNextPage()}
+                            onClick={() => setPagination(prev => ({ ...prev, pageIndex: prev.pageIndex + 1 }))}
+                            disabled={pageIndex >= pageCount - 1 || isLoading}
                             className="h-8 w-8"
                         >
                             <ChevronRight className="h-4 w-4" />
