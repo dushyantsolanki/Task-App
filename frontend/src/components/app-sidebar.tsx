@@ -5,6 +5,7 @@ import {
   Search,
   GalleryVerticalEnd,
   SettingsIcon,
+  BotIcon,
 } from "lucide-react"
 
 import { NavMain } from "@/components/nav-main"
@@ -41,26 +42,29 @@ const data = {
     },
 
     {
-      title: "ToDo",
-      url: "/todo",
+      title: "Task",
+      url: "/task",
       icon: ListTodo,
     },
-    // {
-    //   title: "Bulk Mail",
-    //   // url: "/settings",
-    //   icon: MailPlusIcon,
-    //   items: [
+    {
+      title: "AI Automation",
+      url: "/ai-automation/lead",
+      icon: BotIcon,
+      items: [
 
-    //     {
-    //       title: "Profile",
-    //       url: "/settings/profile",
-    //     },
-    //     {
-    //       title: "Security",
-    //       url: "/settings/security",
-    //     },
-    //   ],
-    // },
+        {
+          title: "Templates",
+          url: "/ai-automation/template",
+        },
+
+        {
+          title: "Lead Automation",
+          url: "/ai-automation/lead",
+        },
+
+      ],
+    },
+
     {
       title: "Settings",
       url: "/settings/profile",

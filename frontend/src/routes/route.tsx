@@ -14,6 +14,8 @@ const RegisterForm = lazy(() => import("@/form/RegisterForm"));
 const OtpVerifyForm = lazy(() => import("@/form/OtpVerifyForm"));
 
 const Porfile = lazy(() => import('@/pages/Profile'))
+const Lead = lazy(() => import('@/pages/Lead'))
+const Template = lazy(() => import('@/pages/Template'))
 
 
 
@@ -50,9 +52,12 @@ export const routes: RouteConfig[] = [
     children: [
       { path: "/dashboard", element: <Dashboard /> },
       { path: "/search", element: <Search /> },
-      { path: "/todo", element: <Todo /> },
+      { path: "/task", element: <Todo /> },
       { path: "*", element: <div> 404 NOT FOUND </div> },
       { path: '/settings/profile', element: <Porfile /> },
+      { path: '/ai-automation/lead', element: <Lead /> },
+      { path: '/ai-automation/template', element: <Template /> },
+
       // {
       //   path: '/dashboard/admin',
       //   element: <AdminPanel />,
