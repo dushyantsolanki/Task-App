@@ -4,7 +4,7 @@ import { Counter } from '../models/index.js';
 
 export const generateAccessToken = (user) => {
   return jwt.sign(
-    { userId: user._id, email: user.email, role: user.role },
+    { userId: user._id, email: user.email, role: user.role, name: user.name },
     process.env.JWT_SECRET,
     {
       expiresIn: '7d',

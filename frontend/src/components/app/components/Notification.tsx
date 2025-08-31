@@ -52,23 +52,15 @@ export default function Notification({ className = "" }: NotificationProps) {
     useEffect(() => {
         if (!on) return
 
-        const handleNotification = (data: any) => {
+        const handleNotification = (newNotification: any) => {
             enableSound()
-            const mappedNotifications = data.notification.map((notif: any) => ({
-                _id: notif._id,
-                type: notif.type,
-                title: notif.title,
-                body: notif.body,
-                path: notif.path,
-                createdAt: notif.createdAt,
-            }))
-            setNotificationData((prev) => [...prev, ...mappedNotifications])
+            setNotificationData((prev) => [...prev, newNotification])
         }
 
-        on('calendar_notification', handleNotification)
+        on('notification', handleNotification)
 
         return () => {
-            off('calendar_notification', handleNotification)
+            off('notification', handleNotification)
         }
     }, [on, off, enableSound])
 
@@ -113,17 +105,13 @@ export default function Notification({ className = "" }: NotificationProps) {
                             className="flex flex-col items-start p-3 cursor-pointer hover:bg-accent relative"
                         >
                             {/* Header Row: Title + Badge + X Icon */}
-                            <div className="flex items-center justify-between w-full mb-1">
-                                <div className="flex items-center gap-2">
-                                    <span className="font-medium">{notification.title}</span>
-                                    <Badge variant="secondary" className="text-xs capitalize">
-                                        {notification.type}
-                                    </Badge>
-                                </div>
-
+                            <div className="w-full flex justify-between">
+                                <Badge variant='outline' className="text-xs rounded-sm  capitalize">
+                                    {notification.type}
+                                </Badge>
                                 <button
                                     type="button"
-                                    className="p-1 text-muted-foreground hover:text-destructive "
+                                    className="p-1 text-muted-foreground hover:text-destructive border hover:bg-amber-50 dark:hover:bg-amber-50/20 rounded-md cursor-pointer "
                                     data-disabled // prevents dropdown close
                                     tabIndex={-1}   // removes focusable behavior
                                     onClick={(e) => {
@@ -135,6 +123,9 @@ export default function Notification({ className = "" }: NotificationProps) {
                                     <X className="w-4 h-4" />
                                 </button>
                             </div>
+                            <div className="flex items-center justify-between w-full ">
+                                <div className="font-medium">{notification.title}</div>
+                            </div>
 
                             <div
                                 className="w-full"
@@ -143,7 +134,9 @@ export default function Notification({ className = "" }: NotificationProps) {
                                 <div className="text-sm text-muted-foreground mb-1">{notification.body}</div>
                                 <div className="text-xs text-muted-foreground">
                                     {moment(notification.createdAt).format('DD MMM YYYY, hh:mm A')}
+
                                 </div>
+
                             </div>
                         </DropdownMenuItem>
                     ))

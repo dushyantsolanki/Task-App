@@ -1,5 +1,30 @@
 import mongoose from 'mongoose';
 
+const shareSchema = new mongoose.Schema(
+  {
+    shareTo: {
+      type: mongoose.Schema.Types.ObjectId,
+      ref: 'User',
+      required: true,
+    },
+    sharedBy: {
+      type: mongoose.Schema.Types.ObjectId,
+      ref: 'User',
+      required: true,
+    },
+    permission: {
+      type: String,
+      enum: ['view', 'edit'],
+      default: 'view',
+    },
+    sharedAt: {
+      type: Date,
+      default: Date.now,
+    },
+  },
+  { _id: false },
+);
+
 const taskSchema = new mongoose.Schema(
   {
     title: {
@@ -37,6 +62,10 @@ const taskSchema = new mongoose.Schema(
       type: mongoose.Schema.Types.ObjectId,
       ref: 'User',
       required: true,
+    },
+    share: {
+      type: [shareSchema],
+      default: [],
     },
     isDeleted: {
       type: Boolean,

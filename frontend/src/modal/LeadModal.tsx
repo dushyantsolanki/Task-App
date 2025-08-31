@@ -426,12 +426,12 @@ const LeadModal = ({ isOpen, onClose, initialValues, handleAdd,
                             Cancel
                         </Button>
                     </DialogClose>
-                    <Button type="submit" form="lead-form">
+                    <Button type="submit" disabled={formik.isSubmitting} form="lead-form">
                         Save
                     </Button>
                 </DialogFooter>
             </DialogContent>
-        </Dialog>
+        </Dialog >
     );
 };
 

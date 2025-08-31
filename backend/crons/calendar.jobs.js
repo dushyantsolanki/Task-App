@@ -78,6 +78,7 @@ cron.schedule('* * * * *', async () => {
         path: '/dashboard',
         title: `${event.title}`,
         body: `${event.description}`,
+        eventType: 'notification',
       });
 
       event.reminderSent = true; // mark as a reminder sent

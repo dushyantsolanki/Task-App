@@ -12,7 +12,7 @@ export async function runGroqSearchQA(scrapedText, userQuery) {
     });
 
     const splitter = new RecursiveCharacterTextSplitter({
-      chunkSize: 700,
+      chunkSize: 2000,
       chunkOverlap: 200,
     });
 

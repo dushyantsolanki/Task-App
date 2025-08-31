@@ -8,7 +8,7 @@ import {
     type SortingState,
     useReactTable,
 } from "@tanstack/react-table";
-import { ArrowUpDown, ChevronLeft, ChevronRight, Trash2, Plus, DownloadIcon } from "lucide-react";
+import { ArrowUpDown, ChevronLeft, ChevronRight, Trash2, Plus, DownloadIcon, Send } from "lucide-react";
 import * as Yup from "yup";
 import { useFormik } from "formik";
 
@@ -45,8 +45,25 @@ import { XTextareaField } from "@/components/custom/XTextareaField";
 import { XBreadcrumb } from "@/components/custom/XBreadcrumb";
 import { toast } from "sonner";
 import AxiousInstance from "@/helper/AxiousInstance";
+import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
+import { Checkbox } from "@/components/ui/checkbox";
+import TaskShareModal from "@/modal/TaskShareModal";
+import { useAuthStore } from "@/store/authStore";
+import { useSocket } from "@/hooks/useSocket";
 
-// Define interfaces
+
+interface User {
+    _id: string;
+    name: string;
+    avatar: string
+}
+
+interface Share {
+    shareTo: User;
+    sharedBy: User;
+    permission: 'view' | 'edit';
+    sharedAt: string;
+}
 interface Todo {
     _id?: string;
     taskId: string;
@@ -55,7 +72,14 @@ interface Todo {
     description?: string;
     label?: string;
     priority?: "low" | "medium" | "high";
+    createdBy: {
+        _id: string;
+        name: string;
+        avatar: string
+    },
+    share: Share[]
 }
+
 
 interface PaginationState {
     pageIndex: number;
@@ -103,6 +127,11 @@ export function Todo() {
 
     const [totalCount, setTotalCount] = React.useState(0);
     const [totalPages, setTotalPages] = React.useState(0);
+    const [selectedRows, setSelectedRows] = React.useState<string[]>([]);
+    const [isShareModalOpen, setIsShareModalOpen] = React.useState<boolean>(false)
+    const [users, setUsers] = React.useState<User[]>([])
+    const { user } = useAuthStore()
+    const { on, off } = useSocket()
 
     const formik = useFormik({
         initialValues: {
@@ -146,6 +175,34 @@ export function Todo() {
             setIsLoading(false);
         }
     };
+    const getAllUsers = async () => {
+        try {
+            const response = await AxiousInstance.get(`/auth/user-lookup`);
+            if (response.status === 200) {
+                const data = response.data;
+                setUsers(data.data?.filter((us: any) => us._id !== user?.id) || []);
+            }
+        } catch (error: any) {
+            toast.error(error.response?.data?.message || "Failed to fetch tasks");
+        }
+    };
+
+    const handleTaskShare = async (values: any, resetForm: any, onClose: any) => {
+        try {
+            const response = await AxiousInstance.patch(`/task`, { ...values, task: selectedRows, username: user?.name });
+            if (response.status === 200) {
+                const data = response.data;
+                toast.success(data.message)
+                resetForm()
+                onClose()
+                getAllTask(pagination.pageIndex, pagination.pageSize, titleFilter);
+            }
+        } catch (error: any) {
+            toast.error(error.response?.data?.message || "Failed to fetch tasks");
+        }
+
+    }
+
 
     const addTask = async (task: Partial<Todo>) => {
         try {
@@ -162,7 +219,7 @@ export function Todo() {
 
     const updateTask = async (task: Todo) => {
         try {
-            const response = await AxiousInstance.put(`/task/${task.taskId}`, task);
+            const response = await AxiousInstance.put(`/task/${initialValues?._id}`, task);
             if (response.status === 200) {
                 toast.success(response.data.message || "Task updated successfully");
                 // Refresh the current page data
@@ -239,8 +296,36 @@ export function Todo() {
             getAllTask(0, pagination.pageSize, value);
         }, 500);
     };
-
+    console.log(user)
     const columns: ColumnDef<Todo>[] = [
+        {
+            id: "select",
+            header: 'Task',
+            cell: ({ row }) => {
+                const task = row.original as any;
+                const isDisabled = task?.share?.some(
+                    (s: any) => s.shareTo?._id === user.id
+                );
+
+                return (
+                    <Checkbox
+                        checked={selectedRows.includes(row.original._id!)}
+                        disabled={isDisabled}
+                        onCheckedChange={(value) => handleRowSelect(row.original._id!, !!value)}
+                        aria-label="Select row"
+                        onClick={(e) => e.stopPropagation()}
+                    />
+                );
+            },
+
+        },
+        {
+            id: "index",
+            header: "#",
+            cell: ({ row }) => (
+                <div className="text-sm">{row.index + 1}</div>
+            ),
+        },
         {
             accessorKey: "taskId",
             header: ({ column }) => (
@@ -256,6 +341,7 @@ export function Todo() {
                 <div className="font-medium text-primary"> {row.getValue("taskId")}</div>
             ),
         },
+
         {
             accessorKey: "label",
             header: "Label",
@@ -278,6 +364,7 @@ export function Todo() {
             ),
             cell: ({ row }) => <div className="font-medium">{row.getValue("title")}</div>,
         },
+
         {
             accessorKey: "status",
             header: "Status",
@@ -296,6 +383,42 @@ export function Todo() {
                 </Badge>
             ),
         },
+        {
+            accessorKey: "createdBy",
+            header: "Maintainer",
+            cell: ({ row }) => {
+                const createdBy = row.original?.createdBy
+                const share = row.original?.share ?? []
+                const renderAvatar = (person: User) => (
+                    <Avatar key={person?._id} className="h-11 w-11 border ">
+                        <AvatarImage
+                            src={
+                                person?.avatar?.startsWith("https://")
+                                    ? person?.avatar
+                                    : import.meta.env.VITE_IMAGE_BASE_URL + person?.avatar
+                            }
+                            alt={person?.name}
+                            title={person?.name}
+                        />
+                        <AvatarFallback className="border">
+                            {person?.name?.split(" ").map((n: string) => n[0]).join("").toUpperCase()}
+                        </AvatarFallback>
+                    </Avatar>
+                )
+
+                if (!share.length) {
+                    return renderAvatar(createdBy)
+                }
+
+                return (
+                    <div className="*:data-[slot=avatar]:ring-background flex -space-x-4 *:data-[slot=avatar]:ring-2 *:data-[slot=avatar]">
+                        {renderAvatar(createdBy)}
+                        {share.map((s) => renderAvatar(s?.shareTo))}
+                    </div>
+                )
+            },
+        },
+
         {
             accessorKey: "priority",
             header: "Priority",
@@ -317,11 +440,19 @@ export function Todo() {
             header: "Actions",
             cell: ({ row }) => {
                 const task = row.original as any;
+                const isCreator = task?.createdBy?._id === user?.id;
+
+                const hasEditPermission = row.original?.share?.some(
+                    (item) => item?.shareTo?._id === user?.id && item?.permission === "edit"
+                );
+
+                console.log(isCreator, hasEditPermission, '::::: ', isCreator || hasEditPermission)
                 return (
                     <div className="flex items-center space-x-2">
                         <Button
                             variant="ghost"
                             size="icon"
+                            disabled={!(isCreator || hasEditPermission)}
                             onClick={(e) => {
                                 e.stopPropagation();
                                 handleDelete(task._id);
@@ -367,7 +498,7 @@ export function Todo() {
     };
 
     const handleRowClick = (task: Todo, columnId: string) => {
-        if (columnId === "taskId" || columnId === "title") {
+        if (columnId === "taskId") {
             setInitialValues(task);
             setIsSheetOpen(true);
             setIsEdit(true);
@@ -397,6 +528,7 @@ export function Todo() {
 
 
     React.useEffect(() => {
+        getAllUsers()
         return () => {
             if (debouncedFilter.current) {
                 clearTimeout(debouncedFilter.current);
@@ -404,136 +536,171 @@ export function Todo() {
         };
     }, []);
 
+    React.useEffect(() => {
+        if (!on) return
+
+        const handleTaskUpdate = ({ type }: any) => {
+            if (type === "shareTask") {
+                getAllTask(pagination.pageIndex, pagination.pageSize, titleFilter);
+            }
+        }
+        on('task_update', handleTaskUpdate)
+        return () => {
+            off('task_update', handleTaskUpdate)
+        }
+    }, [on, off])
+
+    const handleRowSelect = (id: string, checked: boolean) => {
+        setSelectedRows(prev =>
+            checked ? [...prev, id] : prev.filter(rowId => rowId !== id)
+        );
+    };
+
     return (
         <>
             <XBreadcrumb
                 items={[
                     { label: "Dashboard", link: "/dashboard" },
-                    { label: "Todo", link: "/todo" },
+                    { label: "Task", link: "/task" },
                 ]}
             />
             <div className="p-2">
                 <div className="mb-6 ">
                     <div className="flex  items-center justify-between gap-4 w-full sm:w-auto">
-                        <Sheet open={isSheetOpen} onOpenChange={() => {
-                            setIsSheetOpen(!isSheetOpen);
-                            setInitialValues(null);
-                            setIsEdit(false);
-                            formik.resetForm();
-                        }}>
-                            <SheetTrigger asChild>
-                                <Button className="h-11 flex items-center gap-2">
-                                    <Plus className="h-4 w-4" />
-                                    <span className="hidden md:block"> New Task </span>
+                        <div className="flex gap-4">
+                            <Sheet open={isSheetOpen} onOpenChange={() => {
+                                setIsSheetOpen(!isSheetOpen);
+                                setInitialValues(null);
+                                setIsEdit(false);
+                                formik.resetForm();
+                            }}>
+                                <SheetTrigger asChild>
+                                    <Button className="h-11 flex items-center gap-2">
+                                        <Plus className="h-4 w-4" />
+                                        <span className="hidden md:block"> New Task </span>
+                                    </Button>
+
+                                </SheetTrigger>
+                                <SheetContent className="w-[90vw] sm:w-[400px] overflow-y-auto">
+                                    <SheetHeader>
+                                        <SheetTitle>{initialValues ? "Edit Task" : "New Task"}</SheetTitle>
+                                        <SheetDescription>
+                                            {initialValues
+                                                ? "Update the task details below."
+                                                : "Create a new task by filling out the details."}
+                                        </SheetDescription>
+                                    </SheetHeader>
+                                    <div className="mt-6">
+                                        <form onSubmit={formik.handleSubmit} className="space-y-6 px-4">
+                                            <div>
+                                                <XInputField
+                                                    id="title"
+                                                    name="title"
+                                                    label="Title"
+                                                    type="text"
+                                                    className="h-11"
+                                                    placeholder="Task 123"
+                                                    value={formik.values.title}
+                                                    onChange={formik.handleChange}
+                                                    onBlur={formik.handleBlur}
+                                                    error={formik.touched.title && formik.errors.title as string}
+                                                />
+                                            </div>
+                                            <div>
+                                                <XTextareaField
+                                                    id="description"
+                                                    name="description"
+                                                    label="Description"
+                                                    placeholder="Task description"
+                                                    value={formik.values.description}
+                                                    onChange={formik.handleChange}
+                                                    onBlur={formik.handleBlur}
+                                                    error={formik.touched.description && formik.errors.description as string}
+                                                />
+                                            </div>
+                                            <div>
+                                                <XInputField
+                                                    id="label"
+                                                    name="label"
+                                                    label="Label"
+                                                    type="text"
+                                                    className="h-11"
+                                                    placeholder="Urgent"
+                                                    value={formik.values.label}
+                                                    onChange={formik.handleChange}
+                                                    onBlur={formik.handleBlur}
+                                                    error={formik.touched.label && formik.errors.label as string}
+                                                />
+                                            </div>
+                                            <div>
+                                                <Label htmlFor="status" className="text-sm font-medium mb-1.5">
+                                                    Status
+                                                </Label>
+                                                <Select
+                                                    name="status"
+                                                    value={formik.values.status}
+                                                    onValueChange={(value) =>
+                                                        formik.setFieldValue("status", value as Todo["status"])
+                                                    }
+                                                >
+                                                    <SelectTrigger className={`${formik.touched.status && formik.errors.status ? 'border-red-500' : ''} w-full py-[21px]  `}>
+                                                        <SelectValue placeholder="Select status" />
+                                                    </SelectTrigger>
+                                                    <SelectContent>
+                                                        <SelectItem value="pending">Pending</SelectItem>
+                                                        <SelectItem value="processing">Processing</SelectItem>
+                                                        <SelectItem value="success">Success</SelectItem>
+                                                        <SelectItem value="failed">Failed</SelectItem>
+                                                    </SelectContent>
+                                                </Select>
+                                                {formik.touched.status && formik.errors.status && (
+                                                    <p className="mt-1 text-sm text-destructive">{formik.errors.status as string}</p>
+                                                )}
+                                            </div>
+                                            <div>
+                                                <Label htmlFor="priority" className="text-sm font-medium mb-1.5">
+                                                    Priority
+                                                </Label>
+                                                <Select
+                                                    name="priority"
+                                                    value={formik.values.priority}
+                                                    onValueChange={(value) =>
+                                                        formik.setFieldValue("priority", value as Todo["priority"])
+                                                    }
+                                                >
+                                                    <SelectTrigger className={`${formik.touched.priority && formik.errors.priority ? 'border-red-500' : ''} w-full py-[21px]  `}>
+                                                        <SelectValue placeholder="Select priority" />
+                                                    </SelectTrigger>
+                                                    <SelectContent>
+                                                        <SelectItem value="low">Low</SelectItem>
+                                                        <SelectItem value="medium">Medium</SelectItem>
+                                                        <SelectItem value="high">High</SelectItem>
+                                                    </SelectContent>
+                                                </Select>
+                                                {formik.touched.priority && formik.errors.priority && (
+                                                    <p className="mt-1 text-sm text-destructive">{formik.errors.priority as string}</p>
+                                                )}
+                                            </div>
+                                            <Button type="submit" className="w-full">
+                                                {isEdit ? "Update Task" : "Create Task"}
+                                            </Button>
+                                        </form>
+                                    </div>
+                                </SheetContent>
+                            </Sheet>
+                            <div className="relative inline-block">
+                                <Button className="h-11 flex items-center gap-2" variant="outline" onClick={() => setIsShareModalOpen(true)} disabled={selectedRows.length === 0}>
+                                    <Send className="h-4 w-4" />
+                                    <span className="hidden md:block">Share Task</span>
                                 </Button>
-                            </SheetTrigger>
-                            <SheetContent className="w-[90vw] sm:w-[400px] overflow-y-auto">
-                                <SheetHeader>
-                                    <SheetTitle>{initialValues ? "Edit Task" : "New Task"}</SheetTitle>
-                                    <SheetDescription>
-                                        {initialValues
-                                            ? "Update the task details below."
-                                            : "Create a new task by filling out the details."}
-                                    </SheetDescription>
-                                </SheetHeader>
-                                <div className="mt-6">
-                                    <form onSubmit={formik.handleSubmit} className="space-y-6 px-4">
-                                        <div>
-                                            <XInputField
-                                                id="title"
-                                                name="title"
-                                                label="Title"
-                                                type="text"
-                                                className="h-11"
-                                                placeholder="Task 123"
-                                                value={formik.values.title}
-                                                onChange={formik.handleChange}
-                                                onBlur={formik.handleBlur}
-                                                error={formik.touched.title && formik.errors.title as string}
-                                            />
-                                        </div>
-                                        <div>
-                                            <XTextareaField
-                                                id="description"
-                                                name="description"
-                                                label="Description"
-                                                placeholder="Task description"
-                                                value={formik.values.description}
-                                                onChange={formik.handleChange}
-                                                onBlur={formik.handleBlur}
-                                                error={formik.touched.description && formik.errors.description as string}
-                                            />
-                                        </div>
-                                        <div>
-                                            <XInputField
-                                                id="label"
-                                                name="label"
-                                                label="Label"
-                                                type="text"
-                                                className="h-11"
-                                                placeholder="Urgent"
-                                                value={formik.values.label}
-                                                onChange={formik.handleChange}
-                                                onBlur={formik.handleBlur}
-                                                error={formik.touched.label && formik.errors.label as string}
-                                            />
-                                        </div>
-                                        <div>
-                                            <Label htmlFor="status" className="text-sm font-medium mb-1.5">
-                                                Status
-                                            </Label>
-                                            <Select
-                                                name="status"
-                                                value={formik.values.status}
-                                                onValueChange={(value) =>
-                                                    formik.setFieldValue("status", value as Todo["status"])
-                                                }
-                                            >
-                                                <SelectTrigger className={`${formik.touched.status && formik.errors.status ? 'border-red-500' : ''} w-full py-[21px]  `}>
-                                                    <SelectValue placeholder="Select status" />
-                                                </SelectTrigger>
-                                                <SelectContent>
-                                                    <SelectItem value="pending">Pending</SelectItem>
-                                                    <SelectItem value="processing">Processing</SelectItem>
-                                                    <SelectItem value="success">Success</SelectItem>
-                                                    <SelectItem value="failed">Failed</SelectItem>
-                                                </SelectContent>
-                                            </Select>
-                                            {formik.touched.status && formik.errors.status && (
-                                                <p className="mt-1 text-sm text-destructive">{formik.errors.status as string}</p>
-                                            )}
-                                        </div>
-                                        <div>
-                                            <Label htmlFor="priority" className="text-sm font-medium mb-1.5">
-                                                Priority
-                                            </Label>
-                                            <Select
-                                                name="priority"
-                                                value={formik.values.priority}
-                                                onValueChange={(value) =>
-                                                    formik.setFieldValue("priority", value as Todo["priority"])
-                                                }
-                                            >
-                                                <SelectTrigger className={`${formik.touched.priority && formik.errors.priority ? 'border-red-500' : ''} w-full py-[21px]  `}>
-                                                    <SelectValue placeholder="Select priority" />
-                                                </SelectTrigger>
-                                                <SelectContent>
-                                                    <SelectItem value="low">Low</SelectItem>
-                                                    <SelectItem value="medium">Medium</SelectItem>
-                                                    <SelectItem value="high">High</SelectItem>
-                                                </SelectContent>
-                                            </Select>
-                                            {formik.touched.priority && formik.errors.priority && (
-                                                <p className="mt-1 text-sm text-destructive">{formik.errors.priority as string}</p>
-                                            )}
-                                        </div>
-                                        <Button type="submit" className="w-full">
-                                            {isEdit ? "Update Task" : "Create Task"}
-                                        </Button>
-                                    </form>
-                                </div>
-                            </SheetContent>
-                        </Sheet>
+
+                                {selectedRows.length > 0 && (
+                                    <span className="absolute -top-2 -right-2 inline-flex items-center justify-center rounded-full bg-primary text-white text-xs w-5 h-5  badge-pop">
+                                        {selectedRows.length}
+                                    </span>
+                                )}
+                            </div>
+                        </div>
                         <div className="flex items-center gap-2 w-full sm:w-auto">
                             <Input
                                 placeholder="Filter by title..."
@@ -584,7 +751,15 @@ export function Todo() {
                                             const cell = (e.target as HTMLElement).closest("td");
                                             if (cell) {
                                                 const columnId = table.getAllColumns()[cell.cellIndex].id;
-                                                handleRowClick(row.original, columnId);
+                                                const isCreator = row.original?.createdBy?._id === user?.id;
+
+                                                const hasEditPermission = row.original?.share?.some(
+                                                    (item) => item?.shareTo?._id === user?.id && item?.permission === "edit"
+                                                );
+
+                                                if (isCreator || hasEditPermission) {
+                                                    handleRowClick(row.original, columnId);
+                                                }
                                             }
                                         }}
                                     >
@@ -678,6 +853,9 @@ export function Todo() {
                     </div>
                 </div>
             </div>
+            <TaskShareModal
+                isOpen={isShareModalOpen} onClose={() => { setIsShareModalOpen(false) }} users={users} handleShare={handleTaskShare}
+            />
         </>
     );
 }

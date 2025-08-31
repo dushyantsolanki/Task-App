@@ -1,7 +1,7 @@
 import { cn } from "@/lib/utils"
 import { Button } from "@/components/ui/button"
 import { XInputField } from "@/components/custom/XInputField"
-import { Eye, EyeOff, Mail, User, Phone, Calendar } from "lucide-react"
+import { Eye, EyeOff, Mail, User, Calendar } from "lucide-react"
 import { AnimatedShinyText } from "@/components/magicui/animated-shiny-text"
 import { Link, useNavigate } from "react-router-dom"
 import { Select, SelectContent, SelectGroup, SelectItem, SelectLabel, SelectTrigger, SelectValue } from "@/components/ui/select"

@@ -25,6 +25,7 @@ export const sendFirebaseNotification = async ({
     let tokens = [];
 
     if (mode === 'creator') {
+      // creator mode mode only send a message who create this
       if (!creatorId) throw new Error("creatorId is required for 'creator' mode");
       const user = await User.findById(creatorId);
       if (user?.fcmToken) {

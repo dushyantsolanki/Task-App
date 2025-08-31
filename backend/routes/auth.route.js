@@ -4,6 +4,7 @@ import path from 'path';
 import fs from 'fs';
 import {
   forgotPassword,
+  getAllUsersLookup,
   login,
   loginWithGitHub,
   loginWithGoogle,
@@ -76,6 +77,7 @@ router.post('/forgot-password/reset-password', resetPassword);
 router.post('/profile/send-otp', verifyToken, sendOTP);
 router.post('/profile/verify-otp', verifyToken, verifyOTP);
 router.get('/logout', logout);
+router.get('/user-lookup', verifyToken, getAllUsersLookup);
 router.put('/profile/:id', updateProfile);
 router.patch('/profile/reset-password/:id', verifyToken, resetProfilePassword);
 router.patch('/profile/picture', verifyToken, upload.single('avatar'), updateProfilePicture);

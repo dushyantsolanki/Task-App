@@ -7,7 +7,7 @@ import { createServer } from 'http';
 import cors from 'cors';
 import passport from 'passport';
 import connectDB from './configs/db.config.js';
-import configurePassport from './configs/passport.config.js';
+// import configurePassport from './configs/passport.config.js';
 import indexRoute from './routes/index.js';
 import logger from './configs/pino.config.js';
 import { initSocketIO } from './sockets/index.js';
@@ -20,11 +20,11 @@ import puppeteer from 'puppeteer';
 import { Builder, By } from 'selenium-webdriver';
 import { runGroqSearchQA } from './configs/langchai.config.js';
 import chrome from 'selenium-webdriver/chrome.js';
-import { Task } from './models/index.js';
+import { Task, Template } from './models/index.js';
 import { faker } from '@faker-js/faker';
 import fs from 'fs';
 // passport configurations
-configurePassport();
+// configurePassport();
 
 const app = express();
 const server = createServer(app);
@@ -165,12 +165,13 @@ const priorities = ['low', 'medium', 'high'];
 
 const generateFakeTask = () => {
   return {
+    taskId: faker.number.int({ min: 10, max: 10000 }),
     title: faker.lorem.words(3),
     description: faker.lorem.sentence(),
     label: faker.hacker.noun(),
     status: faker.helpers.arrayElement(statuses),
     priority: faker.helpers.arrayElement(priorities),
-    createdBy: '684832c80652542b2dcc5302',
+    createdBy: '68ad521d790753c2dd5ab757',
     isDeleted: false,
     createdAt: faker.date.between({
       from: new Date('2024-01-01T00:00:00.000Z'),
@@ -195,6 +196,31 @@ const migrateTasks = async () => {
 };
 // migrateTasks();
 // notification_migration(notification_data);
+
+export const generateFakeTemplates = async (count = 10, userId = null) => {
+  try {
+    const fakeTemplates = [];
+
+    for (let i = 0; i < count; i++) {
+      fakeTemplates.push({
+        name: faker.lorem.words(3), // template name
+        subject: faker.lorem.sentence(), // fake subject
+        body: faker.lorem.paragraphs(2), // fake email body
+        createdBy: userId || null, // pass a userId if you want to associate
+        isDeleted: false,
+      });
+    }
+
+    const inserted = await Template.insertMany(fakeTemplates);
+    console.log(`✅ Inserted ${inserted.length} fake templates`);
+    return inserted;
+  } catch (err) {
+    console.error('❌ Error generating fake templates:', err);
+    throw err;
+  }
+};
+
+// generateFakeTemplates(100, '68ad521d790753c2dd5ab757');
 
 // Web scraping example using a pupeeter and selinium
 
@@ -232,7 +258,7 @@ async function scrapeFullPage(url) {
 
   try {
     await driver.get(url);
-    await driver.sleep(3000);
+    await driver.sleep(1000);
 
     const body = await driver.findElement(By.tagName('body'));
     const content = await body.getText();

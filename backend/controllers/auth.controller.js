@@ -640,3 +640,16 @@ export const resetProfilePassword = async (req, res) => {
     return res.status(500).json({ success: false, message: err.message });
   }
 };
+
+export const getAllUsersLookup = async (req, res) => {
+  try {
+    const users = await User.find({ isDeleted: false, isVerified: true }, 'name avatar');
+
+    return res.status(200).json({
+      success: true,
+      data: users,
+    });
+  } catch (err) {
+    return res.status(500).json({ success: false, message: err.message });
+  }
+};
