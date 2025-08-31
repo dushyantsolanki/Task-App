@@ -29,7 +29,6 @@ import {
 import { XBreadcrumb } from "@/components/custom/XBreadcrumb";
 import { toast } from "sonner";
 import AxiousInstance from "@/helper/AxiousInstance";
-import { Checkbox } from "@/components/ui/checkbox";
 import { cn } from "@/lib/utils";
 import TemplateModal from "@/modal/TemplateModal";
 import TemplateViewModal from "@/modal/TemplateViewModal";

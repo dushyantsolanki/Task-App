@@ -285,7 +285,7 @@ const LeadModal = ({ isOpen, onClose, initialValues, handleAdd,
                                 <div className="col-span-2">
                                     <label className="text-sm font-medium">Emails</label>
                                     {emailInputs.map((email: string, index: number) => (
-                                        <div key={index} className="flex gap-2 mb-2">
+                                        <div key={index} title={email} className="flex gap-2 mb-2">
                                             <XInputField
                                                 id={`emails[${index}]`}
                                                 name={`emails[${index}]`}
@@ -329,7 +329,7 @@ const LeadModal = ({ isOpen, onClose, initialValues, handleAdd,
                                 <div className="col-span-2">
                                     <label className="text-sm font-medium">Additional Phones</label>
                                     {phoneInputs.map((phone: string, index: number) => (
-                                        <div key={index} className="flex gap-2 mb-2">
+                                        <div key={index} title={phone} className="flex gap-2 mb-2">
                                             <XInputField
                                                 id={`phones[${index}]`}
                                                 name={`phones[${index}]`}
@@ -373,7 +373,7 @@ const LeadModal = ({ isOpen, onClose, initialValues, handleAdd,
                                 <div className="col-span-2">
                                     <label className="text-sm font-medium">Categories</label>
                                     {categoryInputs.map((category: string, index: number) => (
-                                        <div key={index} className="flex gap-2 mb-2">
+                                        <div key={index} title={category} className="flex gap-2 mb-2">
                                             <XInputField
                                                 id={`categories[${index}]`}
                                                 name={`categories[${index}]`}
