@@ -17,7 +17,7 @@ import {
 } from "@/components/ui/select";
 import { useFormik } from "formik";
 import * as Yup from "yup";
-import { Send, Users } from "lucide-react";
+import { Send } from "lucide-react";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 
 interface User {
