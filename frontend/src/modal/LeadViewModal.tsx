@@ -135,13 +135,6 @@ const LeadViewModal = ({ isOpen, onClose, lead }: ViewModalProps) => {
                                                 <p className="text-xs sm:text-sm text-foreground break-words">{lead.title || "N/A"}</p>
                                             </div>
                                         </div>
-                                        <div className="flex items-center gap-2 sm:gap-3">
-                                            <Globe className="h-4 w-4 sm:h-5 sm:w-5 text-muted-foreground flex-shrink-0" />
-                                            <div className="min-w-0 flex-1">
-                                                <label className="text-xs sm:text-sm font-medium">Domain</label>
-                                                <p className="text-xs sm:text-sm text-foreground break-all">{lead.domain || "N/A"}</p>
-                                            </div>
-                                        </div>
                                     </div>
                                 </div>
 
