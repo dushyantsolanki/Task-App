@@ -16,7 +16,7 @@ export async function runGroqSearchQA(scrapedText, userQuery) {
       chunkOverlap: 200,
     });
 
-    const docs = await splitter.createDocuments([scrapedText.slice(0, 15000)]);
+    const docs = await splitter.createDocuments([scrapedText.slice(0, 7000)]);
 
     const prompt = new PromptTemplate({
       template: `${` **Instruction**: 

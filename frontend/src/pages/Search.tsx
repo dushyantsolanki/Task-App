@@ -11,6 +11,8 @@ import remarkGfm from 'remark-gfm';
 import { ShineBorder } from "@/components/magicui/shine-border";
 import { useAuthStore } from "@/store/authStore";
 import { Tooltip, TooltipContent, TooltipTrigger } from "@/components/ui/tooltip";
+import { ImageZoom } from "@/components/ui/kibo-ui/image-zoom";
+import { VideoPlayer, VideoPlayerContent, VideoPlayerControlBar, VideoPlayerMuteButton, VideoPlayerPlayButton, VideoPlayerSeekBackwardButton, VideoPlayerSeekForwardButton, VideoPlayerTimeDisplay, VideoPlayerTimeRange, VideoPlayerVolumeRange } from "@/components/ui/kibo-ui/video-player";
 
 
 interface Source {
@@ -143,8 +145,8 @@ export function Search() {
         setError(null);
         setHasSearched(true);
         try {
-            // const response = await fetch(`http://localhost:3000/api/overview?q=${encodeURIComponent(query)}`);
-            const response = await fetch(`https://api.dushyantportfolio.store/api/overview?q=${encodeURIComponent(query)}`);
+            const response = await fetch(`http://localhost:3000/api/overview?q=${encodeURIComponent(query)}`);
+            // const response = await fetch(`https://api.dushyantportfolio.store/api/overview?q=${encodeURIComponent(query)}`);
 
 
             // const response = await fetch(`https://task-app-wfv1.onrender.com/api/overview?q=${encodeURIComponent(query)}`);
@@ -337,50 +339,72 @@ function MediaSidebar({ media }: { media: { images: string[]; videos: string[] }
                     </CardHeader>
                     <CardContent>
                         <div className="grid grid-cols-2 gap-2">
-                            {media.images.slice(0, 6).map((image, index) => (
-                                <div key={index} className="relative h-20overflow-hidden rounded-[--radius-md]">
-                                    <img
-                                        src={image}
-                                        alt={`Image ${index + 1}`}
-                                        className="w-full h-full object-cover transition-transform duration-300 hover:scale-105 rounded-md"
 
-                                    />
+                            {media.images.slice(0, 6).map((image, index) => (
+                                <div key={index} className="relative h-30 overflow-hidden rounded-[--radius-md]">
+                                    <ImageZoom >
+                                        <img
+                                            src={image}
+                                            alt={`Image ${index + 1}`}
+                                            className="w-full h-full object-cover transition-transform duration-300 hover:scale-105 rounded-md"
+                                        />
+                                    </ImageZoom>
                                 </div>
                             ))}
+
                         </div>
                     </CardContent>
                 </Card>
-            )}
-            {media.videos.length > 0 && (
-                <Card className="mt-4 bg-[--color-card] border-[--color-border] transition-all duration-300 hover:shadow-lg">
-                    <CardHeader>
-                        <CardTitle className="text-[--color-card-foreground]">Videos</CardTitle>
-                    </CardHeader>
-                    <CardContent>
-                        {media.videos.slice(0, 4).map((video, index) => (
-                            <div key={index} className="mt-2">
-                                {video.startsWith("https://www.youtube.com") ? (
-                                    <iframe
-                                        src={video.replace("watch?v=", "embed/")}
-                                        title={`Video ${index + 1}`}
-                                        width="100%"
-                                        height="200"
-                                        allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
-                                        allowFullScreen
-                                        className="rounded-[--radius-md]"
-                                    ></iframe>
-                                ) : (
-                                    <video controls className="w-full h-48 rounded-[--radius-md]">
-                                        <source src={video} type="video/mp4" />
-                                        Your browser does not support the video tag.
-                                    </video>
-                                )}
-                            </div>
-                        ))}
-                    </CardContent>
-                </Card>
-            )}
+            )
+            }
+            {
+                media.videos.length > 0 && (
+                    <Card className="mt-4 bg-[--color-card] border-[--color-border] transition-all duration-300 hover:shadow-lg">
+                        <CardHeader>
+                            <CardTitle className="text-[--color-card-foreground]">Videos</CardTitle>
+                        </CardHeader>
+                        <CardContent>
+                            {media.videos.slice(0, 4).map((video, index) => (
+                                <div key={index} className="mt-2">
+                                    {video.startsWith("https://www.youtube.com") ? (
+                                        <iframe
+                                            src={video.replace("watch?v=", "embed/")}
+                                            title={`Video ${index + 1}`}
+                                            width="100%"
+                                            height="200"
+                                            allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
+                                            allowFullScreen
+                                            className="rounded-[--radius-md]"
+                                        ></iframe>
+                                    ) : (
+                                        <VideoPlayer className="overflow-hidden rounded-lg border w-full h-48 ">
+                                            <VideoPlayerContent
+                                                crossOrigin="anonymous"
+                                                muted
+                                                preload="auto"
+                                                slot="media"
+                                                src={video}
+                                            />
+                                            <VideoPlayerControlBar>
+                                                <VideoPlayerPlayButton />
+                                                <VideoPlayerSeekBackwardButton />
+                                                <VideoPlayerSeekForwardButton />
+                                                <VideoPlayerTimeRange />
+                                                <VideoPlayerTimeDisplay showDuration />
+                                                <VideoPlayerMuteButton />
+                                                <VideoPlayerVolumeRange />
+                                            </VideoPlayerControlBar>
+                                        </VideoPlayer>
+                                    )}
 
-        </div>
+                                </div>
+                            ))}
+
+                        </CardContent>
+                    </Card>
+                )
+            }
+
+        </div >
     );
 }

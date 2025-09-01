@@ -16,8 +16,7 @@ import './crons/calendar.jobs.js';
 import Notification from './models/notification.model.js';
 import path from 'path';
 // import { ai } from './configs/genkit.config.js';
-import puppeteer from 'puppeteer';
-import { Builder, By } from 'selenium-webdriver';
+import { Builder, By, until } from 'selenium-webdriver';
 import { runGroqSearchQA } from './configs/langchai.config.js';
 import chrome from 'selenium-webdriver/chrome.js';
 import { Task, Template } from './models/index.js';
@@ -249,8 +248,7 @@ async function scrapeFullPage(url) {
     '--disable-gpu',
     '--no-sandbox',
     '--disable-dev-shm-usage',
-    '--headless=new',
-    '--blink-settings=imagesEnabled=false', // Disable images to speed up loading
+    // '--headless=new',
     '--disable-javascript', // Disable JavaScript if not needed for content
   );
 
