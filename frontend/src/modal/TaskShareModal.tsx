@@ -18,6 +18,7 @@ import {
 import { useFormik } from "formik";
 import * as Yup from "yup";
 import { Send, Users } from "lucide-react";
+import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 
 interface User {
     _id: string;
@@ -79,27 +80,44 @@ const TaskShareModal = ({ isOpen, onClose, users, handleShare }: ShareModalProps
                                     <label htmlFor="shareTo" className="text-sm font-medium mb-1.5">
                                         Select User
                                     </label>
-                                    <div className="relative">
-                                        <Users className="h-5 w-5 absolute left-3 top-3 text-muted-foreground" />
-                                        <Select
-                                            onValueChange={(value) => formik.setFieldValue("shareTo", value)}
-                                            value={formik.values.shareTo}
-                                        >
-                                            <SelectTrigger className="pl-10 w-full py-[21px]">
-                                                <SelectValue placeholder="Select a user to share with" />
-                                            </SelectTrigger>
-                                            <SelectContent>
-                                                {users.map((user) => (
-                                                    <SelectItem key={user._id} value={user._id}>
-                                                        <span>  {user.name} </span>
-                                                    </SelectItem>
-                                                ))}
-                                            </SelectContent>
-                                        </Select>
-                                        {formik.touched.shareTo && formik.errors.shareTo && (
-                                            <p className="ml-1 text-sm text-red-500 mt-1.5">{formik.errors.shareTo}</p>
-                                        )}
-                                    </div>
+
+                                    {/* <Users className="h-5 w-5 absolute left-3 top-3 text-muted-foreground" /> */}
+                                    <Select
+                                        onValueChange={(value) => formik.setFieldValue("shareTo", value)}
+                                        value={formik.values.shareTo}
+                                    >
+                                        <SelectTrigger className="pl-2.5 w-full py-[21px]">
+                                            <SelectValue placeholder="Select a user to share with" />
+                                        </SelectTrigger>
+                                        <SelectContent>
+                                            {users.map((user) => (
+                                                <SelectItem key={user._id} value={user._id}>
+                                                    <div className="flex items-center gap-2">
+                                                        <Avatar key={user._id} className="h-8 w-8 border">
+                                                            <AvatarImage
+                                                                src={
+                                                                    user.avatar?.startsWith("https://")
+                                                                        ? user.avatar
+                                                                        : import.meta.env.VITE_IMAGE_BASE_URL + user.avatar
+                                                                }
+                                                                alt={user.name}
+                                                                title={user.name}
+                                                            />
+                                                            <AvatarFallback className="border">
+                                                                {user.name?.split(" ").map((n) => n[0]).join("").toUpperCase()}
+                                                            </AvatarFallback>
+                                                        </Avatar>
+                                                        <span>{user.name}</span>
+
+                                                    </div>
+                                                </SelectItem>
+                                            ))}
+                                        </SelectContent>
+                                    </Select>
+                                    {formik.touched.shareTo && formik.errors.shareTo && (
+                                        <p className="ml-1 text-sm text-red-500 mt-1.5">{formik.errors.shareTo}</p>
+                                    )}
+
                                 </div>
                                 <div className="flex flex-col">
                                     <label htmlFor="permission" className="text-sm font-medium mb-1.5">
