@@ -134,11 +134,41 @@ const LeadModal = ({ isOpen, onClose, initialValues, handleAdd,
 
     return (
         <Dialog open={isOpen} onOpenChange={(open) => !open && onClose()}>
-            <DialogContent className="flex flex-col gap-0 p-0 max-h-[90vh] sm:max-h-[80vh] md:max-h-[70vh] lg:max-h-[70vh] w-full max-w-md sm:max-w-lg md:max-w-2xl lg:max-w-4xl [&>button:last-child]:top-4">
+            <DialogContent
+                className="
+          flex
+          flex-col
+          gap-0
+          p-0
+          w-[95vw]
+          max-w-[90vw]
+          sm:max-w-[85vw]
+          md:max-w-[720px]
+          lg:max-w-[960px]
+          max-h-[90vh]
+          sm:max-h-[85vh]
+          md:max-h-[80vh]
+          overflow-hidden
+          rounded-lg
+          [&>button:last-child]:top-2
+          [&>button:last-child]:right-2
+        "
+            >
                 <DialogHeader className="contents space-y-0 text-left">
-                    <DialogTitle className="border-b px-6 py-4 text-base">
+                    <DialogTitle
+                        className="
+              border-b
+              px-4
+              py-3
+              sm:px-6
+              sm:py-4
+              text-base
+              font-medium
+              text-foreground
+            "
+                    >
                         {!!initialValues ? "Edit Lead" : "Create Lead"}
-                        <p className="font-normal text-xs text-foreground">
+                        <p className="font-normal text-xs sm:text-sm text-muted-foreground mt-1">
                             {!!initialValues
                                 ? "Update the lead details below."
                                 : "Create a new lead by filling out the details."}
@@ -150,175 +180,161 @@ const LeadModal = ({ isOpen, onClose, initialValues, handleAdd,
                             <form
                                 id="lead-form"
                                 onSubmit={formik.handleSubmit}
-                                className="px-6 py-4 grid grid-cols-1 md:grid-cols-2 gap-4"
+                                className="
+                  px-4
+                  py-3
+                  sm:px-6
+                  sm:py-4
+                  grid
+                  grid-cols-1
+                  sm:grid-cols-2
+                  gap-3
+                  sm:gap-4
+                "
                             >
                                 <XInputField
                                     id="title"
                                     name="title"
                                     label="Title"
                                     type="text"
-                                    icon={<Building className="h-5 w-5" />}
-                                    className="h-11"
+                                    icon={<Building className="h-4 w-4 sm:h-5 sm:w-5" />}
+                                    className="h-10 sm:h-11"
                                     placeholder="Task 123"
                                     value={formik.values.title}
                                     onChange={formik.handleChange}
                                     onBlur={formik.handleBlur}
-                                    error={
-                                        formik.touched.title &&
-                                        (formik.errors.title as string)
-                                    }
+                                    error={formik.touched.title && (formik.errors.title as string)}
                                 />
                                 <XInputField
                                     id="address"
                                     name="address"
                                     label="Address"
                                     type="text"
-                                    className="h-11"
-                                    icon={<MapPin className="h-5 w-5" />}
+                                    className="h-10 sm:h-11"
+                                    icon={<MapPin className="h-4 w-4 sm:h-5 sm:w-5" />}
                                     placeholder="123 Main St"
                                     value={formik.values.address}
                                     onChange={formik.handleChange}
                                     onBlur={formik.handleBlur}
-                                    error={
-                                        formik.touched.address &&
-                                        (formik.errors.address as string)
-                                    }
+                                    error={formik.touched.address && (formik.errors.address as string)}
                                 />
                                 <XInputField
                                     id="city"
                                     name="city"
                                     label="City"
                                     type="text"
-                                    className="h-11"
-                                    icon={<MapPin className="h-5 w-5" />}
+                                    className="h-10 sm:h-11"
+                                    icon={<MapPin className="h-4 w-4 sm:h-5 sm:w-5" />}
                                     placeholder="New York"
                                     value={formik.values.city}
                                     onChange={formik.handleChange}
                                     onBlur={formik.handleBlur}
-                                    error={
-                                        formik.touched.city &&
-                                        (formik.errors.city as string)
-                                    }
+                                    error={formik.touched.city && (formik.errors.city as string)}
                                 />
                                 <XInputField
                                     id="postalCode"
                                     name="postalCode"
                                     label="Postal Code"
                                     type="text"
-                                    className="h-11"
+                                    className="h-10 sm:h-11"
                                     placeholder="10001"
-                                    icon={<MapPin className="h-5 w-5" />}
+                                    icon={<MapPin className="h-4 w-4 sm:h-5 sm:w-5" />}
                                     value={formik.values.postalCode}
                                     onChange={formik.handleChange}
                                     onBlur={formik.handleBlur}
-                                    error={
-                                        formik.touched.postalCode &&
-                                        (formik.errors.postalCode as string)
-                                    }
+                                    error={formik.touched.postalCode && (formik.errors.postalCode as string)}
                                 />
                                 <XInputField
                                     id="state"
                                     name="state"
                                     label="State"
                                     type="text"
-                                    icon={<MapPin className="h-5 w-5" />}
-                                    className="h-11"
+                                    icon={<MapPin className="h-4 w-4 sm:h-5 sm:w-5" />}
+                                    className="h-10 sm:h-11"
                                     placeholder="NY"
                                     value={formik.values.state}
                                     onChange={formik.handleChange}
                                     onBlur={formik.handleBlur}
-                                    error={
-                                        formik.touched.state &&
-                                        (formik.errors.state as string)
-                                    }
+                                    error={formik.touched.state && (formik.errors.state as string)}
                                 />
                                 <XInputField
                                     id="countryCode"
                                     name="countryCode"
                                     label="Country Code"
                                     type="text"
-                                    className="h-11"
-                                    icon={<MapPin className="h-5 w-5" />}
+                                    className="h-10 sm:h-11"
+                                    icon={<MapPin className="h-4 w-4 sm:h-5 sm:w-5" />}
                                     placeholder="US"
                                     value={formik.values.countryCode}
                                     onChange={formik.handleChange}
                                     onBlur={formik.handleBlur}
-                                    error={
-                                        formik.touched.countryCode &&
-                                        (formik.errors.countryCode as string)
-                                    }
+                                    error={formik.touched.countryCode && (formik.errors.countryCode as string)}
                                 />
                                 <XInputField
                                     id="website"
                                     name="website"
                                     label="Website"
                                     type="text"
-                                    icon={<Globe className="h-5 w-5" />}
-                                    className="h-11"
+                                    icon={<Globe className="h-4 w-4 sm:h-5 sm:w-5" />}
+                                    className="h-10 sm:h-11"
                                     placeholder="https://example.com"
                                     value={formik.values.website}
                                     onChange={formik.handleChange}
                                     onBlur={formik.handleBlur}
-                                    error={
-                                        formik.touched.website &&
-                                        (formik.errors.website as string)
-                                    }
+                                    error={formik.touched.website && (formik.errors.website as string)}
                                 />
                                 <XInputField
                                     id="phone"
                                     name="phone"
                                     label="Primary Phone"
                                     type="text"
-                                    className="h-11"
+                                    className="h-10 sm:h-11"
                                     placeholder="+91 9625047836"
-                                    icon={<Phone className="h-5 w-5" />}
+                                    icon={<Phone className="h-4 w-4 sm:h-5 sm:w-5" />}
                                     value={formik.values.phone}
                                     onChange={formik.handleChange}
                                     onBlur={formik.handleBlur}
-                                    error={
-                                        formik.touched.phone &&
-                                        (formik.errors.phone as string)
-                                    }
+                                    error={formik.touched.phone && (formik.errors.phone as string)}
                                 />
 
                                 {/* Emails */}
-                                <div className="col-span-2">
-                                    <label className="text-sm font-medium">Emails</label>
+                                <div className="col-span-1 sm:col-span-2">
+                                    <label className="text-xs sm:text-sm font-medium">Emails</label>
                                     {emailInputs.map((email: string, index: number) => (
                                         <div key={index} title={email} className="flex gap-2 mb-2">
                                             <XInputField
                                                 id={`emails[${index}]`}
                                                 name={`emails[${index}]`}
                                                 type="email"
-                                                className="h-11 mt-1.5 flex-1"
+                                                className="h-10 sm:h-11 mt-1.5 flex-1"
                                                 placeholder="email@example.com"
-                                                icon={<Mail className="h-5 w-5" />}
+                                                icon={<Mail className="h-4 w-4 sm:h-5 sm:w-5" />}
                                                 value={formik.values.emails[index] || ""}
                                                 onChange={formik.handleChange}
                                                 onBlur={formik.handleBlur}
                                                 error={
-                                                    ((formik.touched.emails as any)?.[index] &&
-                                                        (formik.errors.emails?.[index]) as string)
+                                                    (formik.touched.emails as any)?.[index] &&
+                                                    (formik.errors.emails?.[index] as string)
                                                 }
                                             />
                                             {emailInputs.length > 1 && (
                                                 <Button
                                                     type="button"
                                                     variant="destructive"
-                                                    className="h-10 w-10 mt-2 rounded-sm flex items-center justify-center"
+                                                    className="h-9 sm:h-10 w-9 sm:w-10 mt-2 rounded-sm flex items-center justify-center"
                                                     onClick={() => removeField("emails", index)}
                                                 >
-                                                    <Minus />
+                                                    <Minus className="h-4 w-4" />
                                                 </Button>
                                             )}
                                             {index === emailInputs.length - 1 && (
                                                 <Button
                                                     type="button"
                                                     variant="outline"
-                                                    className="h-10 w-10 mt-2 rounded-sm flex items-center justify-center"
+                                                    className="h-9 sm:h-10 w-9 sm:w-10 mt-2 rounded-sm flex items-center justify-center"
                                                     onClick={() => addField("emails")}
                                                 >
-                                                    <Plus />
+                                                    <Plus className="h-4 w-4" />
                                                 </Button>
                                             )}
                                         </div>
@@ -326,43 +342,43 @@ const LeadModal = ({ isOpen, onClose, initialValues, handleAdd,
                                 </div>
 
                                 {/* Phones */}
-                                <div className="col-span-2">
-                                    <label className="text-sm font-medium">Additional Phones</label>
+                                <div className="col-span-1 sm:col-span-2">
+                                    <label className="text-xs sm:text-sm font-medium">Additional Phones</label>
                                     {phoneInputs.map((phone: string, index: number) => (
                                         <div key={index} title={phone} className="flex gap-2 mb-2">
                                             <XInputField
                                                 id={`phones[${index}]`}
                                                 name={`phones[${index}]`}
                                                 type="text"
-                                                className="h-11 mt-1.5 flex-1"
+                                                className="h-10 sm:h-11 mt-1.5 flex-1"
                                                 placeholder="+91 9625047836"
-                                                icon={<Phone className="h-5 w-5" />}
+                                                icon={<Phone className="h-4 w-4 sm:h-5 sm:w-5" />}
                                                 value={formik.values.phones[index] || ""}
                                                 onChange={formik.handleChange}
                                                 onBlur={formik.handleBlur}
                                                 error={
                                                     (formik.touched.phones as any)?.[index] &&
-                                                    formik.errors.phones?.[index] as string
+                                                    (formik.errors.phones?.[index] as string)
                                                 }
                                             />
                                             {phoneInputs.length > 1 && (
                                                 <Button
                                                     type="button"
                                                     variant="destructive"
-                                                    className="h-10 w-10 mt-2 rounded-sm flex items-center justify-center"
+                                                    className="h-9 sm:h-10 w-9 sm:w-10 mt-2 rounded-sm flex items-center justify-center"
                                                     onClick={() => removeField("phones", index)}
                                                 >
-                                                    <Minus />
+                                                    <Minus className="h-4 w-4" />
                                                 </Button>
                                             )}
                                             {index === phoneInputs.length - 1 && (
                                                 <Button
                                                     type="button"
                                                     variant="outline"
-                                                    className="h-10 w-10 mt-2 rounded-sm flex items-center justify-center"
+                                                    className="h-9 sm:h-10 w-9 sm:w-10 mt-2 rounded-sm flex items-center justify-center"
                                                     onClick={() => addField("phones")}
                                                 >
-                                                    <Plus />
+                                                    <Plus className="h-4 w-4" />
                                                 </Button>
                                             )}
                                         </div>
@@ -370,16 +386,16 @@ const LeadModal = ({ isOpen, onClose, initialValues, handleAdd,
                                 </div>
 
                                 {/* Categories */}
-                                <div className="col-span-2">
-                                    <label className="text-sm font-medium">Categories</label>
+                                <div className="col-span-1 sm:col-span-2">
+                                    <label className="text-xs sm:text-sm font-medium">Categories</label>
                                     {categoryInputs.map((category: string, index: number) => (
                                         <div key={index} title={category} className="flex gap-2 mb-2">
                                             <XInputField
                                                 id={`categories[${index}]`}
                                                 name={`categories[${index}]`}
                                                 type="text"
-                                                className="h-11 mt-1.5 flex-1"
-                                                icon={<Layers className="h-5 w-5" />}
+                                                className="h-10 sm:h-11 mt-1.5 flex-1"
+                                                icon={<Layers className="h-4 w-4 sm:h-5 sm:w-5" />}
                                                 placeholder="Category"
                                                 value={formik.values.categories[index] || ""}
                                                 onChange={formik.handleChange}
@@ -393,20 +409,20 @@ const LeadModal = ({ isOpen, onClose, initialValues, handleAdd,
                                                 <Button
                                                     type="button"
                                                     variant="destructive"
-                                                    className="h-10 w-10 mt-2 rounded-sm flex items-center justify-center"
+                                                    className="h-9 sm:h-10 w-9 sm:w-10 mt-2 rounded-sm flex items-center justify-center"
                                                     onClick={() => removeField("categories", index)}
                                                 >
-                                                    <Minus />
+                                                    <Minus className="h-4 w-4" />
                                                 </Button>
                                             )}
                                             {index === categoryInputs.length - 1 && (
                                                 <Button
                                                     type="button"
                                                     variant="outline"
-                                                    className="h-10 w-10 mt-2 rounded-sm flex items-center justify-center"
+                                                    className="h-9 sm:h-10 w-9 sm:w-10 mt-2 rounded-sm flex items-center justify-center"
                                                     onClick={() => addField("categories")}
                                                 >
-                                                    <Plus />
+                                                    <Plus className="h-4 w-4" />
                                                 </Button>
                                             )}
                                         </div>
@@ -416,22 +432,43 @@ const LeadModal = ({ isOpen, onClose, initialValues, handleAdd,
                         </DialogDescription>
                     </div>
                 </DialogHeader>
-                <DialogFooter className="border-t px-6 py-4 sm:items-center">
+                <DialogFooter
+                    className="
+            border-t
+            px-4
+            py-3
+            sm:px-6
+            sm:py-4
+            flex
+            flex-col
+            sm:flex-row
+            gap-2
+            sm:gap-3
+            justify-end
+            items-center
+          "
+                >
                     <DialogClose asChild>
                         <Button
                             type="button"
                             variant="outline"
+                            className="w-full sm:w-auto h-10 sm:h-11"
                             onClick={onClose}
                         >
                             Cancel
                         </Button>
                     </DialogClose>
-                    <Button type="submit" disabled={formik.isSubmitting} form="lead-form">
+                    <Button
+                        type="submit"
+                        disabled={formik.isSubmitting}
+                        form="lead-form"
+                        className="w-full sm:w-auto h-10 sm:h-11"
+                    >
                         Save
                     </Button>
                 </DialogFooter>
             </DialogContent>
-        </Dialog >
+        </Dialog>
     );
 };
 

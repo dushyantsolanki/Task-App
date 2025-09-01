@@ -61,11 +61,41 @@ const TemplateModal = ({ isOpen, onClose, initialValues, handleEdit, handleAdd }
 
     return (
         <Dialog open={isOpen} onOpenChange={(open) => !open && onClose()}>
-            <DialogContent className="flex flex-col gap-0 p-0 max-h-[90vh] sm:max-h-[80vh] md:max-h-[70vh] lg:max-h-[70vh] w-full max-w-md sm:max-w-lg md:max-w-2xl lg:max-w-4xl [&>button:last-child]:top-4">
+            <DialogContent
+                className="
+          flex
+          flex-col
+          gap-0
+          p-0
+          w-[95vw]
+          max-w-[90vw]
+          sm:max-w-[85vw]
+          md:max-w-[720px]
+          lg:max-w-[960px]
+          max-h-[90vh]
+          sm:max-h-[85vh]
+          md:max-h-[80vh]
+          overflow-hidden
+          rounded-lg
+          [&>button:last-child]:top-2
+          [&>button:last-child]:right-2
+        "
+            >
                 <DialogHeader className="contents space-y-0 text-left">
-                    <DialogTitle className="border-b px-6 py-4 text-base">
+                    <DialogTitle
+                        className="
+              border-b
+              px-4
+              py-3
+              sm:px-6
+              sm:py-4
+              text-base
+              font-medium
+              text-foreground
+            "
+                    >
                         {!!initialValues ? "Edit Template" : "Create Template"}
-                        <p className="font-normal text-xs text-foreground">
+                        <p className="font-normal text-xs sm:text-sm text-muted-foreground mt-1">
                             {!!initialValues
                                 ? "Update the template details below."
                                 : "Create a new template by filling out the details."}
@@ -77,16 +107,25 @@ const TemplateModal = ({ isOpen, onClose, initialValues, handleEdit, handleAdd }
                             <form
                                 id="template-form"
                                 onSubmit={formik.handleSubmit}
-                                className="px-6 py-4 flex-col gap-4"
+                                className="
+                  px-4
+                  py-3
+                  sm:px-6
+                  sm:py-4
+                  flex
+                  flex-col
+                  gap-3
+                  sm:gap-4
+                "
                             >
-                                <div className="flex gap-4">
+                                <div className="flex flex-col sm:flex-row gap-3 sm:gap-4">
                                     <XInputField
                                         id="name"
                                         name="name"
                                         label="Template Name"
                                         type="text"
-                                        icon={<Type className="h-5 w-5" />}
-                                        className="h-11"
+                                        icon={<Type className="h-4 w-4 sm:h-5 sm:w-5" />}
+                                        className="h-10 sm:h-11 flex-1"
                                         placeholder="Welcome Email"
                                         value={formik.values.name}
                                         onChange={formik.handleChange}
@@ -98,8 +137,8 @@ const TemplateModal = ({ isOpen, onClose, initialValues, handleEdit, handleAdd }
                                         name="subject"
                                         label="Subject"
                                         type="text"
-                                        icon={<Mail className="h-5 w-5" />}
-                                        className="h-11"
+                                        icon={<Mail className="h-4 w-4 sm:h-5 sm:w-5" />}
+                                        className="h-10 sm:h-11 flex-1"
                                         placeholder="Welcome to Our Service!"
                                         value={formik.values.subject}
                                         onChange={formik.handleChange}
@@ -107,23 +146,37 @@ const TemplateModal = ({ isOpen, onClose, initialValues, handleEdit, handleAdd }
                                         error={formik.touched.subject && (formik.errors.subject as string)}
                                     />
                                 </div>
-                                <div className="flex mt-2 flex-col">
-                                    <label htmlFor="body" className="text-sm font-medium mb-1.5">
+                                <div className="flex flex-col mt-2">
+                                    <label htmlFor="body" className="text-xs sm:text-sm font-medium mb-1.5">
                                         Body
                                     </label>
                                     <div className="relative">
-                                        <FileText className="h-5 w-5 absolute left-3 top-3 text-muted-foreground" />
+                                        <FileText className="h-4 w-4 sm:h-5 sm:w-5 absolute left-3 top-3 text-muted-foreground" />
                                         <textarea
                                             id="body"
                                             name="body"
-                                            className={`w-full h-64 pl-10 pr-4 py-3 border rounded-md focus:outline-none focus:ring-2  ${formik.touched.body && formik.errors.body ? 'focus:ring-destructive border-red-500 ring-1 ring-red-500' : 'focus:ring-primary'} text-sm`}
+                                            className={`
+                        w-full
+                        h-48
+                        sm:h-64
+                        pl-10
+                        pr-4
+                        py-3
+                        border
+                        rounded-md
+                        focus:outline-none
+                        focus:ring-2
+                        text-xs
+                        sm:text-sm
+                        ${formik.touched.body && formik.errors.body ? 'focus:ring-destructive border-red-500 ring-1 ring-red-500' : 'focus:ring-primary'}
+                      `}
                                             placeholder="Enter the template body here..."
                                             value={formik.values.body}
                                             onChange={formik.handleChange}
                                             onBlur={formik.handleBlur}
                                         />
                                         {formik.touched.body && formik.errors.body && (
-                                            <p className="ml-1 text-sm text-red-500 mt-1.5">{formik.errors.body}</p>
+                                            <p className="ml-1 text-xs sm:text-sm text-red-500 mt-1.5">{formik.errors.body}</p>
                                         )}
                                     </div>
                                 </div>
@@ -131,13 +184,37 @@ const TemplateModal = ({ isOpen, onClose, initialValues, handleEdit, handleAdd }
                         </DialogDescription>
                     </div>
                 </DialogHeader>
-                <DialogFooter className="border-t px-6 py-4 sm:items-center">
+                <DialogFooter
+                    className="
+            border-t
+            px-4
+            py-3
+            sm:px-6
+            sm:py-4
+            flex
+            flex-col
+            sm:flex-row
+            gap-2
+            sm:gap-3
+            justify-end
+            items-center
+          "
+                >
                     <DialogClose asChild>
-                        <Button type="button" variant="outline" onClick={onClose}>
+                        <Button
+                            type="button"
+                            variant="outline"
+                            className="w-full sm:w-auto h-10 sm:h-11"
+                            onClick={onClose}
+                        >
                             Cancel
                         </Button>
                     </DialogClose>
-                    <Button type="submit" form="template-form">
+                    <Button
+                        type="submit"
+                        form="template-form"
+                        className="w-full sm:w-auto h-10 sm:h-11"
+                    >
                         Save
                     </Button>
                 </DialogFooter>
