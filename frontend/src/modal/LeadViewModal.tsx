@@ -1,6 +1,8 @@
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter, DialogDescription, DialogClose } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
-import { MapPin, Globe, Phone, Mail, Tag, Star, Calendar, Link, Search, Image as ImageIcon, AlertCircle } from "lucide-react";
+import { MapPin, Globe, Phone, Mail, Tag, Link, AlertCircle, User, Hash } from "lucide-react";
+import { Badge } from "@/components/ui/badge";
+import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 
 interface Lead {
     _id?: string;
@@ -12,29 +14,16 @@ interface Lead {
     countryCode: string;
     website?: string;
     phone?: string;
-    location?: {
-        lat: number;
-        lng: number;
-    };
-    placeId?: string;
     categories: string[];
-    reviewsDistribution?: {
-        oneStar: number;
-        twoStar: number;
-        threeStar: number;
-        fourStar: number;
-        fiveStar: number;
-    };
-    scrapedAt?: string;
-    url?: string;
-    searchPageUrl?: string;
-    searchString?: string;
-    language?: string;
-    isAdvertisement: boolean;
-    imageUrl?: string;
     domain?: string;
     emails: string[];
     phones: string[];
+    status: string;
+    createdBy: {
+        _id: string;
+        name: string;
+        avatar: string
+    }
 }
 
 interface ViewModalProps {
@@ -48,298 +37,302 @@ const LeadViewModal = ({ isOpen, onClose, lead }: ViewModalProps) => {
 
     return (
         <Dialog open={isOpen} onOpenChange={(open) => !open && onClose()}>
-            <DialogContent className="flex flex-col gap-0 p-0 max-h-[90vh] sm:max-h-[80vh] md:max-h-[70vh] lg:max-h-[70vh] w-full max-w-md sm:max-w-lg md:max-w-2xl lg:max-w-4xl [&>button:last-child]:top-4">
+            <DialogContent
+                className="
+            flex
+            flex-col
+            gap-0
+            p-0
+            w-[95vw]
+            max-w-[90vw]
+            sm:max-w-[85vw]
+            md:max-w-[720px]
+            lg:max-w-[960px]
+            max-h-[90vh]
+            sm:max-h-[85vh]
+            md:max-h-[80vh]
+            overflow-hidden
+            rounded-lg
+            [&>button:last-child]:top-2
+            [&>button:last-child]:right-2
+        "
+            >
                 <DialogHeader className="contents space-y-0 text-left">
-                    <DialogTitle className="border-b px-6 py-4 text-base">
+                    <DialogTitle
+                        className="
+                    border-b
+                    px-4
+                    py-3
+                    sm:px-6
+                    sm:py-4
+                    text-base
+                    font-medium
+                    text-foreground
+                "
+                    >
                         Lead Details
-                        <p className="font-normal text-xs text-foreground">
+                        <p className="font-normal text-xs sm:text-sm text-muted-foreground mt-1">
                             View the details of the lead below.
                         </p>
                     </DialogTitle>
 
                     <div className="overflow-y-auto scrollbar-hide">
                         <DialogDescription asChild>
-                            <div className="px-6 py-4 grid grid-cols-1 md:grid-cols-2 gap-4">
-                                {/* Title */}
-                                <div className="col-span-2 flex items-center gap-2">
-                                    <Tag className="h-5 w-5 text-muted-foreground" />
-                                    <div>
-                                        <label className="text-sm font-medium">Title</label>
-                                        <p className="text-sm">{lead.title || "N/A"}</p>
-                                    </div>
-                                </div>
-
-                                {/* Address */}
-                                <div className="flex items-center gap-2">
-                                    <MapPin className="h-5 w-5 text-muted-foreground" />
-                                    <div>
-                                        <label className="text-sm font-medium">Address</label>
-                                        <p className="text-sm">{lead.address || "N/A"}</p>
-                                    </div>
-                                </div>
-
-                                {/* City */}
-                                <div className="flex items-center gap-2">
-                                    <MapPin className="h-5 w-5 text-muted-foreground" />
-                                    <div>
-                                        <label className="text-sm font-medium">City</label>
-                                        <p className="text-sm">{lead.city || "N/A"}</p>
-                                    </div>
-                                </div>
-
-                                {/* Postal Code */}
-                                <div className="flex items-center gap-2">
-                                    <MapPin className="h-5 w-5 text-muted-foreground" />
-                                    <div>
-                                        <label className="text-sm font-medium">Postal Code</label>
-                                        <p className="text-sm">{lead.postalCode || "N/A"}</p>
-                                    </div>
-                                </div>
-
-                                {/* State */}
-                                <div className="flex items-center gap-2">
-                                    <MapPin className="h-5 w-5 text-muted-foreground" />
-                                    <div>
-                                        <label className="text-sm font-medium">State</label>
-                                        <p className="text-sm">{lead.state || "N/A"}</p>
-                                    </div>
-                                </div>
-
-                                {/* Country Code */}
-                                <div className="flex items-center gap-2">
-                                    <Globe className="h-5 w-5 text-muted-foreground" />
-                                    <div>
-                                        <label className="text-sm font-medium">Country Code</label>
-                                        <p className="text-sm">{lead.countryCode || "N/A"}</p>
-                                    </div>
-                                </div>
-
-                                {/* Website */}
-                                <div className="flex items-center gap-2">
-                                    <Link className="h-5 w-5 text-muted-foreground" />
-                                    <div>
-                                        <label className="text-sm font-medium">Website</label>
-                                        <p className="text-sm">
-                                            {lead.website ? (
-                                                <a href={lead.website} target="_blank" rel="noopener noreferrer" className="text-blue-600 hover:underline">
-                                                    {lead.website}
-                                                </a>
-                                            ) : "N/A"}
-                                        </p>
-                                    </div>
-                                </div>
-
-                                {/* Primary Phone */}
-                                <div className="flex items-center gap-2">
-                                    <Phone className="h-5 w-5 text-muted-foreground" />
-                                    <div>
-                                        <label className="text-sm font-medium">Primary Phone</label>
-                                        <p className="text-sm">{lead.phone || "N/A"}</p>
-                                    </div>
-                                </div>
-
-                                {/* Emails */}
-                                <div className="col-span-2">
-                                    <div className="flex items-center gap-2">
-                                        <Mail className="h-5 w-5 text-muted-foreground" />
-                                        <label className="text-sm font-medium">Emails</label>
-                                    </div>
-                                    <div className="mt-2">
-                                        {lead.emails && lead.emails.length > 0 ? (
-                                            lead.emails.map((email, index) => (
-                                                <p key={index} className="text-sm">{email}</p>
-                                            ))
-                                        ) : (
-                                            <p className="text-sm">N/A</p>
+                            <div
+                                className="
+                            px-4
+                            py-3
+                            sm:px-6
+                            sm:py-4
+                            flex
+                            flex-col
+                            gap-3
+                            sm:gap-4
+                        "
+                            >
+                                {/* First Row - Important Details (Left) and Image (Right) */}
+                                <div className="flex flex-col sm:flex-row gap-3 sm:gap-4">
+                                    {/* Right: Avatar (but first on mobile) */}
+                                    <div className="order-first sm:order-last flex justify-center">
+                                        {lead.createdBy?.name && (
+                                            <Avatar className="border rounded-md h-32 w-32 sm:h-40 sm:w-40">
+                                                <AvatarImage
+                                                    src={
+                                                        lead.createdBy.avatar?.startsWith('https://')
+                                                            ? lead.createdBy.avatar
+                                                            : import.meta.env.VITE_IMAGE_BASE_URL + lead.createdBy.avatar
+                                                    }
+                                                    alt={lead.createdBy.name}
+                                                    title={lead.createdBy.name}
+                                                />
+                                                <AvatarFallback className="border rounded-md">
+                                                    {lead.createdBy.name?.split(' ').map(n => n[0]).join('').toUpperCase()}
+                                                </AvatarFallback>
+                                            </Avatar>
                                         )}
                                     </div>
+
+                                    {/* Left: Important Details */}
+                                    <div className="flex-1 flex flex-col gap-3 sm:gap-4">
+                                        <div className="flex items-center gap-2 sm:gap-3">
+                                            <Hash className="h-4 w-4 sm:h-5 sm:w-5 text-muted-foreground flex-shrink-0" />
+                                            <div className="min-w-0 flex-1">
+                                                <label className="text-xs sm:text-sm font-medium">ID</label>
+                                                <p className="text-xs sm:text-sm text-foreground break-all">{lead._id || "N/A"}</p>
+                                            </div>
+                                        </div>
+                                        <div className="flex items-center gap-2 sm:gap-3">
+                                            <User className="h-4 w-4 sm:h-5 sm:w-5 text-muted-foreground flex-shrink-0" />
+                                            <div className="min-w-0 flex-1">
+                                                <label className="text-xs sm:text-sm font-medium">Name</label>
+                                                <p className="text-xs sm:text-sm text-foreground">{lead.createdBy?.name || "N/A"}</p>
+                                            </div>
+                                        </div>
+                                        <div className="flex items-center gap-2 sm:gap-3">
+                                            <Tag className="h-4 w-4 sm:h-5 sm:w-5 text-muted-foreground flex-shrink-0" />
+                                            <div className="min-w-0 flex-1">
+                                                <label className="text-xs sm:text-sm font-medium">Company Title</label>
+                                                <p className="text-xs sm:text-sm text-foreground break-words">{lead.title || "N/A"}</p>
+                                            </div>
+                                        </div>
+                                        <div className="flex items-center gap-2 sm:gap-3">
+                                            <Globe className="h-4 w-4 sm:h-5 sm:w-5 text-muted-foreground flex-shrink-0" />
+                                            <div className="min-w-0 flex-1">
+                                                <label className="text-xs sm:text-sm font-medium">Domain</label>
+                                                <p className="text-xs sm:text-sm text-foreground break-all">{lead.domain || "N/A"}</p>
+                                            </div>
+                                        </div>
+                                    </div>
                                 </div>
 
-                                {/* Additional Phones */}
-                                <div className="col-span-2">
-                                    <div className="flex items-center gap-2">
-                                        <Phone className="h-5 w-5 text-muted-foreground" />
-                                        <label className="text-sm font-medium">Additional Phones</label>
+
+                                {/* Basic Information */}
+                                <div className="flex flex-col gap-3 sm:gap-4">
+                                    <h3 className="text-xs sm:text-sm font-medium text-muted-foreground uppercase tracking-wide">
+                                        Basic Information
+                                    </h3>
+                                    <div className="flex flex-col sm:flex-row gap-3 sm:gap-4">
+                                        <div className="flex-1">
+                                            <div className="flex items-center gap-2 sm:gap-3">
+                                                <Link className="h-4 w-4 sm:h-5 sm:w-5 text-muted-foreground flex-shrink-0" />
+                                                <div className="min-w-0 flex-1">
+                                                    <label className="text-xs sm:text-sm font-medium">Website</label>
+                                                    <p className="text-xs sm:text-sm break-all">
+                                                        {lead.website ? (
+                                                            <a href={lead.website} target="_blank" rel="noopener noreferrer" className="text-blue-600 hover:text-primary">
+                                                                {lead.website}
+                                                            </a>
+                                                        ) : "N/A"}
+                                                    </p>
+                                                </div>
+                                            </div>
+                                        </div>
+                                        <div className="flex-1">
+                                            <div className="flex items-center gap-2 sm:gap-3">
+                                                <AlertCircle className="h-4 w-4 sm:h-5 sm:w-5 text-muted-foreground flex-shrink-0" />
+                                                <div className="min-w-0 flex-1">
+                                                    <label className="text-xs sm:text-sm font-medium">Status</label>
+                                                    <p className="text-xs sm:text-sm text-foreground">
+                                                        <Badge variant="outline">{lead.status}</Badge>
+                                                    </p>
+                                                </div>
+                                            </div>
+                                        </div>
                                     </div>
-                                    <div className="mt-2">
-                                        {lead.phones && lead.phones.length > 0 ? (
-                                            lead.phones.map((phone, index) => (
-                                                <p key={index} className="text-sm">{phone}</p>
-                                            ))
-                                        ) : (
-                                            <p className="text-sm">N/A</p>
-                                        )}
+                                </div>
+
+                                {/* Location & Contact Information */}
+                                <div className="flex flex-col gap-3 sm:gap-4">
+                                    <h3 className="text-xs sm:text-sm font-medium text-muted-foreground uppercase tracking-wide">
+                                        Location & Contact Information
+                                    </h3>
+                                    <div className="flex flex-col sm:flex-row gap-3 sm:gap-4">
+                                        <div className="flex-1">
+                                            <div className="flex items-center gap-2 sm:gap-3">
+                                                <MapPin className="h-4 w-4 sm:h-5 sm:w-5 text-muted-foreground flex-shrink-0" />
+                                                <div className="min-w-0 flex-1">
+                                                    <label className="text-xs sm:text-sm font-medium">Address</label>
+                                                    <p className="text-xs sm:text-sm text-foreground break-words">{lead.address || "N/A"}</p>
+                                                </div>
+                                            </div>
+                                        </div>
+                                        <div className="flex-1">
+                                            <div className="flex items-center gap-2 sm:gap-3">
+                                                <MapPin className="h-4 w-4 sm:h-5 sm:w-5 text-muted-foreground flex-shrink-0" />
+                                                <div className="min-w-0 flex-1">
+                                                    <label className="text-xs sm:text-sm font-medium">City</label>
+                                                    <p className="text-xs sm:text-sm text-foreground">{lead.city || "N/A"}</p>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </div>
+                                    <div className="flex flex-col sm:flex-row gap-3 sm:gap-4">
+                                        <div className="flex-1">
+                                            <div className="flex items-center gap-2 sm:gap-3">
+                                                <MapPin className="h-4 w-4 sm:h-5 sm:w-5 text-muted-foreground flex-shrink-0" />
+                                                <div className="min-w-0 flex-1">
+                                                    <label className="text-xs sm:text-sm font-medium">State</label>
+                                                    <p className="text-xs sm:text-sm text-foreground">{lead.state || "N/A"}</p>
+                                                </div>
+                                            </div>
+                                        </div>
+                                        <div className="flex-1">
+                                            <div className="flex items-center gap-2 sm:gap-3">
+                                                <MapPin className="h-4 w-4 sm:h-5 sm:w-5 text-muted-foreground flex-shrink-0" />
+                                                <div className="min-w-0 flex-1">
+                                                    <label className="text-xs sm:text-sm font-medium">Postal Code</label>
+                                                    <p className="text-xs sm:text-sm text-foreground">{lead.postalCode || "N/A"}</p>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </div>
+                                    <div className="flex flex-col sm:flex-row gap-3 sm:gap-4">
+                                        <div className="flex-1">
+                                            <div className="flex items-center gap-2 sm:gap-3">
+                                                <Globe className="h-4 w-4 sm:h-5 sm:w-5 text-muted-foreground flex-shrink-0" />
+                                                <div className="min-w-0 flex-1">
+                                                    <label className="text-xs sm:text-sm font-medium">Country Code</label>
+                                                    <p className="text-xs sm:text-sm text-foreground">{lead.countryCode || "N/A"}</p>
+                                                </div>
+                                            </div>
+                                        </div>
+                                        <div className="flex-1">
+                                            <div className="flex items-center gap-2 sm:gap-3">
+                                                <Phone className="h-4 w-4 sm:h-5 sm:w-5 text-muted-foreground flex-shrink-0" />
+                                                <div className="min-w-0 flex-1">
+                                                    <label className="text-xs sm:text-sm font-medium">Primary Phone</label>
+                                                    <p className="text-xs sm:text-sm text-foreground">{lead.phone || "N/A"}</p>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </div>
+
+                                </div>
+
+                                {/* Contact Arrays */}
+                                <div className="flex flex-col sm:flex-row gap-3 sm:gap-4">
+                                    <div className="flex-1">
+                                        <div className="flex items-center gap-2 sm:gap-3 mb-1.5">
+                                            <Mail className="h-4 w-4 sm:h-5 sm:w-5 text-muted-foreground flex-shrink-0" />
+                                            <label className="text-xs sm:text-sm font-medium">Email Addresses</label>
+                                        </div>
+                                        <div className="pl-6 sm:pl-8">
+                                            {lead.emails && lead.emails.length > 0 ? (
+                                                lead.emails.map((email, index) => (
+                                                    <p key={index} className="text-xs sm:text-sm text-foreground break-all">{email}</p>
+                                                ))
+                                            ) : (
+                                                <p className="text-xs sm:text-sm text-muted-foreground">No email addresses available</p>
+                                            )}
+                                        </div>
+                                    </div>
+                                    <div className="flex-1">
+                                        <div className="flex items-center gap-2 sm:gap-3 mb-1.5">
+                                            <Phone className="h-4 w-4 sm:h-5 sm:w-5 text-muted-foreground flex-shrink-0" />
+                                            <label className="text-xs sm:text-sm font-medium">Additional Phone Numbers</label>
+                                        </div>
+                                        <div className="pl-6 sm:pl-8">
+                                            {lead.phones && lead.phones.length > 0 ? (
+                                                lead.phones.map((phone, index) => (
+                                                    <p key={index} className="text-xs sm:text-sm text-foreground">{phone}</p>
+                                                ))
+                                            ) : (
+                                                <p className="text-xs sm:text-sm text-muted-foreground">No additional phone numbers</p>
+                                            )}
+                                        </div>
                                     </div>
                                 </div>
 
                                 {/* Categories */}
-                                <div className="col-span-2">
-                                    <div className="flex items-center gap-2">
-                                        <Tag className="h-5 w-5 text-muted-foreground" />
-                                        <label className="text-sm font-medium">Categories</label>
+                                <div className="flex flex-col gap-3 sm:gap-4">
+                                    <div className="flex items-center gap-2 sm:gap-3 ">
+                                        <Tag className="h-4 w-4 sm:h-5 sm:w-5 text-muted-foreground flex-shrink-0" />
+                                        <label className="text-xs sm:text-sm font-medium">Categories</label>
                                     </div>
-                                    <div className="mt-2">
+                                    <div className="pl-6 sm:pl-8 flex flex-wrap gap-2">
                                         {lead.categories && lead.categories.length > 0 ? (
                                             lead.categories.map((category, index) => (
-                                                <p key={index} className="text-sm">{category}</p>
+                                                <Badge variant="outline" key={index}>{category}</Badge>
                                             ))
                                         ) : (
-                                            <p className="text-sm">N/A</p>
+                                            <p className="text-xs sm:text-sm text-muted-foreground">No categories assigned</p>
                                         )}
                                     </div>
                                 </div>
 
-                                {/* Reviews Distribution */}
-                                <div className="col-span-2">
-                                    <div className="flex items-center gap-2">
-                                        <Star className="h-5 w-5 text-muted-foreground" />
-                                        <label className="text-sm font-medium">Reviews Distribution</label>
-                                    </div>
-                                    <div className="mt-2">
-                                        {lead.reviewsDistribution ? (
-                                            <div className="grid grid-cols-2 gap-2">
-                                                <p className="text-sm">1 Star: {lead.reviewsDistribution.oneStar || 0}</p>
-                                                <p className="text-sm">2 Star: {lead.reviewsDistribution.twoStar || 0}</p>
-                                                <p className="text-sm">3 Star: {lead.reviewsDistribution.threeStar || 0}</p>
-                                                <p className="text-sm">4 Star: {lead.reviewsDistribution.fourStar || 0}</p>
-                                                <p className="text-sm">5 Star: {lead.reviewsDistribution.fiveStar || 0}</p>
-                                            </div>
-                                        ) : (
-                                            <p className="text-sm">N/A</p>
-                                        )}
-                                    </div>
-                                </div>
-
-                                {/* Scraped At */}
-                                <div className="flex items-center gap-2">
-                                    <Calendar className="h-5 w-5 text-muted-foreground" />
-                                    <div>
-                                        <label className="text-sm font-medium">Scraped At</label>
-                                        <p className="text-sm">{lead.scrapedAt || "N/A"}</p>
-                                    </div>
-                                </div>
-
-                                {/* URL */}
-                                <div className="flex items-center gap-2">
-                                    <Link className="h-5 w-5 text-muted-foreground" />
-                                    <div>
-                                        <label className="text-sm font-medium">URL</label>
-                                        <p className="text-sm">
-                                            {lead.url ? (
-                                                <a href={lead.url} target="_blank" rel="noopener noreferrer" className="text-blue-600 hover:underline">
-                                                    {lead.url}
-                                                </a>
-                                            ) : "N/A"}
-                                        </p>
-                                    </div>
-                                </div>
-
-                                {/* Search Page URL */}
-                                <div className="flex items-center gap-2">
-                                    <Search className="h-5 w-5 text-muted-foreground" />
-                                    <div>
-                                        <label className="text-sm font-medium">Search Page URL</label>
-                                        <p className="text-sm">
-                                            {lead.searchPageUrl ? (
-                                                <a href={lead.searchPageUrl} target="_blank" rel="noopener noreferrer" className="text-blue-600 hover:underline">
-                                                    {lead.searchPageUrl}
-                                                </a>
-                                            ) : "N/A"}
-                                        </p>
-                                    </div>
-                                </div>
-
-                                {/* Search String */}
-                                <div className="flex items-center gap-2">
-                                    <Search className="h-5 w-5 text-muted-foreground" />
-                                    <div>
-                                        <label className="text-sm font-medium">Search String</label>
-                                        <p className="text-sm">{lead.searchString || "N/A"}</p>
-                                    </div>
-                                </div>
-
-                                {/* Language */}
-                                <div className="flex items-center gap-2">
-                                    <Globe className="h-5 w-5 text-muted-foreground" />
-                                    <div>
-                                        <label className="text-sm font-medium">Language</label>
-                                        <p className="text-sm">{lead.language || "N/A"}</p>
-                                    </div>
-                                </div>
-
-                                {/* Is Advertisement */}
-                                <div className="flex items-center gap-2">
-                                    <AlertCircle className="h-5 w-5 text-muted-foreground" />
-                                    <div>
-                                        <label className="text-sm font-medium">Is Advertisement</label>
-                                        <p className="text-sm">{lead.isAdvertisement ? "Yes" : "No"}</p>
-                                    </div>
-                                </div>
-
-                                {/* Image URL */}
-                                <div className="flex items-center gap-2">
-                                    <ImageIcon className="h-5 w-5 text-muted-foreground" />
-                                    <div>
-                                        <label className="text-sm font-medium">Image URL</label>
-                                        <p className="text-sm">
-                                            {lead.imageUrl ? (
-                                                <a href={lead.imageUrl} target="_blank" rel="noopener noreferrer" className="text-blue-600 hover:underline">
-                                                    {lead.imageUrl}
-                                                </a>
-                                            ) : "N/A"}
-                                        </p>
-                                    </div>
-                                </div>
-
-                                {/* Domain */}
-                                <div className="flex items-center gap-2">
-                                    <Globe className="h-5 w-5 text-muted-foreground" />
-                                    <div>
-                                        <label className="text-sm font-medium">Domain</label>
-                                        <p className="text-sm">{lead.domain || "N/A"}</p>
-                                    </div>
-                                </div>
-
-                                {/* Location */}
-                                <div className="col-span-2">
-                                    <div className="flex items-center gap-2">
-                                        <MapPin className="h-5 w-5 text-muted-foreground" />
-                                        <label className="text-sm font-medium">Location</label>
-                                    </div>
-                                    <div className="mt-2">
-                                        {lead.location ? (
-                                            <p className="text-sm">Lat: {lead.location.lat}, Lng: {lead.location.lng}</p>
-                                        ) : (
-                                            <p className="text-sm">N/A</p>
-                                        )}
-                                    </div>
-                                </div>
-
-                                {/* Place ID */}
-                                <div className="flex items-center gap-2">
-                                    <MapPin className="h-5 w-5 text-muted-foreground" />
-                                    <div>
-                                        <label className="text-sm font-medium">Place ID</label>
-                                        <p className="text-sm">{lead.placeId || "N/A"}</p>
-                                    </div>
-                                </div>
                             </div>
                         </DialogDescription>
                     </div>
                 </DialogHeader>
-                <DialogFooter className="border-t px-6 py-4 sm:items-center">
+                <DialogFooter
+                    className="
+                border-t
+                px-4
+                py-3
+                sm:px-6
+                sm:py-4
+                flex
+                flex-col
+                sm:flex-row
+                gap-2
+                sm:gap-3
+                justify-end
+                items-center
+            "
+                >
                     <DialogClose asChild>
                         <Button
                             type="button"
                             variant="outline"
+                            className="w-full sm:w-auto h-10 sm:h-11"
                             onClick={onClose}
                         >
                             Close
                         </Button>
                     </DialogClose>
                 </DialogFooter>
-            </DialogContent>
-        </Dialog>
+            </DialogContent >
+        </Dialog >
     );
 };
 
