@@ -649,7 +649,7 @@ export function Todo() {
                                                         formik.setFieldValue("status", value as Todo["status"])
                                                     }
                                                 >
-                                                    <SelectTrigger className={`${formik.touched.status && formik.errors.status ? 'border-red-500' : ''} w - full py - [21px]`}>
+                                                    <SelectTrigger className={`${formik.touched.status && formik.errors.status ? 'border-red-500' : ''} w-full py-[21px]`}>
                                                         <SelectValue placeholder="Select status" />
                                                     </SelectTrigger>
                                                     <SelectContent>
@@ -674,7 +674,7 @@ export function Todo() {
                                                         formik.setFieldValue("priority", value as Todo["priority"])
                                                     }
                                                 >
-                                                    <SelectTrigger className={`${formik.touched.priority && formik.errors.priority ? 'border-red-500' : ''} w - full py - [21px]`}>
+                                                    <SelectTrigger className={`${formik.touched.priority && formik.errors.priority ? 'border-red-500' : ''} w-full py-[21px]`}>
                                                         <SelectValue placeholder="Select priority" />
                                                     </SelectTrigger>
                                                     <SelectContent>
