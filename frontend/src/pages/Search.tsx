@@ -341,7 +341,7 @@ function MediaSidebar({ media }: { media: { images: string[]; videos: string[] }
                         <div className="grid grid-cols-2 gap-2">
 
                             {media.images.slice(0, 6).map((image, index) => (
-                                <div key={index} className="relative h-30 overflow-hidden rounded-[--radius-md]">
+                                <div key={index} className="relative overflow-hidden rounded-md">
                                     <ImageZoom >
                                         <img
                                             src={image}
@@ -359,7 +359,7 @@ function MediaSidebar({ media }: { media: { images: string[]; videos: string[] }
             }
             {
                 media.videos.length > 0 && (
-                    <Card className="mt-4 bg-[--color-card] border-[--color-border] transition-all duration-300 hover:shadow-lg">
+                    <Card className="mt-4 bg-[--color-card] border transition-all duration-300 hover:shadow-lg">
                         <CardHeader>
                             <CardTitle className="text-[--color-card-foreground]">Videos</CardTitle>
                         </CardHeader>
@@ -374,12 +374,12 @@ function MediaSidebar({ media }: { media: { images: string[]; videos: string[] }
                                             height="200"
                                             allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
                                             allowFullScreen
-                                            className="rounded-[--radius-md]"
+                                            className="rounded-md"
                                         ></iframe>
                                     ) : (
                                         <VideoPlayer className="overflow-hidden rounded-lg border w-full h-48 ">
                                             <VideoPlayerContent
-                                                crossOrigin="anonymous"
+                                                crossOrigin=""
                                                 muted
                                                 preload="auto"
                                                 slot="media"
