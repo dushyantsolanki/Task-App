@@ -296,7 +296,7 @@ export function Todo() {
             getAllTask(0, pagination.pageSize, value);
         }, 500);
     };
-    console.log(user)
+
     const columns: ColumnDef<Todo>[] = [
         {
             id: "select",
@@ -337,9 +337,16 @@ export function Todo() {
                     <ArrowUpDown className="ml-2 h-4 w-4" />
                 </Button>
             ),
-            cell: ({ row }: { row: any }) => (
-                <div className="font-medium text-primary"> {row.getValue("taskId")}</div>
-            ),
+            cell: ({ row }: { row: any }) => {
+                const isCreator = row.original?.createdBy?._id === user?.id;
+
+                const hasEditPermission = row.original?.share?.some(
+                    (item: any) => item?.shareTo?._id === user?.id && item?.permission === "edit"
+                );
+                return (
+                    <div className={`font-medium text-primary ${(isCreator || hasEditPermission) && 'hover:underline underline-offset-2 cursor-pointer'
+                        }`}> {row.getValue("taskId")}</div>)
+            },
         },
 
         {
@@ -446,7 +453,6 @@ export function Todo() {
                     (item) => item?.shareTo?._id === user?.id && item?.permission === "edit"
                 );
 
-                console.log(isCreator, hasEditPermission, '::::: ', isCreator || hasEditPermission)
                 return (
                     <div className="flex items-center space-x-2">
                         <Button
@@ -643,7 +649,7 @@ export function Todo() {
                                                         formik.setFieldValue("status", value as Todo["status"])
                                                     }
                                                 >
-                                                    <SelectTrigger className={`${formik.touched.status && formik.errors.status ? 'border-red-500' : ''} w-full py-[21px]  `}>
+                                                    <SelectTrigger className={`${formik.touched.status && formik.errors.status ? 'border-red-500' : ''} w - full py - [21px]`}>
                                                         <SelectValue placeholder="Select status" />
                                                     </SelectTrigger>
                                                     <SelectContent>
@@ -668,7 +674,7 @@ export function Todo() {
                                                         formik.setFieldValue("priority", value as Todo["priority"])
                                                     }
                                                 >
-                                                    <SelectTrigger className={`${formik.touched.priority && formik.errors.priority ? 'border-red-500' : ''} w-full py-[21px]  `}>
+                                                    <SelectTrigger className={`${formik.touched.priority && formik.errors.priority ? 'border-red-500' : ''} w - full py - [21px]`}>
                                                         <SelectValue placeholder="Select priority" />
                                                     </SelectTrigger>
                                                     <SelectContent>

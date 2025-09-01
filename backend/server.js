@@ -320,38 +320,45 @@ async function scrapeFullPage(url) {
 }
 
 async function scrapeBing(query) {
-  const browser = await puppeteer.launch({
-    headless: 'new',
-    args: ['--no-sandbox', '--disable-setuid-sandbox'],
-  });
-  const page = await browser.newPage();
-  await page.setUserAgent(
-    'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 Chrome/120 Safari/537.36',
+  const options = new chrome.Options();
+  options.addArguments(
+    // '--headless',
+    '--no-sandbox',
+    '--disable-dev-shm-usage',
+    '--disable-gpu',
+    'user-agent=Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 Chrome/120 Safari/537.36',
   );
-  await page.goto(`https://www.bing.com/search?q=${encodeURIComponent(query)}`, {
-    waitUntil: 'networkidle2', // use this for better load reliability
-    timeout: 30000,
-  });
 
-  const results = await page.evaluate(() => {
-    const items = [];
-    document.querySelectorAll('li.b_algo').forEach((el) => {
-      const h2 = el.querySelector('h2');
-      const link = h2?.querySelector('a')?.href;
-      const title = h2?.innerText || '';
-      const snippet = el.querySelector('p')?.innerText || '';
+  const driver = await new Builder().forBrowser('chrome').setChromeOptions(options).build();
 
-      if (link && title) {
-        const domain = new URL(link).hostname.replace('www.', '');
-        const favicon = `https://www.google.com/s2/favicons?sz=64&domain_url=${link}`;
-        items.push({ title, link, snippet, source: domain, favicon });
-      }
+  try {
+    // Navigate to Bing
+    await driver.get(`https://www.bing.com/search?q=${encodeURIComponent(query)}`);
+
+    // Wait for results container
+    await driver.wait(until.elementLocated(By.css('#b_results')), 10000);
+
+    // Extract results
+    const items = await driver.executeScript(() => {
+      const results = [];
+      document.querySelectorAll('li.b_algo').forEach((el) => {
+        const h2 = el.querySelector('h2');
+        const link = h2?.querySelector('a')?.href;
+        const title = h2?.innerText || '';
+        const snippet = el.querySelector('p')?.innerText || '';
+        if (link && title) {
+          const domain = new URL(link).hostname.replace('www.', '');
+          const favicon = `https://www.google.com/s2/favicons?sz=64&domain_url=${link}`;
+          results.push({ title, link, snippet, source: domain, favicon });
+        }
+      });
+      return results;
     });
-    return items;
-  });
 
-  await browser.close();
-  return results;
+    return items;
+  } finally {
+    await driver.quit();
+  }
 }
 
 app.get('/api/overview', async (req, res) => {

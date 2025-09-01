@@ -2,13 +2,15 @@ import jwt from 'jsonwebtoken';
 import logger from '../configs/pino.config.js';
 
 const verifyToken = (req, res, next) => {
-  const authHeader = req.headers['authorization'];
+  // const authHeader = req.headers['authorization'];
+  const authHeader = req.cookies['accessToken'];
 
   if (!authHeader) {
     return res.status(401).json({ success: false, message: 'Authorization header missing' });
   }
 
-  const token = authHeader.split(' ')[1]; // Bearer <token>
+  // const token = authHeader.split(' ')[1]; // Bearer <token>
+  const token = authHeader; // Bearer <token>
 
   if (!token) {
     return res

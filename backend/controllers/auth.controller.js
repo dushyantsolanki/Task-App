@@ -9,10 +9,15 @@ import mongoose from 'mongoose';
 import fs from 'fs';
 
 const COOKIE_OPTIONS = {
-  httpOnly: false,
-  secure: process.env.NODE_ENV === 'production',
-  sameSite: 'Lax',
-  maxAge: 15 * 24 * 60 * 60 * 1000, // 15 days
+  // httpOnly: false,
+  // secure: process.env.NODE_ENV === 'production',
+  // sameSite: 'Lax',
+  // maxAge: 15 * 24 * 60 * 60 * 1000, // 15 days
+
+  httpOnly: true, // security ke liye true rakho
+  secure: true, // production me true
+  sameSite: 'None', // cross-domain ke liye Lax nahi chalega
+  maxAge: 15 * 24 * 60 * 60 * 1000,
 };
 
 export const loginWithGoogle = async (req, res) => {
@@ -208,10 +213,8 @@ export const refreshAccessToken = async (req, res) => {
 
     res
       .cookie('accessToken', newAccessToken, {
-        httpOnly: false,
-        secure: process.env.NODE_ENV === 'production',
-        sameSite: 'Lax',
-        maxAge: 7 * 24 * 60 * 60 * 1000, // 7 days
+        ...COOKIE_OPTIONS,
+        maxAge: 7 * 24 * 60 * 60 * 1000,
       })
       .cookie('refreshToken', newRefreshToken, COOKIE_OPTIONS);
 

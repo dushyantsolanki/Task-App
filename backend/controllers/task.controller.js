@@ -24,10 +24,19 @@ export const getTasks = async (req, res) => {
     };
 
     if (search) {
-      query.$or = [
-        { title: { $regex: search, $options: 'i' } },
-        { label: { $regex: search, $options: 'i' } },
+      query.$and = [
+        {
+          $or: [{ createdBy: userId }, { 'share.shareTo': new mongoose.Types.ObjectId(userId) }],
+        },
+        {
+          $or: [
+            { title: { $regex: search, $options: 'i' } },
+            { label: { $regex: search, $options: 'i' } },
+          ],
+        },
       ];
+    } else {
+      query.$or = [{ createdBy: userId }, { 'share.shareTo': new mongoose.Types.ObjectId(userId) }];
     }
 
     const totalCount = await Task.countDocuments(query);
