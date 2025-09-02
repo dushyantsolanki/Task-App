@@ -169,13 +169,57 @@ export const updateTask = async (req, res) => {
 
 export const deleteTask = async (req, res) => {
   try {
+    const { userId } = req.user;
     const { id } = req.params;
-    const task = await Task.findByIdAndUpdate(id, { isDeleted: true });
+    const user = await User.findById(new mongoose.Types.ObjectId(userId), { name: 1 });
+    const task = await Task.findByIdAndUpdate(id, { isDeleted: true })
+      .populate({ path: 'createdBy', select: 'name avatar' })
+      .populate({ path: 'share.shareTo', select: 'name avatar' })
+      .populate({ path: 'share.sharedBy', select: 'name avatar' });
 
     if (!task) {
       return res.status(404).json({ success: false, message: 'Task not found' });
     }
+
+    const shareTo = task?.share?.map((item) => item?.shareTo?._id.toString()) || [];
+    const creatorId = task.createdBy._id.toString();
+    // Determine notification recipients
+    let notificationRecipients = [];
+
+    if (userId.toString() === creatorId) {
+      // If the current user is the creator, notify only the shared users
+      notificationRecipients = shareTo.filter((id) => id !== userId.toString());
+    } else {
+      // If the current user is not the creator, notify the creator and other shared users
+      notificationRecipients = [...new Set([creatorId, ...shareTo])].filter(
+        (id) => id !== userId.toString(),
+      );
+    }
     sendTaskUpdate({ type: 'refresh' });
+    if (notificationRecipients.length > 0) {
+      await sendShareTask({ type: 'shareTask', recipients: notificationRecipients });
+      await sendNotification({
+        senderId: userId,
+        userIds: notificationRecipients,
+        type: 'shared task delete',
+        path: '/task',
+        title: `Task shared deleted.`,
+        body: `${user?.name} has deleted the task.`,
+        eventType: 'notification',
+      });
+
+      await sendFirebaseNotification({
+        mode: 'selected',
+        selectedUserIds: notificationRecipients,
+        creatorId: userId?.toString(),
+        title: 'Task Delete',
+        body: `Task deleted by "${user?.name}" at ${new Date().toLocaleTimeString('en-IN', {
+          timeZone: 'Asia/Kolkata',
+        })}`,
+        imageUrl: 'https://i.ibb.co/Xfv4LYf8/Chat-GPT-Image-Aug-30-2025-12-17-18-AM.png',
+        pageLink: '/task',
+      });
+    }
     return res.status(200).json({ success: true, message: 'Task deleted successfully' });
   } catch (err) {
     logger.error(err, 'Error in deleteTask');

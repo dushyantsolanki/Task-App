@@ -7,8 +7,9 @@ export async function runGroqSearchQA(scrapedText, userQuery) {
   try {
     const model = new ChatGroq({
       apiKey: process.env.GROQ_API_KEY,
-      model: 'llama-3.3-70b-versatile',
+      // model: 'llama-3.3-70b-versatile',
       // model: 'deepseek-r1-distill-llama-70b',
+      model: 'moonshotai/kimi-k2-instruct',
     });
 
     const splitter = new RecursiveCharacterTextSplitter({

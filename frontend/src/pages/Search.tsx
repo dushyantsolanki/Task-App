@@ -12,7 +12,7 @@ import { ShineBorder } from "@/components/magicui/shine-border";
 import { useAuthStore } from "@/store/authStore";
 import { Tooltip, TooltipContent, TooltipTrigger } from "@/components/ui/tooltip";
 import { ImageZoom } from "@/components/ui/kibo-ui/image-zoom";
-import { VideoPlayer, VideoPlayerContent, VideoPlayerControlBar, VideoPlayerMuteButton, VideoPlayerPlayButton, VideoPlayerSeekBackwardButton, VideoPlayerSeekForwardButton, VideoPlayerTimeDisplay, VideoPlayerTimeRange, VideoPlayerVolumeRange } from "@/components/ui/kibo-ui/video-player";
+// import { VideoPlayer, VideoPlayerContent, VideoPlayerControlBar, VideoPlayerMuteButton, VideoPlayerPlayButton, VideoPlayerSeekBackwardButton, VideoPlayerSeekForwardButton, VideoPlayerTimeDisplay, VideoPlayerTimeRange, VideoPlayerVolumeRange } from "@/components/ui/kibo-ui/video-player";
 
 
 interface Source {
@@ -283,7 +283,7 @@ function SearchResults({ summary, sources }: { summary: string, sources: Source[
 
     return (
         <div>
-            <Card className="shadow-lg bg-[--color-card] border-[--color-border] transition-all duration-300 hover:shadow-xl">
+            <Card className="shadow-lg bg-[--color-card] border-[--color-border] pt-0 transition-all duration-300 hover:shadow-xl">
                 <CardHeader>
                     <div className="flex gap-3 overflow-x-auto scrollbar-hide pb-2 ">
                         {displayedSources?.map((source, index) => (
@@ -377,24 +377,10 @@ function MediaSidebar({ media }: { media: { images: string[]; videos: string[] }
                                             className="rounded-md"
                                         ></iframe>
                                     ) : (
-                                        <VideoPlayer className="overflow-hidden rounded-lg border w-full h-48 ">
-                                            <VideoPlayerContent
-                                                crossOrigin=""
-                                                muted
-                                                preload="auto"
-                                                slot="media"
-                                                src={video}
-                                            />
-                                            <VideoPlayerControlBar>
-                                                <VideoPlayerPlayButton />
-                                                <VideoPlayerSeekBackwardButton />
-                                                <VideoPlayerSeekForwardButton />
-                                                <VideoPlayerTimeRange />
-                                                <VideoPlayerTimeDisplay showDuration />
-                                                <VideoPlayerMuteButton />
-                                                <VideoPlayerVolumeRange />
-                                            </VideoPlayerControlBar>
-                                        </VideoPlayer>
+                                        <video controls className="w-full h-48 rounded-[--radius-md]">
+                                            <source src={video} type="video/mp4" />
+                                            Your browser does not support the video tag.
+                                        </video>
                                     )}
 
                                 </div>

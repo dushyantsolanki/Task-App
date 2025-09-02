@@ -220,40 +220,17 @@ export const generateFakeTemplates = async (count = 10, userId = null) => {
 };
 
 // generateFakeTemplates(100, '68ad521d790753c2dd5ab757');
-
-// Web scraping example using a pupeeter and selinium
-
-// Step 1: User-agent pool
-const userAgents = [
-  'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/114.0.0.0 Safari/537.36',
-  'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/605.1.15 (KHTML, like Gecko) Version/15.1 Safari/605.1.15',
-  'Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/113.0.0.0 Safari/537.36',
-  'Mozilla/5.0 (iPhone; CPU iPhone OS 15_2 like Mac OS X) AppleWebKit/605.1.15 (KHTML, like Gecko) Version/15.2 Mobile/15E148 Safari/604.1',
-];
-
-// Step 2: Get random user-agent
 function getRandomUserAgent() {
-  return userAgents[Math.floor(Math.random() * userAgents.length)];
+  const agents = [
+    'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 Chrome/120 Safari/537.36',
+    'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/605.1.15 Version/17.0 Safari/605.1.15',
+    'Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 Chrome/118 Safari/537.36',
+  ];
+  return agents[Math.floor(Math.random() * agents.length)];
 }
 
-// Main Function
-async function scrapeFullPage(url) {
-  const userAgent = getRandomUserAgent();
-
-  const options = new chrome.Options();
-  options.addArguments(
-    `--user-agent=${userAgent}`,
-    '--disable-blink-features=AutomationControlled',
-    '--disable-infobars',
-    '--disable-gpu',
-    '--no-sandbox',
-    '--disable-dev-shm-usage',
-    // '--headless=new',
-    '--disable-javascript', // Disable JavaScript if not needed for content
-  );
-
-  const driver = await new Builder().forBrowser('chrome').setChromeOptions(options).build();
-
+// scrape full page
+async function scrapeFullPage(driver, url) {
   try {
     await driver.get(url);
     await driver.sleep(1000);
@@ -261,9 +238,9 @@ async function scrapeFullPage(url) {
     const body = await driver.findElement(By.tagName('body'));
     const content = await body.getText();
 
-    const imageElements = await driver.findElements(By.css('img'));
+    // images
     const imageUrls = [];
-
+    const imageElements = await driver.findElements(By.css('img'));
     for (const img of imageElements) {
       const src = await img.getAttribute('src');
       const alt = await img.getAttribute('alt');
@@ -281,18 +258,15 @@ async function scrapeFullPage(url) {
       ) {
         continue;
       }
-
       imageUrls.push(src);
     }
 
+    // videos
     const videoUrls = [];
-
     const videoElements = await driver.findElements(By.css('video source, video'));
     for (const vid of videoElements) {
       const src = await vid.getAttribute('src');
-      if (src && src.startsWith('http')) {
-        videoUrls.push(src);
-      }
+      if (src && src.startsWith('http')) videoUrls.push(src);
     }
 
     const iframeElements = await driver.findElements(By.css('iframe'));
@@ -308,37 +282,34 @@ async function scrapeFullPage(url) {
       }
     }
 
-    return { content, images: imageUrls, videos: videoUrls };
-  } catch (error) {
-    console.error('Error scraping full page:', error);
-    return { content: '', images: [], videos: [] };
-  } finally {
-    await driver.quit();
+    return { success: true, content, images: imageUrls, videos: videoUrls };
+  } catch (err) {
+    console.error(`Failed to scrape ${url}:`, err.message);
+    return { success: false, content: '', images: [], videos: [] };
   }
 }
 
-async function scrapeBing(query) {
-  const options = new chrome.Options();
-  options.addArguments(
-    // '--headless',
-    '--no-sandbox',
-    '--disable-dev-shm-usage',
-    '--disable-gpu',
-    'user-agent=Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 Chrome/120 Safari/537.36',
-  );
+const options = new chrome.Options();
+options.addArguments(
+  '--no-sandbox',
+  '--disable-dev-shm-usage',
+  '--disable-gpu',
+  `--user-agent=${getRandomUserAgent()}`,
+);
 
-  const driver = await new Builder().forBrowser('chrome').setChromeOptions(options).build();
+let driver = null;
 
+// main scrap function
+async function scrap(query) {
+  driver = await new Builder().forBrowser('chrome').setChromeOptions(options).build();
   try {
-    // Navigate to Bing
+    // open bing
     await driver.get(`https://www.bing.com/search?q=${encodeURIComponent(query)}`);
+    await driver.wait(until.elementLocated(By.css('#b_results')), 200000);
 
-    // Wait for results container
-    await driver.wait(until.elementLocated(By.css('#b_results')), 10000);
-
-    // Extract results
-    const items = await driver.executeScript(() => {
-      const results = [];
+    // get results directly
+    const results = await driver.executeScript(() => {
+      const items = [];
       document.querySelectorAll('li.b_algo').forEach((el) => {
         const h2 = el.querySelector('h2');
         const link = h2?.querySelector('a')?.href;
@@ -347,36 +318,46 @@ async function scrapeBing(query) {
         if (link && title) {
           const domain = new URL(link).hostname.replace('www.', '');
           const favicon = `https://www.google.com/s2/favicons?sz=64&domain_url=${link}`;
-          results.push({ title, link, snippet, source: domain, favicon });
+          items.push({ title, link, snippet, source: domain, favicon });
         }
       });
-      return results;
+      return items;
     });
 
-    return items;
+    if (!results.length) return { error: 'No search results' };
+
+    // try first 3 results
+    for (let i = 0; i < Math.min(3, results.length); i++) {
+      const site = results[i];
+      const scraped = await scrapeFullPage(driver, site.link);
+
+      if (scraped.success && scraped.content.trim().length > 100) {
+        return { site, ...scraped };
+      }
+    }
+
+    return { error: 'Failed to scrape first 3 results' };
   } finally {
     await driver.quit();
   }
 }
 
+// api endpoint
 app.get('/api/overview', async (req, res) => {
   const { q } = req.query;
   if (!q) return res.status(400).json({ error: 'Query is required' });
 
   try {
-    const sources = await scrapeBing(q);
+    const data = await scrap(q);
+    if (data.error) return res.status(500).json(data);
 
-    if (!sources.length) {
-      return res.status(404).json({ error: 'No search results found' });
-    }
+    const summary = await runGroqSearchQA(data.content, q);
 
-    const firstResultUrl = sources[0].link;
-
-    const { content, images, videos } = await scrapeFullPage(firstResultUrl);
-
-    const summary = await runGroqSearchQA(content, q);
-
-    res.json({ summary, sources, media: { images, videos } });
+    res.json({
+      summary,
+      source: data.site,
+      media: { images: data.images, videos: data.videos },
+    });
   } catch (err) {
     console.error(err);
     res.status(500).json({ error: err.message });
