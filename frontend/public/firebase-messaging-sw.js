@@ -24,11 +24,13 @@ firebase.initializeApp(firebaseConfig);
 const messaging = firebase.messaging();
 
 messaging.onBackgroundMessage((payload) => {
-  const notificationTitle = payload.notification.title;
+  const notificationTitle = payload.notification.title || 'New Notification';
   const notificationOptions = {
     body: payload.notification.body,
     icon: payload.notification.image,
     // badge: '../public/favicon-32x32.png',
+    renotify: true,
+    vibrate: [200, 100, 200],
     tag: 'notification-1',
     webpush: {
       fcm_options: {
@@ -37,6 +39,5 @@ messaging.onBackgroundMessage((payload) => {
       },
     },
   };
-  // self.registration.showNotification(notificationTitle, notificationOptions);
-  // self.registration.showNotification(notificationTitle, notificationOptions);
+  self.registration.showNotification(notificationTitle, notificationOptions);
 });
