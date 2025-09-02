@@ -3,7 +3,7 @@ import { Button } from "@/components/ui/button"
 import { XInputField } from "@/components/custom/XInputField"
 import { Eye, EyeOff, Mail } from "lucide-react"
 import { AnimatedShinyText } from "@/components/magicui/animated-shiny-text"
-import { Link, useNavigate } from "react-router-dom"
+import { Link } from "react-router-dom"
 import { useFormik, FormikProvider, Form } from "formik";
 import * as Yup from "yup";
 import axios from "axios"
@@ -30,7 +30,7 @@ export default function LoginForm({
     const { connect } = useSocket();
     const [loading, setLoading] = useState({ google: false, github: false })
     const [showPassword, setShowPassword] = useState(false)
-    const navigate = useNavigate()
+
 
     const signInWithGoogle = async () => {
         try {
@@ -53,7 +53,7 @@ export default function LoginForm({
                 toast.success("Login successful");
                 login(response.data.user)
                 connect(response.data.user.id)
-                navigate("/dashboard");
+                window.location.href = '/dashboard'
             }
         } catch (error: any) {
             console.error("Frontend Google login failed:", error);
@@ -84,7 +84,7 @@ export default function LoginForm({
                 toast.success("Login successful");
                 login(response.data.user)
                 connect(response.data.user.id)
-                navigate("/dashboard");
+                window.location.href = '/dashboard'
             }
         } catch (error: any) {
             console.error("Frontend Github login failed:", error);
@@ -104,7 +104,7 @@ export default function LoginForm({
                 login(data.user)
                 console.log("User data:", data.user);
                 connect(data.user.id)
-                navigate("/dashboard");
+                window.location.href = '/dashboard'
             }
         } catch (error: any) {
             toast.error(error.response.data.message || "Login failed");

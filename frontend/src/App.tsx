@@ -7,7 +7,6 @@ import { useAuthStore } from '@/store/authStore.ts';
 import AxiousInstance from '@/helper/AxiousInstance.tsx';
 import { messaging } from '@/firebase/firebaseConfig.ts';
 import { getToken } from 'firebase/messaging';
-import { getCookie } from '@/lib/utils';
 
 
 
@@ -18,16 +17,17 @@ const App: React.FC = () => {
   const { connect, disconnect } = useSocket();
 
   async function requestPermission() {
-    console.log('hello from firesbase setup from App.tsx')
+
     try {
       //requesting permission using Notification API
       const permission = await Notification.requestPermission();
 
       if (permission === 'granted') {
+
         const token = await getToken(messaging, {
           vapidKey: import.meta.env.VITE_VAPID_KEY
         });
-        if (token && !!getCookie('accessToken')) {
+        if (token && user?.id) {
 
           await AxiousInstance.post(`/firebase/${user?.id}/token`, {
             fcm_token: token,
@@ -46,6 +46,7 @@ const App: React.FC = () => {
 
   useEffect(() => {
     if (!user.id) {
+
       disconnect();
       console.error("No access token found in cookies");
       return;

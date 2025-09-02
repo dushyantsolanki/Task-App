@@ -1,6 +1,7 @@
 import { getMessaging } from 'firebase-admin/messaging';
 import { User } from '../models/index.js';
 import logger from '../configs/pino.config.js';
+import mongoose from 'mongoose';
 
 export const saveUserToken = async (req, res) => {
   try {
@@ -11,7 +12,7 @@ export const saveUserToken = async (req, res) => {
     }
 
     const user = await User.findOne({
-      _id: req.params.id,
+      _id: new mongoose.Types.ObjectId(req.params.id),
       isDeleted: false,
       isVerified: true,
     }).select('fcmToken');

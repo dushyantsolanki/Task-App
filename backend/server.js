@@ -40,6 +40,7 @@ app.use(
       'http://localhost:4173',
       'http://192.168.83.111:5173',
       'http://localhost:3000',
+      'https://taskmate.dushyantportfolio.store',
       'https://portfolio-dev-dushyant.vercel.app',
     ],
     // origin: ['*'],
