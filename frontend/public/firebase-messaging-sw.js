@@ -28,10 +28,7 @@ messaging.onBackgroundMessage((payload) => {
   const notificationOptions = {
     body: payload.notification.body,
     icon: payload.notification.image,
-    // badge: '../public/favicon-32x32.png',
-    // renotify: true,
-    // requireInteraction: false,
-    // vibrate: [200, 100, 200],
+
     tag: 'notification-1',
     webpush: {
       fcm_options: {
@@ -40,5 +37,5 @@ messaging.onBackgroundMessage((payload) => {
       },
     },
   };
-  self.registration.showNotification(notificationTitle, notificationOptions);
+  // self.registration.showNotification(notificationTitle, notificationOptions);
 });
