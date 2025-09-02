@@ -28,15 +28,15 @@ messaging.onBackgroundMessage((payload) => {
   const notificationOptions = {
     body: payload.notification.body,
     icon: payload.notification.image,
+    badge: '../public/favicon-32x32.png',
     tag: 'notification-1',
     webpush: {
       fcm_options: {
-        // link: 'https://firebase-messaging-five.vercel.app/',
+        link: 'https://taskmate.dushyantportfolio.store',
         link: 'http://localhost:5173',
-        // link: 'http://192.168.83.111:5173',
       },
     },
   };
-
+  self.registration.showNotification(notificationTitle, notificationOptions);
   // self.registration.showNotification(notificationTitle, notificationOptions);
 });
