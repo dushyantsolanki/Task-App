@@ -20,11 +20,13 @@ jobs:
         
     - name: Add EC2 to known hosts
       run: |
-        ssh-keyscan -H ${{ vars.EC2_HOST }} >> ~/.ssh/known_hosts
+        mkdir -p ~/.ssh
+          echo "${{ secrets.EC2_SSH_KEY }}" > ~/.ssh/ec2_key.pem
+          chmod 600 ~/.ssh/ec2_key.pem
         
     - name: Deploy to EC2
       run: |
-        ssh ${{ vars.EC2_USER }}@${{ vars.EC2_HOST }} << 'EOF'
+          ssh -o StrictHostKeyChecking=no -i ~/.ssh/ec2_key.pem ${{ secrets.EC2_USER }}@${{ secrets.EC2_HOST }} << EOF
           # Navigate to your project directory
           cd /dushyant/Task-App/backend
           
