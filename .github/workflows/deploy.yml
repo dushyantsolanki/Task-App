@@ -1,43 +1,41 @@
-name: Deploy Backend to EC2
+name: Deploy to EC2
 
 on:
-  workflow_dispatch:   # Manual "Run workflow" button
+  push:
+    branches: [ main ]  # Change to your default branch if different
+  workflow_dispatch:    # Allows manual trigger
 
 jobs:
   deploy:
     runs-on: ubuntu-latest
-
+    
     steps:
-      - name: Checkout repository
-        uses: actions/checkout@v3
-
-      - name: Setup SSH key
-        run: |
-          mkdir -p ~/.ssh
-          echo "${{ secrets.EC2_SSH_KEY }}" > ~/.ssh/ec2_key.pem
-          chmod 600 ~/.ssh/ec2_key.pem
-
-      - name: SSH and deploy backend
-        run: |
-          ssh -o StrictHostKeyChecking=no -i ~/.ssh/ec2_key.pem ${{ secrets.EC2_USER }}@${{ secrets.EC2_HOST }} << EOF
-            echo "[INFO] Starting backend deployment..."
-            
-            cd /dushyant/Task-App/backend || exit 1
-            
-            echo "[RESET] Discarding any local changes..."
-            git reset --hard
-            
-            echo "[GIT] Git status:"
-            git status
-            
-            echo "[PULL] Pulling latest code..."
-            git pull origin main
-            
-            echo "[NPM] Installing dependencies..."
-            npm install --production
-            
-            echo "[PM2] Restarting backend..."
-            pm2 restart backend || pm2 start app.js --name backend
-            
-            echo "[SUCCESS] Backend deployed successfully!"
-          EOF
+    - name: Checkout code
+      uses: actions/checkout@v4
+      
+    - name: Setup SSH
+      uses: webfactory/ssh-agent@v0.8.0
+      with:
+        ssh-private-key: ${{ secrets.EC2_SSH_KEY }}
+        
+    - name: Add EC2 to known hosts
+      run: |
+        ssh-keyscan -H ${{ vars.EC2_HOST }} >> ~/.ssh/known_hosts
+        
+    - name: Deploy to EC2
+      run: |
+        ssh ${{ vars.EC2_USER }}@${{ vars.EC2_HOST }} << 'EOF'
+          # Navigate to your project directory
+          cd /dushyant/Task-App/backend
+          
+          # Pull latest code
+          git pull origin main
+          
+          # Install/update Node.js dependencies
+          npm install --production
+          
+          # Restart your Node.js application
+          pm2 restart taskmate-backend
+          
+          echo "Deployment completed successfully!"
+        EOF
