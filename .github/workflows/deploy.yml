@@ -1,4 +1,4 @@
-name: Deploy Backend to AWS-EC2
+name: Deploy Backend to EC2
 
 on:
   workflow_dispatch:   # Manual "Run workflow" button
@@ -20,24 +20,24 @@ jobs:
       - name: SSH and deploy backend
         run: |
           ssh -o StrictHostKeyChecking=no -i ~/.ssh/ec2_key.pem ${{ secrets.EC2_USER }}@${{ secrets.EC2_HOST }} << EOF
-            echo "🚀 Starting backend deployment..."
+            echo "[INFO] Starting backend deployment..."
             
-            cd ~/dushyant/Task-App/backend/ || exit 1
+            cd /dushyant/Task-App/backend || exit 1
             
-            echo "♻️ Resetting any local changes..."
+            echo "[RESET] Discarding any local changes..."
             git reset --hard
             
-            echo "🔗 Git status:"
+            echo "[GIT] Git status:"
             git status
             
-            echo "⬇️ Pulling latest code..."
+            echo "[PULL] Pulling latest code..."
             git pull origin main
             
-            echo "📦 Installing dependencies..."
+            echo "[NPM] Installing dependencies..."
             npm install --production
             
-            echo "🔄 Restarting backend with PM2..."
-            pm2 restart 0
+            echo "[PM2] Restarting backend..."
+            pm2 restart backend || pm2 start app.js --name backend
             
-            echo "✅ Backend deployed successfully!"
+            echo "[SUCCESS] Backend deployed successfully!"
           EOF
