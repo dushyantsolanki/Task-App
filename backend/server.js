@@ -19,8 +19,8 @@ import chrome from 'selenium-webdriver/chrome.js';
 import { Task, Template } from './models/index.js';
 import { faker } from '@faker-js/faker';
 import fs from 'fs';
-import { emailQueue } from './queue/queue.js';
-import emailWorker from './queue/worker/email.worker.js';
+// import { emailQueue } from './queue/queue.js';
+// import emailWorker from './queue/worker/email.worker.js';
 // passport configurations
 // configurePassport();
 
