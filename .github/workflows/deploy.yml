@@ -23,9 +23,9 @@ jobs:
 
       - name: Deploy to EC2
         run: |
-          ssh -i ~/.ssh/id_rsa -o StrictHostKeyChecking=no ${{ secrets.EC2_USER }}@${{ secrets.EC2_HOST }} << 'EOF'
-            cd ~/my-app
-            
-            npm install --production
-            pm2 restart 0 || pm2 start server.js --name app
-          EOF
+          ssh -i ~/.ssh/id_rsa -o StrictHostKeyChecking=no ${{ secrets.EC2_USER }}@${{ secrets.EC2_HOST }} "
+          cd ~/dushyant/Task-App/backend &&
+          git pull origin main &&
+          npm install --production &&
+          pm2 restart taskmate-backend || pm2 start server.js --name taskmate-backend
+          "
