@@ -23,13 +23,7 @@ jobs:
             echo "[INFO] Starting backend deployment..."
             
             cd /dushyant/Task-App/backend 
-            
-            echo "[RESET] Discarding any local changes..."
-            git reset --hard
-            
-            echo "[GIT] Git status:"
-            git status
-            
+                        
             echo "[PULL] Pulling latest code..."
             git pull origin main
             
