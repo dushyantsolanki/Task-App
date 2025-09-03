@@ -11,7 +11,7 @@ import fs from 'fs';
 const COOKIE_OPTIONS = {
   httpOnly: true, // security ke liye true rakho
   secure: true, // production me true
-  sameSite: process.env.ISDEVELOPMENT ? 'Lax' : 'None', // cross-domain ke liye Lax nahi chalega
+  sameSite: process.env.NODE_ENV === 'development' ? 'Lax' : 'None', // cross-domain ke liye Lax nahi chalega
   maxAge: 15 * 24 * 60 * 60 * 1000,
 };
 

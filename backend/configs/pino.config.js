@@ -5,7 +5,7 @@ import { join } from 'path';
 import fs from 'fs';
 
 // const isDevelopment = process.env.NODE_ENV !== 'production';
-const isDevelopment = process.env.NODE_ENV === 'development';
+// const isDevelopment = process.env.NODE_ENV === 'development';
 
 const logFilePath = join(process.cwd(), 'logs', 'app.log');
 
@@ -28,6 +28,7 @@ const transport = pino.transport({
   ],
 });
 
-const logger = pino(isDevelopment ? transport : pino.destination(logFilePath));
+// const logger = pino(isDevelopment ? transport : pino.destination(logFilePath));
+const logger = pino(transport);
 
 export default logger;
