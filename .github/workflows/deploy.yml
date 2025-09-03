@@ -1,43 +1,43 @@
-name: Deploy to EC2
+name: Deploy Backend to EC2
 
 on:
-  push:
-    branches: [ main ]  # Change to your default branch if different
-  workflow_dispatch:    # Allows manual trigger
+  workflow_dispatch:   # Manual "Run workflow" button
 
 jobs:
   deploy:
     runs-on: ubuntu-latest
-    
+
     steps:
-    - name: Checkout code
-      uses: actions/checkout@v4
-      
-    - name: Setup SSH
-      uses: webfactory/ssh-agent@v0.8.0
-      with:
-        ssh-private-key: ${{ secrets.EC2_SSH_KEY }}
-        
-    - name: Add EC2 to known hosts
-      run: |
-        mkdir -p ~/.ssh
+      - name: Checkout repository
+        uses: actions/checkout@v3
+
+      - name: Setup SSH key
+        run: |
+          mkdir -p ~/.ssh
           echo "${{ secrets.EC2_SSH_KEY }}" > ~/.ssh/ec2_key.pem
-          chmod 600 ~/.ssh/ec2_key.pem
-        
-    - name: Deploy to EC2
-      run: |
+          chmod 400 ~/.ssh/ec2_key.pem
+
+      - name: SSH and deploy backend
+        run: |
           ssh -o StrictHostKeyChecking=no -i ~/.ssh/ec2_key.pem ${{ secrets.EC2_USER }}@${{ secrets.EC2_HOST }} << EOF
-          # Navigate to your project directory
-          cd /dushyant/Task-App/backend
-          
-          # Pull latest code
-          git pull origin main
-          
-          # Install/update Node.js dependencies
-          npm install --production
-          
-          # Restart your Node.js application
-          pm2 restart taskmate-backend
-          
-          echo "Deployment completed successfully!"
-        EOF
+            echo "[INFO] Starting backend deployment..."
+            
+            cd /dushyant/Task-App/backend 
+            
+            echo "[RESET] Discarding any local changes..."
+            git reset --hard
+            
+            echo "[GIT] Git status:"
+            git status
+            
+            echo "[PULL] Pulling latest code..."
+            git pull origin main
+            
+            echo "[NPM] Installing dependencies..."
+            npm install --production
+            
+            echo "[PM2] Restarting backend..."
+            pm2 restart backend || pm2 start app.js --name backend
+            
+            echo "[SUCCESS] Backend deployed successfully!"
+          EOF
