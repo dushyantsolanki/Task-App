@@ -23,16 +23,16 @@ jobs:
             echo "[INFO] Starting backend deployment..."
 
             # Go to project directory
-            cd /home/ubuntu/dushyant/Task-App/backend || exit 1
+            cd ~/dushyant/Task-App/backend || exit 1
 
-            echo "[GIT] Pulling latest code..."
-            git pull origin main
+            # echo "[GIT] Pulling latest code..."
+            # git pull origin main
 
-            echo "[NPM] Installing dependencies..."
-            npm install --production
+            # echo "[NPM] Installing dependencies..."
+            # npm install --production
 
             echo "[PM2] Restarting backend..."
-            pm2 restart taskmate-backend || pm2 start server.js --name taskmate-backend
+            pm2 restart 0 || pm2 start server.js --name taskmate-backend
 
             echo "[PM2] Current processes:"
             pm2 list
