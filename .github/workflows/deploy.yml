@@ -31,7 +31,7 @@ jobs:
             npm install --production
             
             echo "[PM2] Restarting backend..."
-            pm2 restart backend || pm2 start app.js --name backend
+            pm2 restart taskmate-backend || pm2 start server.js --name taskmate-backend
             
             echo "[SUCCESS] Backend deployed successfully!"
           EOF
