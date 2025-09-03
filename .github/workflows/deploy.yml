@@ -1,46 +1,31 @@
-name: Deploy Backend to EC2
+name: Manual Deploy to EC2
 
 on:
-  workflow_dispatch: # Manual "Run workflow" button
+  workflow_dispatch:
 
 jobs:
   deploy:
     runs-on: ubuntu-latest
 
     steps:
-      - name: Checkout repository
-        uses: actions/checkout@v3
+      - uses: actions/checkout@v4
 
-      - name: Setup SSH key
+      - name: Setup SSH
         run: |
           mkdir -p ~/.ssh
-          echo "${{ secrets.EC2_SSH_KEY }}" > ~/.ssh/ec2_key.pem
-          chmod 600 ~/.ssh/ec2_key.pem
+          echo "${{ secrets.EC2_SSH_KEY }}" | tr -d '\r' > ~/.ssh/id_rsa
+          chmod 600 ~/.ssh/id_rsa
+          ssh-keyscan -H ${{ secrets.EC2_HOST }} >> ~/.ssh/known_hosts
 
       - name: Test SSH connection
         run: |
           ssh -i ~/.ssh/id_rsa -o StrictHostKeyChecking=no ${{ secrets.EC2_USER }}@${{ secrets.EC2_HOST }} "echo connected"
 
-
-      - name: SSH and deploy backend
+      - name: Deploy to EC2
         run: |
-          ssh -tt -o StrictHostKeyChecking=no -i ~/.ssh/ec2_key.pem ${{ secrets.EC2_USER }}@${{ secrets.EC2_HOST }} << 'EOF'
-            echo "[INFO] Starting backend deployment..."
-
-            # Go to project directory
-            cd ~/dushyant/Task-App/backend || exit 1
-
-            # echo "[GIT] Pulling latest code..."
-            # git pull origin main
-
-            # echo "[NPM] Installing dependencies..."
-            # npm install --production
-
-            echo "[PM2] Restarting backend..."
-            pm2 restart 0 || pm2 start server.js --name taskmate-backend
-
-            echo "[PM2] Current processes:"
-            pm2 list
-
-            echo "[SUCCESS] Backend deployed successfully!"
+          ssh -i ~/.ssh/id_rsa -o StrictHostKeyChecking=no ${{ secrets.EC2_USER }}@${{ secrets.EC2_HOST }} << 'EOF'
+            cd ~/my-app
+            
+            npm install --production
+            pm2 restart 0 || pm2 start server.js --name app
           EOF
