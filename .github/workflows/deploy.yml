@@ -1,7 +1,10 @@
-name: Taskmate Backend Deploy On AWS-EC2 
+name: Deploy Backend to EC2
 
 on:
-  workflow_dispatch:  
+  workflow_dispatch:   # Manual "Run workflow" button
+  # push:
+  #   branches:
+  #     - main        # uncomment if you also want auto-deploy on push
 
 jobs:
   deploy:
@@ -17,11 +20,24 @@ jobs:
           echo "${{ secrets.EC2_SSH_KEY }}" > ~/.ssh/ec2_key.pem
           chmod 600 ~/.ssh/ec2_key.pem
 
-      - name: SSH and deploy
+      - name: SSH and deploy backend
         run: |
           ssh -o StrictHostKeyChecking=no -i ~/.ssh/ec2_key.pem ${{ secrets.EC2_USER }}@${{ secrets.EC2_HOST }} << 'EOF'
-            cd /home/ubuntu/your-app-folder
-            git pull origin main
+            echo "🚀 Starting backend deployment..."
+
+            cd ~/dushaynt/Task-App/backend || exit 1
+
+            echo "🔗 Git status:"
+            git status
+
+            echo "⬇️ Pulling latest code..."
+            git pull origin main || exit 1
+
+            echo "📦 Installing dependencies..."
             npm install --production
-            pm2 restart 0 
+
+            echo "🔄 Restarting backend with PM2..."
+            pm2 restart backend || pm2 start app.js --name backend
+
+            echo "✅ Backend deployed successfully!"
           EOF
