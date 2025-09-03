@@ -145,8 +145,8 @@ export function Search() {
         setError(null);
         setHasSearched(true);
         try {
-            // const response = await fetch(`http://localhost:3000/api/overview?q=${encodeURIComponent(query)}`);
-            const response = await fetch(`https://api.dushyantportfolio.store/api/overview?q=${encodeURIComponent(query)}`);
+            const response = await fetch(`http://localhost:3000/api/overview?q=${encodeURIComponent(query)}`);
+            // const response = await fetch(`https://api.dushyantportfolio.store/api/overview?q=${encodeURIComponent(query)}`);
 
 
             // const response = await fetch(`https://task-app-wfv1.onrender.com/api/overview?q=${encodeURIComponent(query)}`);

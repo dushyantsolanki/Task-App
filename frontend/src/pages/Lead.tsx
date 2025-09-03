@@ -56,7 +56,8 @@ interface Lead {
         _id: string;
         name: string;
         avatar: string
-    }
+    },
+    leadStatus: string;
 }
 
 interface PaginationState {
@@ -265,7 +266,7 @@ function Lead() {
             id: "select",
             header: () => {
                 const currentPageIds = tableData.map(lead => lead._id!);
-                const allSelected = currentPageIds.every(id => selectedRows.includes(id));
+                const allSelected = currentPageIds.length > 0 && currentPageIds.every(id => selectedRows.includes(id));
 
                 return (
                     <Checkbox

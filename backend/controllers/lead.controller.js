@@ -1,6 +1,7 @@
 import mongoose from 'mongoose';
 import logger from '../configs/pino.config.js';
 import { Lead } from '../models/index.js';
+import { sendLeadUpdate } from '../sockets/events/lead.event.js';
 
 export const getLeads = async (req, res) => {
   try {
@@ -68,6 +69,7 @@ export const addLead = async (req, res) => {
       domain,
       emails,
       phones,
+      leadStatus,
     } = req.body;
 
     if (!title) {
@@ -88,8 +90,10 @@ export const addLead = async (req, res) => {
       emails: emails || [],
       phones: phones || [],
       createdBy: req.user?.userId,
+      leadStatus,
     });
 
+    sendLeadUpdate({ type: 'refresh' });
     return res.status(201).json({
       success: true,
       message: 'Lead created successfully',
@@ -115,6 +119,7 @@ export const updateLead = async (req, res) => {
       return res.status(404).json({ success: false, message: 'Lead not found' });
     }
 
+    sendLeadUpdate({ type: 'refresh' });
     return res.status(200).json({
       success: true,
       message: 'Lead updated successfully',
@@ -141,6 +146,37 @@ export const deleteLead = async (req, res) => {
     });
   } catch (err) {
     logger.error(err, 'Error in deleteLead');
+    return res.status(500).json({ success: false, message: err.message });
+  }
+};
+
+export const getLeadStatusCounts = async (req, res) => {
+  try {
+    const counts = await Lead.aggregate([
+      { $match: { isDeleted: false } },
+      {
+        $group: {
+          _id: '$leadStatus',
+          count: { $sum: 1 },
+        },
+      },
+      {
+        $project: {
+          _id: 0,
+          leadStatus: '$_id',
+          count: 1,
+        },
+      },
+    ]);
+    const allStatuses = ['new', 'contacted', 'interested', 'lost', 'follow-up later'];
+    const result = allStatuses.map((status) => {
+      const found = counts.find((c) => c.leadStatus === status);
+      return { leadStatus: status, count: found ? found.count : 0 };
+    });
+
+    return res.status(200).json({ success: true, data: result });
+  } catch (err) {
+    logger.error(err, 'Error in getLeadStatusCounts');
     return res.status(500).json({ success: false, message: err.message });
   }
 };

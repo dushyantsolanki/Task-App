@@ -88,6 +88,11 @@ const LeadSchema = new mongoose.Schema(
       enum: ['sent', 'pending'],
       default: 'pending',
     },
+    leadStatus: {
+      type: String,
+      enum: ['new', 'contacted', 'interested', 'lost', 'follow-up later'],
+      default: 'new',
+    },
     isDeleted: {
       type: Boolean,
       default: false,

@@ -5,6 +5,7 @@ import * as Yup from "yup";
 import { useState, useEffect } from "react";
 import { XInputField } from "@/components/custom/XInputField";
 import { Building, Globe, Layers, Mail, MapPin, Minus, Phone, Plus } from "lucide-react";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 
 interface Lead {
     _id?: string;
@@ -20,6 +21,7 @@ interface Lead {
     domain?: string;
     emails: string[];
     phones: string[];
+    leadStatus: string;
 }
 
 interface ModalFormProps {
@@ -30,6 +32,8 @@ interface ModalFormProps {
     handleEdit: (values: Lead, resetForm: () => void, onClose: () => void) => void
 }
 
+
+const leadStatusOptions: string[] = ['new', 'contacted', 'interested', 'lost', 'follow-up later']
 const LeadModal = ({ isOpen, onClose, initialValues, handleAdd,
     handleEdit }: ModalFormProps) => {
     const [emailInputs, setEmailInputs] = useState<string[]>(
@@ -62,6 +66,7 @@ const LeadModal = ({ isOpen, onClose, initialValues, handleAdd,
             categories: Array.isArray(initialValues?.categories) && initialValues.categories.length > 0 ? initialValues.categories : [""],
             emails: Array.isArray(initialValues?.emails) && initialValues.emails.length > 0 ? initialValues.emails : [""],
             phones: Array.isArray(initialValues?.phones) && initialValues.phones.length > 0 ? initialValues.phones : [""],
+            leadStatus: initialValues?.leadStatus || "new",
         },
         validationSchema: Yup.object({
             title: Yup.string().required("Title is required"),
@@ -79,6 +84,13 @@ const LeadModal = ({ isOpen, onClose, initialValues, handleAdd,
             phones: Yup.array()
                 .of(Yup.string().required("Phone cannot be empty"))
                 .min(1, "At least one phone is required"),
+            leadStatus: Yup.string()
+                .oneOf(
+                    leadStatusOptions,
+                    "Invalid lead status"
+                )
+                .required("Lead status is required"),
+
         }),
         enableReinitialize: true,
         onSubmit: (values) => {
@@ -205,19 +217,7 @@ const LeadModal = ({ isOpen, onClose, initialValues, handleAdd,
                                     onBlur={formik.handleBlur}
                                     error={formik.touched.title && (formik.errors.title as string)}
                                 />
-                                <XInputField
-                                    id="address"
-                                    name="address"
-                                    label="Address"
-                                    type="text"
-                                    className="h-10 sm:h-11"
-                                    icon={<MapPin className="h-4 w-4 sm:h-5 sm:w-5" />}
-                                    placeholder="123 Main St"
-                                    value={formik.values.address}
-                                    onChange={formik.handleChange}
-                                    onBlur={formik.handleBlur}
-                                    error={formik.touched.address && (formik.errors.address as string)}
-                                />
+                                {/* Select */}
                                 <XInputField
                                     id="city"
                                     name="city"
@@ -297,8 +297,43 @@ const LeadModal = ({ isOpen, onClose, initialValues, handleAdd,
                                     error={formik.touched.phone && (formik.errors.phone as string)}
                                 />
 
+                                <div className="flex flex-col">
+                                    <label htmlFor="leadStatus" className="text-sm font-medium mb-[4px]">
+                                        Lead Status
+                                    </label>
+                                    <Select
+                                        onValueChange={(value) => formik.setFieldValue("leadStatus", value)}
+                                        value={formik.values.leadStatus}
+                                    >
+                                        <SelectTrigger className="w-full py-[18.7px] sm:py-[20.9px]">
+                                            <SelectValue placeholder="Select lead status" />
+                                        </SelectTrigger>
+                                        <SelectContent>
+                                            {leadStatusOptions?.map((option) => <SelectItem value={option} className="capitalize">{option}</SelectItem>)}
+                                        </SelectContent>
+                                    </Select>
+                                    {formik.touched.leadStatus && formik.errors.leadStatus && (
+                                        <p className="ml-1 text-sm text-red-500 mt-1.5">{formik.errors.leadStatus}</p>
+                                    )}
+                                </div>
+
                                 {/* Emails */}
                                 <div className="col-span-1 sm:col-span-2">
+                                    <div className="mb-2">
+                                        <XInputField
+                                            id="address"
+                                            name="address"
+                                            label="Address"
+                                            type="text"
+                                            className="h-10 sm:h-11"
+                                            icon={<MapPin className="h-4 w-4 sm:h-5 sm:w-5" />}
+                                            placeholder="123 Main St"
+                                            value={formik.values.address}
+                                            onChange={formik.handleChange}
+                                            onBlur={formik.handleBlur}
+                                            error={formik.touched.address && (formik.errors.address as string)}
+                                        />
+                                    </div>
                                     <label className="text-xs sm:text-sm font-medium">Emails</label>
                                     {emailInputs.map((email: string, index: number) => (
                                         <div key={index} title={email} className="flex gap-2 mb-2">

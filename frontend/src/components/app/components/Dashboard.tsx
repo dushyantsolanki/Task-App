@@ -1,6 +1,8 @@
 import { AreaChartComponent } from "@/charts/AreaChartComponent";
 import BigCalendar from "@/components/app/components/BigCalendar";
-import { PieChartComponent } from "@/charts/PieChartComponent";
+import { TaskPieChart } from "./TaskPieChart";
+import { LeadPieChart } from "./LeadPieChart";
+
 
 export function Dashboard() {
     return (
@@ -9,8 +11,8 @@ export function Dashboard() {
             <AreaChartComponent />
             <div className="grid gap-4 md:grid-cols-2 ">
 
-                <PieChartComponent />
-                <PieChartComponent />
+                <TaskPieChart />
+                <LeadPieChart />
             </div>
 
 

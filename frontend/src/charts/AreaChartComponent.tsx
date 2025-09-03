@@ -36,11 +36,11 @@ const chartConfig = {
     },
     processing: {
         label: "Processing",
-        color: "var(--chart-2)",
+        color: "var(--chart-3)",
     },
     success: {
         label: "Success",
-        color: "var(--chart-3)",
+        color: "var(--chart-2)",
     },
     failed: {
         label: "Failed",
