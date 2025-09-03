@@ -5,23 +5,22 @@ import cookieParser from 'cookie-parser';
 import express from 'express';
 import { createServer } from 'http';
 import cors from 'cors';
-// import passport from 'passport';
 import connectDB from './configs/db.config.js';
-// import configurePassport from './configs/passport.config.js';
 import indexRoute from './routes/index.js';
 import logger from './configs/pino.config.js';
 import { initSocketIO } from './sockets/index.js';
 import './configs/firebase.config.js';
-import './crons/calendar.jobs.js';
+// import './crons/calendar.jobs.js';
 import Notification from './models/notification.model.js';
 import path from 'path';
-// import { ai } from './configs/genkit.config.js';
 import { Builder, By, until } from 'selenium-webdriver';
 import { runGroqSearchQA } from './configs/langchai.config.js';
 import chrome from 'selenium-webdriver/chrome.js';
 import { Task, Template } from './models/index.js';
 import { faker } from '@faker-js/faker';
 import fs from 'fs';
+import { emailQueue } from './queue/queue.js';
+import emailWorker from './queue/worker/email.worker.js';
 // passport configurations
 // configurePassport();
 
@@ -30,20 +29,14 @@ const server = createServer(app);
 
 initSocketIO(server);
 
-// middlewares setup
 app.use(cookieParser());
 app.use(
   cors({
     origin: [
       'http://localhost:5173',
-      'http://192.168.0.133:5173',
-      'http://localhost:4173',
-      'http://192.168.83.111:5173',
-      'http://localhost:3000',
       'https://taskmate.dushyantportfolio.store',
       'https://portfolio-dev-dushyant.vercel.app',
     ],
-    // origin: ['*'],
     credentials: true,
   }),
 );
@@ -293,6 +286,7 @@ async function scrapeFullPage(driver, url) {
 const options = new chrome.Options();
 options.addArguments(
   '--no-sandbox',
+  '--headless=new',
   '--disable-dev-shm-usage',
   '--disable-gpu',
   `--user-agent=${getRandomUserAgent()}`,
@@ -364,6 +358,16 @@ app.get('/api/overview', async (req, res) => {
     res.status(500).json({ error: err.message });
   }
 });
+
+// await emailQueue.add(
+//   'sendEmail',
+//   { to: 'dushyantsolanki.2002@gmail.com', subject: 'Demo', body: 'Good Morning\nDemo text body' },
+//   {
+//     // delay: delay + randomDelay, // spread jobs
+//     removeOnComplete: true,
+//     attempts: 3, // retry if fail
+//   },
+// );
 
 server.listen(PORT, async () => {
   await connectDB();
