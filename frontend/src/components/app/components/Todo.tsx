@@ -187,18 +187,21 @@ export function Todo() {
         }
     };
 
-    const handleTaskShare = async (values: any, resetForm: any, onClose: any) => {
+    const handleTaskShare = async (values: any, resetForm: () => void, onClose: any, setSubmitting: (bool: boolean) => void) => {
         try {
             const response = await AxiousInstance.patch(`/task`, { ...values, task: selectedRows, username: user?.name });
             if (response.status === 200) {
-                const data = response.data;
-                toast.success(data.message)
-                resetForm()
-                onClose()
+                setSelectedRows([])
                 getAllTask(pagination.pageIndex, pagination.pageSize, titleFilter);
+                toast.success(response.data.message)
+                onClose()
+                resetForm()
             }
         } catch (error: any) {
             toast.error(error.response?.data?.message || "Failed to fetch tasks");
+        }
+        finally {
+            setSubmitting(false)
         }
 
     }
@@ -309,7 +312,7 @@ export function Todo() {
 
                 return (
                     <Checkbox
-                        checked={selectedRows.includes(row.original._id!)}
+                        checked={selectedRows.includes(row.original._id!) && selectedRows.length > 0}
                         disabled={isDisabled}
                         onCheckedChange={(value) => handleRowSelect(row.original._id!, !!value)}
                         aria-label="Select row"

@@ -35,7 +35,7 @@ interface ShareModalProps {
     isOpen: boolean;
     onClose: () => void;
     users: User[];
-    handleShare: (values: ShareValues, resetForm: () => void, onClose: () => void) => void;
+    handleShare: (values: ShareValues, resetForm: () => void, onClose: () => void, setSubmitting: (bool: boolean) => void) => void;
 }
 
 const TaskShareModal = ({ isOpen, onClose, users, handleShare }: ShareModalProps) => {
@@ -54,7 +54,7 @@ const TaskShareModal = ({ isOpen, onClose, users, handleShare }: ShareModalProps
         }),
         enableReinitialize: true,
         onSubmit: (values) => {
-            handleShare(values as ShareValues, formik.resetForm, onClose);
+            handleShare(values as ShareValues, formik.resetForm, onClose, formik.setSubmitting);
         },
     });
 
