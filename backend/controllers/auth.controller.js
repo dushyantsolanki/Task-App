@@ -433,7 +433,6 @@ export const logout = async (req, res) => {
       user.refreshToken = null;
       await user.save();
       return res
-        .redirect('/login')
         .clearCookie('accessToken')
         .clearCookie('refreshToken')
         .status(200)
@@ -443,7 +442,6 @@ export const logout = async (req, res) => {
     // Verify refresh token
     const decoded = jwt.verify(token, process.env.JWT_REFRESH_SECRET);
     const user = await User.findById(decoded.userId);
-
     if (!user || user.refreshToken !== token) {
       return res.status(403).json({ success: false, message: 'Invalid refresh token' });
     }
@@ -453,7 +451,6 @@ export const logout = async (req, res) => {
     await user.save();
 
     return res
-      .redirect('/login')
       .clearCookie('accessToken')
       .clearCookie('refreshToken')
       .status(200)

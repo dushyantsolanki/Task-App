@@ -46,10 +46,9 @@ export function NavUser({
       if (response.status === 200) {
         logout()
         disconnect()
-        toast.success(response.data.message)
+        window.location.href = '/login'
       }
     } catch (error: any) {
-
       toast.error(error?.response?.data?.message || "Internal Server Error")
     }
   }
