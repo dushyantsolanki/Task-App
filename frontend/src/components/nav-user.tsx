@@ -1,4 +1,3 @@
-"use client"
 import {
   LogOut,
   ChevronsUpDown,
@@ -24,6 +23,8 @@ import {
 } from "@/components/ui/sidebar"
 import { useAuthStore } from "@/store/authStore"
 import { useSocket } from "@/hooks/useSocket"
+import { toast } from "sonner"
+import AxiousInstance from "@/helper/AxiousInstance"
 
 export function NavUser({
   user,
@@ -38,6 +39,20 @@ export function NavUser({
   const { isMobile } = useSidebar()
   const { disconnect } = useSocket()
   const { logout } = useAuthStore()
+
+  const handleLogout = async () => {
+    try {
+      const response = await AxiousInstance.get(`${import.meta.env.VITE_API_BASE_URL || "http://localhost:3000/api/v1"}/auth/logout`)
+      if (response.status === 200) {
+        logout()
+        disconnect()
+        toast.success(response.data.message)
+      }
+    } catch (error: any) {
+
+      toast.error(error?.response?.data?.message || "Internal Server Error")
+    }
+  }
 
   return (
     <SidebarMenu>
@@ -92,7 +107,7 @@ export function NavUser({
             </DropdownMenuLabel>
             <DropdownMenuSeparator />
             <DropdownMenuItem className="text-red-600 focus:text-red-600 focus:bg-red-50 hover:cursor-pointer">
-              <div className="flex gap-2 items-center " onClick={() => { logout(); disconnect() }}>
+              <div className="flex gap-2 items-center " onClick={handleLogout}>
                 <LogOut className="ml-1.5" />
                 Log out
               </div>

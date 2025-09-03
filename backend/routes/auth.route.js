@@ -76,7 +76,7 @@ router.post('/forgot-password/verify-otp', verifyOtp);
 router.post('/forgot-password/reset-password', resetPassword);
 router.post('/profile/send-otp', verifyToken, sendOTP);
 router.post('/profile/verify-otp', verifyToken, verifyOTP);
-router.get('/logout', logout);
+router.get('/logout', verifyToken, logout);
 router.get('/user-lookup', verifyToken, getAllUsersLookup);
 router.put('/profile/:id', updateProfile);
 router.patch('/profile/reset-password/:id', verifyToken, resetProfilePassword);

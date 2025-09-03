@@ -9,14 +9,9 @@ import mongoose from 'mongoose';
 import fs from 'fs';
 
 const COOKIE_OPTIONS = {
-  // httpOnly: false,
-  // secure: process.env.NODE_ENV === 'production',
-  // sameSite: 'Lax',
-  // maxAge: 15 * 24 * 60 * 60 * 1000, // 15 days
-
   httpOnly: true, // security ke liye true rakho
   secure: true, // production me true
-  sameSite: 'None', // cross-domain ke liye Lax nahi chalega
+  sameSite: process.env.ISDEVELOPMENT ? 'Lax' : 'None', // cross-domain ke liye Lax nahi chalega
   maxAge: 15 * 24 * 60 * 60 * 1000,
 };
 
@@ -53,6 +48,7 @@ export const loginWithGoogle = async (req, res) => {
 
     res
       .cookie('accessToken', accessToken, { ...COOKIE_OPTIONS, maxAge: 7 * 24 * 60 * 60 * 1000 }) // 7 days
+
       .cookie('refreshToken', refreshToken, COOKIE_OPTIONS)
       .json({
         success: true,
@@ -431,14 +427,22 @@ export const resetPassword = async (req, res) => {
 export const logout = async (req, res) => {
   try {
     const token = req.cookies.refreshToken;
-
+    const { userId } = req.user;
     if (!token) {
-      return res.status(401).json({ success: false, message: 'No refresh token provided' });
+      const user = await User.findById(userId);
+      user.refreshToken = null;
+      await user.save();
+      return res
+        .redirect('/login')
+        .clearCookie('accessToken')
+        .clearCookie('refreshToken')
+        .status(200)
+        .json({ success: true, message: 'Logged out successfully' });
     }
 
     // Verify refresh token
-    const decoded = jwt.verify(token, process.env.REFRESH_TOKEN_SECRET);
-    const user = await User.findById(decoded.id);
+    const decoded = jwt.verify(token, process.env.JWT_REFRESH_SECRET);
+    const user = await User.findById(decoded.userId);
 
     if (!user || user.refreshToken !== token) {
       return res.status(403).json({ success: false, message: 'Invalid refresh token' });
@@ -449,8 +453,10 @@ export const logout = async (req, res) => {
     await user.save();
 
     return res
+      .redirect('/login')
       .clearCookie('accessToken')
       .clearCookie('refreshToken')
+      .status(200)
       .json({ success: true, message: 'Logged out successfully' });
   } catch (err) {
     logger.error(err, 'Error in logout');

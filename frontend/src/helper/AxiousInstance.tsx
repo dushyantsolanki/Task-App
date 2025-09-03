@@ -53,6 +53,11 @@ AxiousInstance.interceptors.response.use(
                 return AxiousInstance(originalRequest);
             } catch (err) {
                 processQueue(err);
+
+                if (error.response && error.response.status === 401) {
+                    localStorage.clear();
+                    window.location.href = '/login';
+                }
                 return Promise.reject(err);
             } finally {
                 isRefreshing = false;
