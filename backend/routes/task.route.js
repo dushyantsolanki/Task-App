@@ -7,13 +7,17 @@ import {
   getStatusAreaChart,
   getStatusPieChart,
   getTasks,
+  getTasksForKanban,
   taskShare,
   updateTask,
+  updateTaskStatus,
 } from '../controllers/task.controller.js';
 
 const router = express.Router();
 
 router.get('/', verifyToken, getTasks);
+router.get('/kanban-view', verifyToken, getTasksForKanban);
+router.patch('/kanban-view/:id', verifyToken, updateTaskStatus);
 router.post('/', verifyToken, createTask);
 router.put('/:id', verifyToken, updateTask);
 router.patch('/', verifyToken, taskShare);

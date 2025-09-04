@@ -1,14 +1,12 @@
 import React, { Suspense, useEffect } from 'react';
 import { BrowserRouter, Routes, Route } from 'react-router-dom';
-import { Loader2 } from 'lucide-react';
 import { routes } from '@/routes/route.tsx';
 import { useSocket } from '@/hooks/useSocket.ts';
 import { useAuthStore } from '@/store/authStore.ts';
 import AxiousInstance from '@/helper/AxiousInstance.tsx';
 import { messaging } from '@/firebase/firebaseConfig.ts';
 import { getToken } from 'firebase/messaging';
-
-
+import { Spinner } from './components/ui/kibo-ui/spinner';
 
 // import ProtectedRoute from './routes/ProtectedRoute';
 
@@ -58,7 +56,7 @@ const App: React.FC = () => {
   return (
     <BrowserRouter>
       <Suspense fallback={<div className="flex items-center justify-center h-screen w-screen bg-background">
-        <Loader2 className="h-20 w-20 animate-spin text-primary" />
+        <Spinner className="h-12 w-12 text-primary" />
       </div>}>
         <Routes>
           {routes.map(({ layout: Layout, guard: Guard, children }, i) => (

@@ -75,7 +75,7 @@ export const getTasks = async (req, res) => {
 export const createTask = async (req, res) => {
   try {
     const { userId } = req.user;
-    const { title, description, label, status, priority } = req.body;
+    const { title, description, label, status, priority, startDate, endDate } = req.body;
 
     const counter = await getNextSequence('Task');
 
@@ -87,6 +87,8 @@ export const createTask = async (req, res) => {
       priority,
       taskId: 'Task - ' + counter,
       createdBy: userId,
+      startDate,
+      endDate,
     });
 
     sendTaskUpdate({ type: 'refresh' });
@@ -497,5 +499,165 @@ export const taskShare = async (req, res) => {
   } catch (error) {
     console.error('Error sharing tasks:', error);
     return res.status(500).json({ message: 'Server error', error: error.message });
+  }
+};
+
+export const getTasksForKanban = async (req, res) => {
+  try {
+    const { userId } = req.user;
+    const search = req.query.search || '';
+
+    const query = {
+      isDeleted: false,
+      $or: [{ createdBy: userId }, { 'share.shareTo': new mongoose.Types.ObjectId(userId) }],
+    };
+
+    if (search) {
+      query.$and = [
+        {
+          $or: [{ createdBy: userId }, { 'share.shareTo': new mongoose.Types.ObjectId(userId) }],
+        },
+        {
+          $or: [
+            { title: { $regex: search, $options: 'i' } },
+            { label: { $regex: search, $options: 'i' } },
+          ],
+        },
+      ];
+    } else {
+      query.$or = [{ createdBy: userId }, { 'share.shareTo': new mongoose.Types.ObjectId(userId) }];
+    }
+
+    const tasks = await Task.find(query)
+      .sort({ createdAt: -1, 'share.sharedAt': -1 })
+      .populate({ path: 'createdBy', select: 'name avatar' })
+      .populate({ path: 'share.shareTo', select: 'name avatar' })
+      .populate({ path: 'share.sharedBy', select: 'name avatar' })
+      .lean(); // for better performance
+
+    // Format tasks to match KanbanTask component structure
+    const formattedTasks = tasks.map((task) => {
+      // Create the owner array including createdBy and all share-related users
+      const owners = [
+        {
+          id: task.createdBy._id.toString(),
+          name: task.createdBy.name,
+          avatar: task.createdBy.avatar,
+        },
+        // Include all users from share array (both shareTo and sharedBy)
+        ...task.share.map((share) => ({
+          id: share.shareTo._id.toString(),
+          name: share.shareTo.name,
+          avatar: share.shareTo.avatar,
+          permission: share.permission,
+        })),
+        ...task.share.map((share) => ({
+          id: share.sharedBy._id.toString(),
+          name: share.sharedBy.name,
+          avatar: share.sharedBy.avatar,
+        })),
+      ];
+
+      const uniqueOwners = Array.from(new Map(owners.map((owner) => [owner.id, owner])).values());
+
+      return {
+        _id: task._id,
+        id: task.taskId,
+        name: task.title,
+        startDate: new Date(task.startDate),
+        endDate: new Date(task.endDate),
+        column: task.status.charAt(0).toUpperCase() + task.status.slice(1),
+        owner: uniqueOwners,
+        createdBy: task?.createdBy?._id?.toString(),
+      };
+    });
+
+    return res.status(200).json({
+      success: true,
+      message: 'Tasks fetched successfully for Kanban view',
+      tasks: formattedTasks,
+    });
+  } catch (err) {
+    logger.error(err, 'Error in getTasksForKanban');
+    return res.status(400).json({ success: false, message: err.message });
+  }
+};
+
+export const updateTaskStatus = async (req, res) => {
+  try {
+    const { userId } = req.user;
+    const { id } = req.params;
+    const { status } = req.body;
+
+    if (!status) {
+      return res.status(400).json({ success: false, message: 'Status is required' });
+    }
+
+    const user = await User.findById(new mongoose.Types.ObjectId(userId), { name: 1 });
+
+    const task = await Task.findOneAndUpdate(
+      { _id: new mongoose.Types.ObjectId(id) },
+      { status }, // only update status
+      { new: true, runValidators: true },
+    )
+      .populate({ path: 'createdBy', select: 'name avatar' })
+      .populate({ path: 'share.shareTo', select: 'name avatar' })
+      .populate({ path: 'share.sharedBy', select: 'name avatar' });
+
+    if (!task) {
+      return res.status(404).json({ success: false, message: 'Task not found' });
+    }
+
+    const shareTo = task?.share?.map((item) => item?.shareTo?._id.toString()) || [];
+    const creatorId = task.createdBy._id.toString();
+
+    // Decide recipients
+    let notificationRecipients = [];
+    if (userId.toString() === creatorId) {
+      notificationRecipients = shareTo.filter((id) => id !== userId.toString());
+    } else {
+      notificationRecipients = [...new Set([creatorId, ...shareTo])].filter(
+        (id) => id !== userId.toString(),
+      );
+    }
+
+    // Trigger updates + notifications
+    await sendTaskUpdate({ type: 'refresh' });
+
+    if (notificationRecipients.length > 0) {
+      await sendShareTask({ type: 'shareTask', recipients: notificationRecipients });
+      await sendNotification({
+        senderId: userId,
+        userIds: notificationRecipients,
+        type: 'task status update',
+        path: '/task',
+        title: `Task status updated`,
+        body: `${user?.name} changed task status to "${status}".`,
+        eventType: 'notification',
+      });
+
+      await sendFirebaseNotification({
+        mode: 'selected',
+        selectedUserIds: notificationRecipients,
+        creatorId: userId?.toString(),
+        title: 'Task Status Update',
+        body: `Task status changed to "${status}" by "${
+          user?.name
+        }" at ${new Date().toLocaleTimeString('en-IN', {
+          timeZone: 'Asia/Kolkata',
+        })}`,
+        imageUrl: 'https://i.ibb.co/Xfv4LYf8/Chat-GPT-Image-Aug-30-2025-12-17-18-AM.png',
+        pageLink: '/task',
+      });
+    }
+
+    return res.status(200).json({
+      success: true,
+      message: 'Task status updated successfully',
+      task,
+    });
+  } catch (err) {
+    logger.error(err, 'Error in updateTaskStatus');
+    return res.status(400).json({ success: false, message: err.message });
   }
 };

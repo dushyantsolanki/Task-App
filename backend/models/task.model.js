@@ -67,6 +67,16 @@ const taskSchema = new mongoose.Schema(
       type: [shareSchema],
       default: [],
     },
+    startDate: {
+      type: String,
+      required: true,
+      trim: true,
+    },
+    endDate: {
+      type: String,
+      required: true,
+      trim: true,
+    },
     isDeleted: {
       type: Boolean,
       default: false,
