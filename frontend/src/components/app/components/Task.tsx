@@ -1,4 +1,3 @@
-import * as React from "react";
 import {
     type ColumnDef,
     flexRender,
@@ -8,7 +7,7 @@ import {
     type SortingState,
     useReactTable,
 } from "@tanstack/react-table";
-import { ArrowUpDown, ChevronLeft, ChevronRight, Trash2, Plus, DownloadIcon, Send, ViewIcon, Calendar, ListIcon } from "lucide-react";
+import { ArrowUpDown, ChevronLeft, ChevronRight, Trash2, Plus, DownloadIcon, Send, Calendar, ListIcon, Grid2X2 } from "lucide-react";
 import * as Yup from "yup";
 import { useFormik } from "formik";
 
@@ -52,6 +51,7 @@ import { useAuthStore } from "@/store/authStore";
 import { useSocket } from "@/hooks/useSocket";
 import KanbanTask from "./KanbanTask";
 import { useSidebar } from "@/components/ui/sidebar";
+import { useCallback, useEffect, useRef, useState } from "react";
 
 
 interface User {
@@ -124,27 +124,28 @@ const validationSchema = Yup.object({
 
 
 export default function () {
-    const [sorting, setSorting] = React.useState<SortingState>([]);
-    const [tableData, setTableData] = React.useState<Task[]>([]);
-    const [initialValues, setInitialValues] = React.useState<Task | null>(null);
-    const [isSheetOpen, setIsSheetOpen] = React.useState(false);
-    const [isEdit, setIsEdit] = React.useState(false);
-    const [isLoading, setIsLoading] = React.useState(false);
-    const [titleFilter, setTitleFilter] = React.useState("");
+    const [sorting, setSorting] = useState<SortingState>([]);
+    const [tableData, setTableData] = useState<Task[]>([]);
+    const [initialValues, setInitialValues] = useState<Task | null>(null);
+    const [isSheetOpen, setIsSheetOpen] = useState(false);
+    const [isEdit, setIsEdit] = useState(false);
+    const [isLoading, setIsLoading] = useState(false);
+    const [titleFilter, setTitleFilter] = useState("");
 
-    const [pagination, setPagination] = React.useState<PaginationState>({
+    const [pagination, setPagination] = useState<PaginationState>({
         pageIndex: 0,
         pageSize: 10,
     });
 
-    const [totalCount, setTotalCount] = React.useState(0);
-    const [totalPages, setTotalPages] = React.useState(0);
-    const [selectedRows, setSelectedRows] = React.useState<string[]>([]);
-    const [isShareModalOpen, setIsShareModalOpen] = React.useState<boolean>(false)
-    const [users, setUsers] = React.useState<User[]>([])
+    const [totalCount, setTotalCount] = useState(0);
+    const [totalPages, setTotalPages] = useState(0);
+    const [selectedRows, setSelectedRows] = useState<string[]>([]);
+    const [isShareModalOpen, setIsShareModalOpen] = useState<boolean>(false)
+    const [users, setUsers] = useState<User[]>([])
     const { user } = useAuthStore()
     const { on, off } = useSocket()
-    const [isKanbanView, setIsKanbanView] = React.useState(false)
+    const [isKanbanView, setIsKanbanView] = useState(false)
+    const [features, setFeatures] = useState<any[]>([]);
     const formik = useFormik({
         initialValues: {
             title: initialValues?.title || "",
@@ -172,12 +173,14 @@ export default function () {
             });
 
             const response = await AxiousInstance.get(`/task`, { params });
+            getAllTaskKanban(titleFilter)
 
             if (response.status === 200) {
                 const data: ApiResponse = response.data;
                 setTableData(data.tasks || []);
                 setTotalCount(data.totalCount || 0);
                 setTotalPages(data.totalPages || 0);
+
             }
         } catch (error: any) {
             console.error("Fetch error:", error);
@@ -187,6 +190,32 @@ export default function () {
             setTotalPages(0);
         } finally {
             setIsLoading(false);
+        }
+    };
+
+    const getAllTaskKanban = async (titleFilter: string) => {
+        try {
+            const response = await AxiousInstance.get(`/task/kanban-view`, {
+                params: { ...(titleFilter && { search: titleFilter }) },
+            });
+            if (response.status === 200) {
+                const data = response.data;
+                setFeatures(
+                    data?.tasks?.map((task: any) => ({
+                        id: task._id,
+                        taskId: task?.id,
+                        name: task.name,
+                        startDate: new Date(task.startDate),
+                        endDate: new Date(task.endDate),
+                        column: task.column.toLowerCase(),
+                        owner: task.owner,
+                        createdBy: task.createdBy, // Store createdBy for permission check
+                    }))
+                );
+            }
+        } catch (error: any) {
+            console.error(error);
+            toast.error("Failed to fetch tasks");
         }
     };
     const getAllUsers = async () => {
@@ -219,7 +248,6 @@ export default function () {
         }
 
     }
-
 
     const addTask = async (task: Partial<Task>) => {
         try {
@@ -293,12 +321,12 @@ export default function () {
     };
 
     // Handle pagination changes
-    const handlePaginationChange = React.useCallback((updatedPagination: PaginationState) => {
+    const handlePaginationChange = useCallback((updatedPagination: PaginationState) => {
         setPagination(updatedPagination);
     }, []);
 
     // Handle filter changes with debounce
-    const debouncedFilter = React.useRef<NodeJS.Timeout>(null);
+    const debouncedFilter = useRef<NodeJS.Timeout>(null);
     const handleFilterChange = (value: string) => {
         setTitleFilter(value);
 
@@ -545,12 +573,12 @@ export default function () {
     };
 
 
-    React.useEffect(() => {
+    useEffect(() => {
         getAllTask(pagination.pageIndex, pagination.pageSize, titleFilter);
     }, [pagination.pageIndex, pagination.pageSize]);
 
 
-    React.useEffect(() => {
+    useEffect(() => {
         getAllUsers()
         return () => {
             if (debouncedFilter.current) {
@@ -559,7 +587,7 @@ export default function () {
         };
     }, []);
 
-    React.useEffect(() => {
+    useEffect(() => {
         if (!on) return
 
         const handleTaskUpdate = ({ type }: any) => {
@@ -582,7 +610,7 @@ export default function () {
     function ViewToggle({ isKanbanView, setIsKanbanView }: { isKanbanView: Boolean, setIsKanbanView: (val: Boolean) => void }) {
         const { isMobile } = useSidebar();
 
-        React.useEffect(() => {
+        useEffect(() => {
             if (isMobile && isKanbanView) {
                 setIsKanbanView(false);
             }
@@ -600,12 +628,12 @@ export default function () {
                     {isKanbanView ? (
                         <>
                             <ListIcon className="h-4 w-4" />
-                            <span className="hidden md:block">Normal View</span>
+                            <span className="hidden md:block">View</span>
                         </>
                     ) : (
                         <>
-                            <ViewIcon className="h-4 w-4" />
-                            <span className="hidden md:block">Kanban View</span>
+                            <Grid2X2 className="h-4 w-4" />
+                            <span className="hidden md:block">View</span>
                         </>
                     )}
                 </Button>
@@ -810,7 +838,7 @@ export default function () {
                 </div>
 
                 {isKanbanView ? <>
-                    <KanbanTask titleFilter={titleFilter} />
+                    <KanbanTask getAllTask={getAllTaskKanban} features={features} />
                 </> : <>
                     <div className="rounded-lg border max-h-[540px] overflow-y-auto scrollbar-hide ">
                         <Table>

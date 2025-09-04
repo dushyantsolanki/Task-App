@@ -5,12 +5,10 @@ import {
     KanbanHeader,
     KanbanProvider,
 } from "@/components/ui/kibo-ui/kanban";
-import { useEffect, useState } from "react";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import AxiousInstance from "@/helper/AxiousInstance";
 import { AvatarStack } from "@/components/ui/kibo-ui/avatar-stack";
 import { toast } from "sonner";
-import { useSocket } from "@/hooks/useSocket";
 import { useAuthStore } from "@/store/authStore";
 
 const columns = [
@@ -32,36 +30,8 @@ const shortDateFormatter = new Intl.DateTimeFormat("en-US", {
     year: "numeric",
 });
 
-const KanbanTask = ({ titleFilter }: { titleFilter: string }) => {
-    const { on, off } = useSocket();
+const KanbanTask = ({ features, getAllTask }: { features: any[], getAllTask: any }) => {
     const { user } = useAuthStore();
-    const [features, setFeatures] = useState<any[]>([]);
-
-    const getAllTask = async () => {
-        try {
-            const response = await AxiousInstance.get(`/task/kanban-view`, {
-                params: { search: titleFilter },
-            });
-            if (response.status === 200) {
-                const data = response.data;
-                setFeatures(
-                    data?.tasks?.map((task: any) => ({
-                        id: task._id,
-                        taskId: task?.id,
-                        name: task.name,
-                        startDate: new Date(task.startDate),
-                        endDate: new Date(task.endDate),
-                        column: task.column.toLowerCase(),
-                        owner: task.owner,
-                        createdBy: task.createdBy, // Store createdBy for permission check
-                    }))
-                );
-            }
-        } catch (error: any) {
-            console.error(error);
-            toast.error("Failed to fetch tasks");
-        }
-    };
 
     // Check if the current user has edit permission for a specific task
     const hasEditPermission = (task: any) => {
@@ -113,23 +83,7 @@ const KanbanTask = ({ titleFilter }: { titleFilter: string }) => {
         }
     };
 
-    useEffect(() => {
-        getAllTask();
-    }, [titleFilter]);
 
-    useEffect(() => {
-        if (!on) return;
-
-        const handleTaskUpdate = ({ type }: any) => {
-            if (type === "shareTask") {
-                getAllTask();
-            }
-        };
-        on("task_update", handleTaskUpdate);
-        return () => {
-            off("task_update", handleTaskUpdate);
-        };
-    }, [on, off]);
 
     return (
         <KanbanProvider
