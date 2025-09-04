@@ -10,7 +10,7 @@ import indexRoute from './routes/index.js';
 import logger from './configs/pino.config.js';
 import { initSocketIO } from './sockets/index.js';
 import './configs/firebase.config.js';
-// import './crons/calendar.jobs.js';
+import './crons/calendar.jobs.js';
 import Notification from './models/notification.model.js';
 import path from 'path';
 import { Builder, By, until } from 'selenium-webdriver';
@@ -92,9 +92,6 @@ app.get('/medias/:folder/:filename', (req, res) => {
     res.sendFile(filePath);
   });
 });
-
-
-
 
 //  Frontend files serving via a backend
 // app.use(express.static(path.join(__dirname, '/frontend/dist')));
