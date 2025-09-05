@@ -507,7 +507,7 @@ function Lead() {
                     </div>
                 </div>
 
-                <div className="rounded-lg border max-h-[540px] overflow-y-auto scrollbar-hide">
+                <div className="rounded-lg border min-h-[10rem] max-h-[calc(100vh-20rem)] overflow-y-auto scrollbar-hide">
                     <Table>
                         <TableHeader className="bg-muted/40">
                             {table.getHeaderGroups().map((headerGroup) => (
