@@ -1,5 +1,4 @@
 import { Helmet } from 'react-helmet';
-import og from 'public/og.png'
 interface SEOProps {
   title: string;
   description: string;
@@ -12,22 +11,18 @@ export default function SEO({
   title,
   description,
   url = 'https://taskmate.dushyantportfolio.store/login',
-  image = og,
+  image = 'https://taskmate.dushyantportfolio.store/og.png',
   type = 'website',
 }: SEOProps) {
+  console.log(type)
   return (
     <Helmet>
-      {/* Standard tags */}
-      <title>{title}</title>
-      <meta name="description" content={description} />
-      <link rel="canonical" href={url} />
-
       {/* Open Graph */}
-      <meta property="og:type" content={type} />
       <meta property="og:title" content={title} />
       <meta property="og:description" content={description} />
       <meta property="og:url" content={url} />
       <meta property="og:image" content={image} />
+      <meta property="og:site_name" content={'TaskMate'} />
     </Helmet>
   );
 }
