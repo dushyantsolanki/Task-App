@@ -13,12 +13,12 @@ import './configs/firebase.config.js';
 import './crons/calendar.jobs.js';
 import Notification from './models/notification.model.js';
 import path from 'path';
-import { Builder, By, until } from 'selenium-webdriver';
 import { runGroqSearchQA } from './configs/langchai.config.js';
-import chrome from 'selenium-webdriver/chrome.js';
 import { Task, Template } from './models/index.js';
 import { faker } from '@faker-js/faker';
 import fs from 'fs';
+import { chromium } from 'playwright';
+// import './test.js';
 // import { emailQueue } from './queue/queue.js';
 // import emailWorker from './queue/worker/email.worker.js';
 // passport configurations
@@ -214,68 +214,60 @@ export const generateFakeTemplates = async (count = 10, userId = null) => {
   }
 };
 
-// generateFakeTemplates(100, '68ad521d790753c2dd5ab757');
-function getRandomUserAgent() {
-  const agents = [
-    'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 Chrome/120 Safari/537.36',
-    'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/605.1.15 Version/17.0 Safari/605.1.15',
-    'Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 Chrome/118 Safari/537.36',
-  ];
-  return agents[Math.floor(Math.random() * agents.length)];
-}
-
 // scrape full page
-async function scrapeFullPage(driver, url) {
+async function scrapeFullPage(page, url) {
   try {
-    await driver.get(url);
-    await driver.sleep(1000);
+    await page.goto(url, { waitUntil: 'networkidle' });
 
-    const body = await driver.findElement(By.tagName('body'));
-    const content = await body.getText();
+    // full text
+    const content = await page.evaluate(() => document.body.innerText);
 
     // images
-    const imageUrls = [];
-    const imageElements = await driver.findElements(By.css('img'));
-    for (const img of imageElements) {
-      const src = await img.getAttribute('src');
-      const alt = await img.getAttribute('alt');
-      const width = parseInt((await img.getAttribute('width')) || '0', 10);
-      const height = parseInt((await img.getAttribute('height')) || '0', 10);
+    const imageUrls = await page.evaluate(() => {
+      const urls = [];
+      document.querySelectorAll('img').forEach((img) => {
+        const src = img.src;
+        const alt = img.alt;
+        const width = parseInt(img.width || '0', 10);
+        const height = parseInt(img.height || '0', 10);
 
-      if (
-        !src ||
-        src.startsWith('data:') ||
-        !src.startsWith('http') ||
-        width < 50 ||
-        height < 50 ||
-        /(sprite|logo|icon|arrow|ads|blank|pixel)/i.test(src) ||
-        (alt && /(icon|logo|arrow|social)/i.test(alt))
-      ) {
-        continue;
-      }
-      imageUrls.push(src);
-    }
+        if (
+          !src ||
+          src.startsWith('data:') ||
+          !src.startsWith('http') ||
+          width < 50 ||
+          height < 50 ||
+          /(sprite|logo|icon|arrow|ads|blank|pixel)/i.test(src) ||
+          (alt && /(icon|logo|arrow|social)/i.test(alt))
+        )
+          return;
+
+        urls.push(src);
+      });
+      return urls;
+    });
 
     // videos
-    const videoUrls = [];
-    const videoElements = await driver.findElements(By.css('video source, video'));
-    for (const vid of videoElements) {
-      const src = await vid.getAttribute('src');
-      if (src && src.startsWith('http')) videoUrls.push(src);
-    }
+    const videoUrls = await page.evaluate(() => {
+      const urls = [];
+      document.querySelectorAll('video, video source, iframe').forEach((el) => {
+        const src = el.src || el.getAttribute('src');
+        if (!src) return;
 
-    const iframeElements = await driver.findElements(By.css('iframe'));
-    for (const iframe of iframeElements) {
-      const src = await iframe.getAttribute('src');
-      if (
-        src &&
-        (src.includes('youtube.com/embed') ||
-          src.includes('player.vimeo.com') ||
-          src.includes('dailymotion.com/embed'))
-      ) {
-        videoUrls.push(src);
-      }
-    }
+        if (el.tagName === 'IFRAME') {
+          if (
+            src.includes('youtube.com/embed') ||
+            src.includes('player.vimeo.com') ||
+            src.includes('dailymotion.com/embed')
+          ) {
+            urls.push(src);
+          }
+        } else if (src.startsWith('http')) {
+          urls.push(src);
+        }
+      });
+      return urls;
+    });
 
     return { success: true, content, images: imageUrls, videos: videoUrls };
   } catch (err) {
@@ -284,27 +276,20 @@ async function scrapeFullPage(driver, url) {
   }
 }
 
-const options = new chrome.Options();
-options.addArguments(
-  '--no-sandbox',
-  '--headless=new',
-  '--disable-dev-shm-usage',
-  '--disable-gpu',
-  `--user-agent=${getRandomUserAgent()}`,
-);
-
-let driver = null;
-
 // main scrap function
 async function scrap(query) {
-  driver = await new Builder().forBrowser('chrome').setChromeOptions(options).build();
-  try {
-    // open bing
-    await driver.get(`https://www.bing.com/search?q=${encodeURIComponent(query)}`);
-    await driver.wait(until.elementLocated(By.css('#b_results')), 200000);
+  const browser = await chromium.launch({ headless: false });
+  const page = await browser.newPage();
 
-    // get results directly
-    const results = await driver.executeScript(() => {
+  try {
+    // search Bing
+    await page.goto(`https://www.bing.com/search?q=${encodeURIComponent(query)}`, {
+      waitUntil: 'networkidle',
+    });
+    await page.waitForSelector('#b_results');
+
+    // get results
+    const results = await page.evaluate(() => {
       const items = [];
       document.querySelectorAll('li.b_algo').forEach((el) => {
         const h2 = el.querySelector('h2');
@@ -325,16 +310,16 @@ async function scrap(query) {
     // try first 3 results
     for (let i = 0; i < Math.min(3, results.length); i++) {
       const site = results[i];
-      const scraped = await scrapeFullPage(driver, site.link);
+      const scraped = await scrapeFullPage(page, site.link);
 
       if (scraped.success && scraped.content.trim().length > 100) {
-        return { site, ...scraped };
+        return { site: results, ...scraped };
       }
     }
 
     return { error: 'Failed to scrape first 3 results' };
   } finally {
-    await driver.quit();
+    await browser.close();
   }
 }
 
@@ -351,7 +336,7 @@ app.get('/api/overview', async (req, res) => {
 
     res.json({
       summary,
-      source: data.site,
+      sources: data.site,
       media: { images: data.images, videos: data.videos },
     });
   } catch (err) {
@@ -359,7 +344,6 @@ app.get('/api/overview', async (req, res) => {
     res.status(500).json({ error: err.message });
   }
 });
-
 // await emailQueue.add(
 //   'sendEmail',
 //   { to: 'dushyantsolanki.2002@gmail.com', subject: 'Demo', body: 'Good Morning\nDemo text body' },
