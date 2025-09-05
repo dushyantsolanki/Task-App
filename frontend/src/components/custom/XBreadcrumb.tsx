@@ -1,7 +1,13 @@
-
-import { Breadcrumb, BreadcrumbList, BreadcrumbItem, BreadcrumbLink, BreadcrumbSeparator, BreadcrumbPage } from "@/components/ui/breadcrumb";
-import { Link } from "react-router-dom";
-import React from "react";
+import {
+  Breadcrumb,
+  BreadcrumbList,
+  BreadcrumbItem,
+  BreadcrumbLink,
+  BreadcrumbSeparator,
+  BreadcrumbPage,
+} from '@/components/ui/breadcrumb';
+import { Link } from 'react-router-dom';
+import React from 'react';
 // import { SidebarTrigger } from "../ui/sidebar";
 export interface Crumb {
   label: string;
@@ -18,12 +24,12 @@ export const XBreadcrumb: React.FC<CustomBreadcrumbProps> = ({ items }) => {
   const lastIndex = items.length - 1;
 
   return (
-    <div className="flex items-center gap-2  mb-8 ">
+    <div className="mb-8 flex items-center gap-2">
       <Breadcrumb>
         <BreadcrumbList>
           {items.map((item, index) => (
             <React.Fragment key={item.label}>
-              <BreadcrumbItem className={index !== lastIndex ? "hidden md:block" : ""}>
+              <BreadcrumbItem className={index !== lastIndex ? 'hidden md:block' : ''}>
                 {index === lastIndex || !item.link ? (
                   <BreadcrumbPage>{item.label}</BreadcrumbPage>
                 ) : (

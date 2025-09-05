@@ -11,22 +11,19 @@ import { Spinner } from './components/ui/kibo-ui/spinner';
 // import ProtectedRoute from './routes/ProtectedRoute';
 
 const App: React.FC = () => {
-  const { user } = useAuthStore()
+  const { user } = useAuthStore();
   const { connect, disconnect } = useSocket();
 
   async function requestPermission() {
-
     try {
       //requesting permission using Notification API
       const permission = await Notification.requestPermission();
 
       if (permission === 'granted') {
-
         const token = await getToken(messaging, {
-          vapidKey: import.meta.env.VITE_VAPID_KEY
+          vapidKey: import.meta.env.VITE_VAPID_KEY,
         });
         if (token && user?.id) {
-
           await AxiousInstance.post(`/firebase/${user?.id}/token`, {
             fcm_token: token,
           });
@@ -44,36 +41,52 @@ const App: React.FC = () => {
 
   useEffect(() => {
     if (!user.id) {
-
       disconnect();
-      console.error("No access token found in cookies");
+      console.error('No access token found in cookies');
       return;
     }
-    requestPermission()
+    requestPermission();
     connect(user.id as string);
-  }, [])
+  }, []);
 
   return (
     <BrowserRouter>
-      <Suspense fallback={<div className="flex items-center justify-center h-screen w-screen bg-background">
-        <Spinner className="h-12 w-12 text-primary" />
-      </div>}>
+      <Suspense
+        fallback={
+          <div className="bg-background flex h-screen w-screen items-center justify-center">
+            <Spinner className="text-primary h-12 w-12" />
+          </div>
+        }
+      >
         <Routes>
           {routes.map(({ layout: Layout, guard: Guard, children }, i) => (
             <Route
               key={i + Math.floor(Math.random() * 1000)}
-              element={Guard ? <Guard><Layout /></Guard> : <Layout />}
+              element={
+                Guard ? (
+                  <Guard>
+                    <Layout />
+                  </Guard>
+                ) : (
+                  <Layout />
+                )
+              }
             >
               {children.map(({ path, element, allowedRoles }, j) => {
-                const wrappedElement = allowedRoles && allowedRoles.length > 0 ? (
-                  // <ProtectedRoute allowedRoles={allowedRoles}>
-                  { element }
-                  // </ProtectedRoute>
-                ) : (
-                  element
-                );
+                const wrappedElement =
+                  allowedRoles && allowedRoles.length > 0
+                    ? // <ProtectedRoute allowedRoles={allowedRoles}>
+                      { element }
+                    : // </ProtectedRoute>
+                      element;
 
-                return <Route key={j + 1000 + Math.floor(Math.random() * 1000)} path={path} element={wrappedElement as React.ReactNode} />;
+                return (
+                  <Route
+                    key={j + 1000 + Math.floor(Math.random() * 1000)}
+                    path={path}
+                    element={wrappedElement as React.ReactNode}
+                  />
+                );
               })}
             </Route>
           ))}
@@ -81,6 +94,6 @@ const App: React.FC = () => {
       </Suspense>
     </BrowserRouter>
   );
-}
+};
 
 export default App;

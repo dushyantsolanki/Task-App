@@ -1,10 +1,6 @@
-import { ChevronRight, type LucideIcon } from "lucide-react"
-import { useLocation, Link } from "react-router-dom"
-import {
-  Collapsible,
-  CollapsibleContent,
-  CollapsibleTrigger,
-} from "@/components/ui/collapsible"
+import { ChevronRight, type LucideIcon } from 'lucide-react';
+import { useLocation, Link } from 'react-router-dom';
+import { Collapsible, CollapsibleContent, CollapsibleTrigger } from '@/components/ui/collapsible';
 import {
   SidebarGroup,
   SidebarGroupLabel,
@@ -14,22 +10,22 @@ import {
   SidebarMenuSub,
   SidebarMenuSubButton,
   SidebarMenuSubItem,
-} from "@/components/ui/sidebar"
+} from '@/components/ui/sidebar';
 
 export function NavMain({
   items,
 }: {
   items: {
-    title: string
-    url: string
-    icon?: LucideIcon
+    title: string;
+    url: string;
+    icon?: LucideIcon;
     items?: {
-      title: string
-      url: string
-    }[]
-  }[]
+      title: string;
+      url: string;
+    }[];
+  }[];
 }) {
-  const location = useLocation()
+  const location = useLocation();
 
   return (
     <SidebarGroup>
@@ -38,7 +34,7 @@ export function NavMain({
         {items.map((item) => {
           const isParentActive =
             location.pathname === item.url ||
-            item.items?.some((sub) => sub.url === location.pathname)
+            item.items?.some((sub) => sub.url === location.pathname);
 
           return (
             <Collapsible
@@ -51,12 +47,15 @@ export function NavMain({
                 <CollapsibleTrigger asChild>
                   <SidebarMenuButton
                     tooltip={item.title}
-                    className={isParentActive
-                      ? "bg-primary/10 text-primary hover:bg-primary/20"
-                      : ""}
+                    className={
+                      isParentActive ? 'bg-primary/10 text-primary hover:bg-primary/20' : ''
+                    }
                   >
                     {item.icon && <item.icon className="size-4" />}
-                    <span> <Link to={item.url}> {item.title}</Link></span>
+                    <span>
+                      {' '}
+                      <Link to={item.url}> {item.title}</Link>
+                    </span>
                     {item.items && (
                       <ChevronRight className="ml-auto transition-transform duration-200 group-data-[state=open]/collapsible:rotate-90" />
                     )}
@@ -67,31 +66,32 @@ export function NavMain({
                   <CollapsibleContent>
                     <SidebarMenuSub>
                       {item.items.map((subItem) => {
-                        const isActive = location.pathname === subItem.url
+                        const isActive = location.pathname === subItem.url;
                         return (
                           <SidebarMenuSubItem key={subItem.title}>
                             <SidebarMenuSubButton asChild>
                               <Link
                                 to={subItem.url}
-                                className={`block w-full text-left rounded-md px-2 py-1.5 transition-colors ${isActive
-                                  ? " !text-primary "
-                                  : "text-muted-foreground hover:bg-accent hover:text-foreground"
-                                  }`}
+                                className={`block w-full rounded-md px-2 py-1.5 text-left transition-colors ${
+                                  isActive
+                                    ? '!text-primary'
+                                    : 'text-muted-foreground hover:bg-accent hover:text-foreground'
+                                }`}
                               >
                                 {subItem.title}
                               </Link>
                             </SidebarMenuSubButton>
                           </SidebarMenuSubItem>
-                        )
+                        );
                       })}
                     </SidebarMenuSub>
                   </CollapsibleContent>
                 )}
               </SidebarMenuItem>
             </Collapsible>
-          )
+          );
         })}
       </SidebarMenu>
     </SidebarGroup>
-  )
+  );
 }

@@ -1,4 +1,3 @@
-
 import {
   LayoutDashboard,
   ListTodo,
@@ -6,10 +5,10 @@ import {
   GalleryVerticalEnd,
   SettingsIcon,
   BotIcon,
-} from "lucide-react"
+} from 'lucide-react';
 
-import { NavMain } from "@/components/nav-main"
-import { NavUser } from "@/components/nav-user"
+import { NavMain } from '@/components/nav-main';
+import { NavUser } from '@/components/nav-user';
 import {
   Sidebar,
   SidebarContent,
@@ -17,69 +16,63 @@ import {
   SidebarHeader,
   SidebarMenuButton,
   SidebarRail,
-} from "@/components/ui/sidebar"
-import { useAuthStore } from "@/store/authStore"
-import Greeting from "./app/Greeting"
-
-
+} from '@/components/ui/sidebar';
+import { useAuthStore } from '@/store/authStore';
+import Greeting from './app/Greeting';
 
 const data = {
   // ...user and company as before
   company: {
-    name: "Task Mate",
+    name: 'Task Mate',
     logo: () => <GalleryVerticalEnd className="size-4" />,
   },
   navMain: [
     {
-      title: "Dashboard",
-      url: "/dashboard",
+      title: 'Dashboard',
+      url: '/dashboard',
       icon: LayoutDashboard,
     },
     {
-      title: "AI Search",
-      url: "/search",
+      title: 'AI Search',
+      url: '/search',
       icon: Search,
     },
 
     {
-      title: "Task",
-      url: "/task",
+      title: 'Task',
+      url: '/task',
       icon: ListTodo,
     },
     {
-      title: "AI Automation",
-      url: "/ai-automation/lead",
+      title: 'AI Automation',
+      url: '/ai-automation/lead',
       icon: BotIcon,
       items: [
-
         {
-          title: "Templates",
-          url: "/ai-automation/template",
+          title: 'Templates',
+          url: '/ai-automation/template',
         },
 
         {
-          title: "Lead Automation",
-          url: "/ai-automation/lead",
+          title: 'Lead Automation',
+          url: '/ai-automation/lead',
         },
-
       ],
     },
 
     {
-      title: "Settings",
-      url: "/settings/profile",
+      title: 'Settings',
+      url: '/settings/profile',
       icon: SettingsIcon,
       items: [
-
         {
-          title: "Profile",
-          url: "/settings/profile",
+          title: 'Profile',
+          url: '/settings/profile',
         },
-
       ],
-    }
+    },
   ],
-}
+};
 
 // // This is sample data.
 // const data = {
@@ -151,9 +144,8 @@ const data = {
 //   ],
 // }
 
-
 export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
-  const { user } = useAuthStore()
+  const { user } = useAuthStore();
 
   return (
     <Sidebar collapsible="icon" {...props}>
@@ -169,7 +161,6 @@ export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
             <span className="truncate font-medium">{data.company.name}</span>
             <Greeting />
           </div>
-
         </SidebarMenuButton>
       </SidebarHeader>
       <SidebarContent>
@@ -180,5 +171,5 @@ export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
       </SidebarFooter>
       <SidebarRail />
     </Sidebar>
-  )
+  );
 }
