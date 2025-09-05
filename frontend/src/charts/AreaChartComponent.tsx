@@ -17,8 +17,8 @@ import {
   SelectValue,
 } from '@/components/ui/select';
 import AxiousInstance from '@/helper/AxiousInstance';
-import { toast } from 'sonner';
 import { useSocket } from '@/hooks/useSocket';
+import useNotify from '@/hooks/useNotify';
 
 const chartConfig = {
   tasks: {
@@ -47,6 +47,7 @@ export function AreaChartComponent() {
   const [filteredData, setFilteredData] = React.useState([]);
   const [data, setData] = React.useState<any>([]);
   const { on, off } = useSocket();
+  const toast = useNotify()
 
   const getChartData = async () => {
     try {

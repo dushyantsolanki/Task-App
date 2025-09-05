@@ -8,8 +8,8 @@ import {
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import AxiousInstance from '@/helper/AxiousInstance';
 import { AvatarStack } from '@/components/ui/kibo-ui/avatar-stack';
-import { toast } from 'sonner';
 import { useAuthStore } from '@/store/authStore';
+import useNotify from '@/hooks/useNotify';
 
 const columns = [
   { id: 'pending', name: 'Pending', color: 'var(--chart-1)' },
@@ -32,6 +32,7 @@ const shortDateFormatter = new Intl.DateTimeFormat('en-US', {
 
 const KanbanTask = ({ features, getAllTask }: { features: any[]; getAllTask: any }) => {
   const { user } = useAuthStore();
+  const toast = useNotify()
 
   // Check if the current user has edit permission for a specific task
   const hasEditPermission = (task: any) => {

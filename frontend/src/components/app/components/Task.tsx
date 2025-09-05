@@ -53,7 +53,6 @@ import { cn } from '@/lib/utils';
 import { XInputField } from '@/components/custom/XInputField';
 import { XTextareaField } from '@/components/custom/XTextareaField';
 import { XBreadcrumb } from '@/components/custom/XBreadcrumb';
-import { toast } from 'sonner';
 import AxiousInstance from '@/helper/AxiousInstance';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { Checkbox } from '@/components/ui/checkbox';
@@ -64,6 +63,7 @@ import KanbanTask from './KanbanTask';
 import { useSidebar } from '@/components/ui/sidebar';
 import { useCallback, useEffect, useRef, useState } from 'react';
 import SEO from './SEO';
+import useNotify from '@/hooks/useNotify';
 
 interface User {
   _id: string;
@@ -155,6 +155,7 @@ export default function () {
   const { on, off } = useSocket();
   const [isKanbanView, setIsKanbanView] = useState(false);
   const [features, setFeatures] = useState<any[]>([]);
+  const toast = useNotify()
   const formik = useFormik({
     initialValues: {
       title: initialValues?.title || '',
@@ -195,8 +196,8 @@ export default function () {
         setTotalPages(data.totalPages || 0);
       }
     } catch (error: any) {
-      console.error('Fetch error:', error);
-      toast.error(error.response?.data?.message || 'Failed to fetch tasks');
+      toast.error(error.response?.data?.message || 'Failed to fetch tasks')
+
       setTableData([]);
       setTotalCount(0);
       setTotalPages(0);
@@ -404,10 +405,9 @@ export default function () {
         );
         return (
           <div
-            className={`text-primary font-medium ${
-              (isCreator || hasEditPermission) &&
+            className={`text-primary font-medium ${(isCreator || hasEditPermission) &&
               'cursor-pointer underline-offset-2 hover:underline'
-            }`}
+              }`}
           >
             {' '}
             {row.getValue('taskId')}

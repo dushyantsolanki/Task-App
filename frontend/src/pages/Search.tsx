@@ -145,10 +145,10 @@ export function Search() {
     setError(null);
     setHasSearched(true);
     try {
-      // const response = await fetch(
-      //   `http://localhost:3000/api/overview?q=${encodeURIComponent(query)}`,
-      // );
-      const response = await fetch(`https://api.dushyantportfolio.store/api/overview?q=${encodeURIComponent(query)}`);
+      const response = await fetch(
+        `http://localhost:3000/api/overview?q=${encodeURIComponent(query)}`,
+      );
+      // const response = await fetch(`https://api.dushyantportfolio.store/api/overview?q=${encodeURIComponent(query)}`);
 
       if (!response.ok) throw new Error('Failed to fetch search results');
       const data: SearchResponse = await response.json();

@@ -10,8 +10,8 @@ import {
 } from '@/components/ui/input-otp';
 import { useNavigate } from 'react-router-dom';
 import { useLocalStorage } from '@reactuses/core';
-import { toast } from 'sonner';
 import axios from 'axios';
+import useNotify from '@/hooks/useNotify';
 
 interface OtpVerifyFormProps extends React.ComponentPropsWithoutRef<'form'> {
   otpLength?: number;
@@ -33,6 +33,7 @@ export default function OtpVerifyForm({
   const [isLoading, setIsLoading] = useState(false);
   const [countdown, setCountdown] = useState(120); // 2 minutes
   const [canResend, setCanResend] = useState(false);
+  const toast = useNotify()
 
   const handleOTPVerification = async (values: string) => {
     setIsLoading(true);

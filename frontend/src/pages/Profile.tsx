@@ -13,7 +13,6 @@ import {
 } from '@/components/ui/select';
 import { useFormik, FormikProvider, Form } from 'formik';
 import * as Yup from 'yup';
-import { toast } from 'sonner';
 import { useLocalStorage } from '@reactuses/core';
 import { useState } from 'react';
 import { useAuthStore } from '@/store/authStore';
@@ -25,6 +24,7 @@ import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { PhoneInput } from '@/components/custom/PhoneInput';
 import PasswordResetForm from '@/form/PasswordRestForm';
 import SEO from '@/components/app/components/SEO';
+import useNotify from '@/hooks/useNotify';
 
 interface Payload {
   firstname: string;
@@ -68,6 +68,7 @@ export default function UpdateProfileForm({
   const [isOTPVerified, setIsOTPVerified] = useState(false);
   const [otp, setOtp] = useState('');
   const [otpError, setOtpError] = useState<string | null>(null);
+  const toast = useNotify()
 
   const handleProfilePicChange = async (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];

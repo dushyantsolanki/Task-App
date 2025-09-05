@@ -27,12 +27,12 @@ import {
   TableRow,
 } from '@/components/ui/table';
 import { XBreadcrumb } from '@/components/custom/XBreadcrumb';
-import { toast } from 'sonner';
 import AxiousInstance from '@/helper/AxiousInstance';
 import { cn } from '@/lib/utils';
 import TemplateModal from '@/modal/TemplateModal';
 import TemplateViewModal from '@/modal/TemplateViewModal';
 import SEO from '@/components/app/components/SEO';
+import useNotify from '@/hooks/useNotify';
 
 interface Template {
   _id?: string;
@@ -79,6 +79,7 @@ function Template() {
   const [viewTemplate, setViewTemplate] = useState<Template | null>(null);
   const pageIndex = pagination.pageIndex;
   const pageCount = totalPages;
+  const toast = useNotify()
 
   const getAllTemplates = async (
     pageIndex: number = pagination.pageIndex,

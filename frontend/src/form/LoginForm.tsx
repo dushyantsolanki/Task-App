@@ -7,13 +7,13 @@ import { Link } from 'react-router-dom';
 import { useFormik, FormikProvider, Form } from 'formik';
 import * as Yup from 'yup';
 import axios from 'axios';
-import { toast } from 'sonner';
 import { useAuthStore } from '@/store/authStore';
 import { useState } from 'react';
 import { useSocket } from '@/hooks/useSocket';
 import { signInWithPopup } from 'firebase/auth';
 import { auth, githubProvider, googleProvider } from '@/firebase/firebaseConfig';
 import SEO from '@/components/app/components/SEO';
+import useNotify from '@/hooks/useNotify';
 
 const LoginSchema = Yup.object().shape({
   email: Yup.string().email('Invalid email').required('Email is required'),
@@ -25,6 +25,7 @@ export default function LoginForm({ className, ...props }: React.ComponentPropsW
   const { connect } = useSocket();
   const [loading, setLoading] = useState({ google: false, github: false });
   const [showPassword, setShowPassword] = useState(false);
+  const toast = useNotify()
 
   const signInWithGoogle = async () => {
     try {

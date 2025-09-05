@@ -1,7 +1,6 @@
 import { Button } from '@/components/ui/button';
 import { useFormik, FormikProvider, Form } from 'formik';
 import * as Yup from 'yup';
-import { toast } from 'sonner';
 import { useState } from 'react';
 import { useAuthStore } from '@/store/authStore';
 import { Lock, SendIcon } from 'lucide-react';
@@ -9,6 +8,7 @@ import { Card, CardContent } from '@/components/ui/card';
 import { XInputField } from '@/components/custom/XInputField';
 import AxiousInstance from '@/helper/AxiousInstance';
 import { cn } from '@/lib/utils';
+import useNotify from '@/hooks/useNotify';
 
 const PasswordSchema = Yup.object().shape({
   newPassword: Yup.string()
@@ -34,6 +34,7 @@ export default function PasswordResetForm({
   const [otp, setOtp] = useState('');
   const [otpError, setOtpError] = useState<string | null>(null);
   const [loading, setLoading] = useState<boolean>(false);
+  const toast = useNotify()
 
   const handleSendPasswordOTP = async () => {
     try {

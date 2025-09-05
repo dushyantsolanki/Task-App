@@ -16,8 +16,9 @@ import {
 } from '@/components/ui/sidebar';
 import { useAuthStore } from '@/store/authStore';
 import { useSocket } from '@/hooks/useSocket';
-import { toast } from 'sonner';
+
 import AxiousInstance from '@/helper/AxiousInstance';
+import useNotify from '@/hooks/useNotify';
 
 export function NavUser({
   user,
@@ -32,6 +33,7 @@ export function NavUser({
   const { isMobile } = useSidebar();
   const { disconnect } = useSocket();
   const { logout } = useAuthStore();
+  const toast = useNotify()
 
   const handleLogout = async () => {
     try {

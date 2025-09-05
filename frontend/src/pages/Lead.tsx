@@ -40,13 +40,13 @@ import {
 import { Badge } from '@/components/ui/badge';
 import { cn } from '@/lib/utils';
 import { XBreadcrumb } from '@/components/custom/XBreadcrumb';
-import { toast } from 'sonner';
 import AxiousInstance from '@/helper/AxiousInstance';
 import LeadModal from '@/modal/LeadModal';
 import LeadViewModal from '@/modal/LeadViewModal';
 import { Checkbox } from '@/components/ui/checkbox';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import SEO from '@/components/app/components/SEO';
+import useNotify from '@/hooks/useNotify';
 
 interface Lead {
   _id?: string;
@@ -102,6 +102,7 @@ function Lead() {
   const [totalPages, setTotalPages] = useState(0);
   const pageIndex = pagination.pageIndex;
   const pageCount = totalPages;
+  const toast = useNotify()
 
   const getAllLeads = async (
     pageIndex: number = pagination.pageIndex,

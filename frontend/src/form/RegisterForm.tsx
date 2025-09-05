@@ -16,7 +16,6 @@ import {
 import { useFormik, FormikProvider, Form } from 'formik';
 import * as Yup from 'yup';
 import axios from 'axios';
-import { toast } from 'sonner';
 import { useLocalStorage } from '@reactuses/core';
 import { useState } from 'react';
 import { Label } from '@/components/ui/label';
@@ -26,6 +25,7 @@ import { useAuthStore } from '@/store/authStore';
 import { useSocket } from '@/hooks/useSocket';
 import { PhoneInput } from '@/components/custom/PhoneInput';
 import SEO from '@/components/app/components/SEO';
+import useNotify from '@/hooks/useNotify';
 
 interface Payload {
   firstname: string;
@@ -66,6 +66,7 @@ export default function RegisterForm({
   const [showPassword, setShowPassword] = useState(false);
   const { login } = useAuthStore();
   const { connect } = useSocket();
+  const toast = useNotify()
 
   const signInWithGoogle = async () => {
     try {

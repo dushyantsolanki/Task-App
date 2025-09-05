@@ -13,8 +13,8 @@ import {
   InputOTPSeparator,
   InputOTPSlot,
 } from '@/components/ui/input-otp';
-import { toast } from 'sonner';
 import axios from 'axios';
+import useNotify from '@/hooks/useNotify';
 
 // Validation Schemas
 const EmailSchema = Yup.object().shape({
@@ -49,6 +49,7 @@ export default function ForgotPasswordFlow({
   const [showConfirmPassword, setShowConfirmPassword] = useState(false);
   const [countdown, setCountdown] = useState(120);
   const [canResend, setCanResend] = useState(false);
+  const toast = useNotify()
 
   // Email form
   const emailFormik = useFormik({

@@ -27,7 +27,7 @@ import { XInputField } from '@/components/custom/XInputField';
 import { XTextareaField } from '@/components/custom/XTextareaField';
 import moment from 'moment-timezone';
 import AxiousInstance from '@/helper/AxiousInstance';
-import { toast } from 'sonner';
+import useNotify from '@/hooks/useNotify';
 
 const colorOptions = [
   { value: 'yellow', label: 'Yellow', color: '#eab308' },
@@ -71,6 +71,7 @@ const BigCalendar = () => {
   const [isMobile, setIsMobile] = useState(false);
   const [isSheetOpen, setIsSheetOpen] = useState(false);
   const [editingEvent, setEditingEvent] = useState(null) as any;
+  const toast = useNotify()
 
   const getEvents = async () => {
     try {

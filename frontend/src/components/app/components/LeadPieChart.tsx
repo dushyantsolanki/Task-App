@@ -1,9 +1,9 @@
 import { type ChartConfig } from '@/components/ui/chart';
 import AxiousInstance from '@/helper/AxiousInstance';
 import React from 'react';
-import { toast } from 'sonner';
 import { useSocket } from '@/hooks/useSocket';
 import { PieChartComponent } from '@/charts/PieChartComponent';
+import useNotify from '@/hooks/useNotify';
 
 const chartConfig = {
   count: {
@@ -42,6 +42,7 @@ const statusMap: Record<string, string> = {
 export function LeadPieChart() {
   const [data, setData] = React.useState<any>([]);
   const { on, off } = useSocket();
+  const toast = useNotify()
 
   const getChartData = async () => {
     try {
