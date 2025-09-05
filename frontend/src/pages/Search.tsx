@@ -45,12 +45,6 @@ export function Search() {
   function SkeletonLoader({ hasSearched }: { hasSearched: boolean }) {
     return (
       <>
-        <SEO
-          title="TaskMate | AI Web Search "
-          description="Explore our AI-powered search assistant that delivers smart, contextual results from the web. Find summaries, insights, and sources instantly."
-          url="https://taskmate.dushyantportfolio.store/search"
-          type="website"
-        />
         <div className="relative mx-auto flex min-h-[50vh] w-full flex-col gap-6 p-4">
           {/* Search Results and Media Sidebar Skeleton (shown when search is in progress) */}
           {hasSearched && (
@@ -171,82 +165,92 @@ export function Search() {
   };
 
   return (
-    <div className="mx-auto flex min-h-[calc(100vh-15vh)] w-full flex-col justify-between gap-6 bg-[--color-background] transition-colors duration-300">
-      {/* Welcome Message (shown only when no search has been performed) */}
-      <div>
-        {!hasSearched && !results && !loading && (
-          <div className="flex flex-grow items-center justify-center">
-            <h1 className="text-center text-4xl font-medium text-[--color-foreground]">
-              Welcome Back,
-              <div>
-                {/* <TypingAnimation>  */}
-                {userName} !{/* </TypingAnimation>  */}
-              </div>
-            </h1>
-          </div>
-        )}
+    <>
+      <SEO
+        title="TaskMate | AI Web Search "
+        description="Explore our AI-powered search assistant that delivers smart, contextual results from the web. Find summaries, insights, and sources instantly."
+        url="https://taskmate.dushyantportfolio.store/search"
+        type="website"
+      />
 
-        {/* Results or Skeleton Loader */}
-        {loading ? (
-          loading && <SkeletonLoader hasSearched={hasSearched} />
-        ) : results ? (
-          <div
-            className={`grid grid-cols-1 lg:grid-cols-[3fr_${results.media?.images?.length > 0 || results.media?.videos?.length > 0 ? '1' : '0'
-              }fr] gap-6`}
-          >
-            {/* Left Column: Summary and Sources */}
-            <div>
-              <SearchResults summary={results.summary} sources={results.sources} />
+      <div className="mx-auto flex min-h-[calc(100vh-15vh)] w-full flex-col justify-between gap-6 bg-[--color-background] transition-colors duration-300">
+        {/* Welcome Message (shown only when no search has been performed) */}
+        <div>
+          {!hasSearched && !results && !loading && (
+            <div className="flex flex-grow items-center justify-center">
+              <h1 className="text-center text-4xl font-medium text-[--color-foreground]">
+                Welcome Back,
+                <div>
+                  {/* <TypingAnimation>  */}
+                  {userName} !{/* </TypingAnimation>  */}
+                </div>
+              </h1>
             </div>
+          )}
 
-            {/* Right Column: Media Sidebar */}
-            <div>
-              <MediaSidebar media={results.media} />
-            </div>
-          </div>
-        ) : hasSearched ? (
-          <div className="flex-grow text-center text-[--color-muted-foreground]">
-            No results found. Try a different query.
-          </div>
-        ) : null}
-
-        {/* Error */}
-        {error && <div className="text-center text-[--color-destructive]">{error}</div>}
-      </div>
-      {/* Fixed Bottom Search Bar */}
-      <div className="flex w-full justify-center px-4">
-        <div className="relative mx-auto max-w-full lg:w-[60rem]">
-          {/* Search Box Card */}
-          <div className="relative flex items-center gap-3 overflow-hidden rounded-3xl border border-[--color-border] bg-[--color-card] p-4 shadow-lg backdrop-blur-md transition-all duration-300 hover:shadow-2xl">
-            {/* Animated Shine Border */}
-            <ShineBorder shineColor={['#A07CFE', '#FE8FB5', '#FFBE7B']} />
-
-            {/* Input Field */}
-            <Input
-              type="text"
-              placeholder="Search for anything..."
-              value={query}
-              onChange={(e) => setQuery(e.target.value)}
-              onKeyDown={handleKeyDown}
-              className="flex-1 border-none bg-transparent text-lg text-[--color-foreground] placeholder-[--color-muted-foreground] transition-colors duration-300 focus:ring-0 focus-visible:ring-0"
-            />
-
-            {/* Search Button */}
-            <Button
-              onClick={handleSearch}
-              disabled={loading || !query.trim()}
-              className="flex-shrink-0 rounded-2xl bg-gradient-to-r from-[#A07CFE] via-[#FE8FB5] to-[#FFBE7B] px-5 py-2 font-semibold text-white shadow-md transition-all duration-300 hover:shadow-lg"
+          {/* Results or Skeleton Loader */}
+          {loading ? (
+            loading && <SkeletonLoader hasSearched={hasSearched} />
+          ) : results ? (
+            <div
+              className={`grid grid-cols-1 lg:grid-cols-[3fr_${results.media?.images?.length > 0 || results.media?.videos?.length > 0 ? '1' : '0'
+                }fr] gap-6`}
             >
-              {loading ? (
-                <Loader2 className="h-6 w-6 animate-spin" />
-              ) : (
-                <SearchIcon className="h-6 w-6" />
-              )}
-            </Button>
+              {/* Left Column: Summary and Sources */}
+              <div>
+                <SearchResults summary={results.summary} sources={results.sources} />
+              </div>
+
+              {/* Right Column: Media Sidebar */}
+              <div>
+                <MediaSidebar media={results.media} />
+              </div>
+            </div>
+          ) : hasSearched ? (
+            <div className="flex-grow text-center text-[--color-muted-foreground]">
+              No results found. Try a different query.
+            </div>
+          ) : null}
+
+          {/* Error */}
+          {error && <div className="text-center text-[--color-destructive]">{error}</div>}
+        </div>
+        {/* Fixed Bottom Search Bar */}
+        <div className="flex w-full justify-center px-4">
+          <div className="relative mx-auto max-w-full lg:w-[60rem]">
+            {/* Search Box Card */}
+            <div className="relative flex items-center gap-3 overflow-hidden rounded-3xl border border-[--color-border] bg-[--color-card] p-4 shadow-lg backdrop-blur-md transition-all duration-300 hover:shadow-2xl">
+              {/* Animated Shine Border */}
+              <ShineBorder shineColor={['#A07CFE', '#FE8FB5', '#FFBE7B']} />
+
+              {/* Input Field */}
+              <Input
+                type="text"
+                placeholder="Search for anything..."
+                value={query}
+                onChange={(e) => setQuery(e.target.value)}
+                onKeyDown={handleKeyDown}
+                className="flex-1 border-none bg-transparent text-lg text-[--color-foreground] placeholder-[--color-muted-foreground] transition-colors duration-300 focus:ring-0 focus-visible:ring-0"
+              />
+
+              {/* Search Button */}
+              <Button
+                onClick={handleSearch}
+                disabled={loading || !query.trim()}
+                className="flex-shrink-0 rounded-2xl bg-gradient-to-r from-[#A07CFE] via-[#FE8FB5] to-[#FFBE7B] px-5 py-2 font-semibold text-white shadow-md transition-all duration-300 hover:shadow-lg"
+              >
+                {loading ? (
+                  <Loader2 className="h-6 w-6 animate-spin" />
+                ) : (
+                  <SearchIcon className="h-6 w-6" />
+                )}
+              </Button>
+            </div>
           </div>
         </div>
       </div>
-    </div>
+
+    </>
   );
 }
 
