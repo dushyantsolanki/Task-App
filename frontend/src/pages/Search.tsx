@@ -167,7 +167,7 @@ export function Search() {
   return (
     <>
       <SEO
-        title="TaskMate | AI Web Search "
+        title="TaskMate | Search "
         description="Explore our AI-powered search assistant that delivers smart, contextual results from the web. Find summaries, insights, and sources instantly."
         url="https://taskmate.dushyantportfolio.store/search"
         type="website"
