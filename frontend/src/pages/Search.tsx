@@ -299,9 +299,9 @@ function SearchResults({ summary, sources }: { summary: string; sources: Source[
 
   return (
     <div>
-      <Card className="border-[--color-border] bg-[--color-card] pt-0 shadow-lg transition-all duration-300 hover:shadow-xl">
+      <Card className="border-[--color-border] bg-[--color-card]  shadow-lg transition-all duration-300 hover:shadow-xl">
         <CardHeader>
-          <div className="scrollbar-hide flex gap-3 overflow-x-auto pb-2">
+          <div className="scrollbar-hide flex gap-3 overflow-x-auto ">
             {displayedSources?.map((source, index) => (
               <div
                 key={index}
