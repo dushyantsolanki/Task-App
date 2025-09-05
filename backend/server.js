@@ -284,7 +284,7 @@ async function scrap(query) {
   try {
     // search Bing
     await page.goto(`https://www.bing.com/search?q=${encodeURIComponent(query)}`, {
-      waitUntil: 'networkidle',
+      waitUntil: 'domcontentloaded',
     });
     await page.waitForSelector('#b_results');
 
@@ -344,6 +344,7 @@ app.get('/api/overview', async (req, res) => {
     res.status(500).json({ error: err.message });
   }
 });
+
 // await emailQueue.add(
 //   'sendEmail',
 //   { to: 'dushyantsolanki.2002@gmail.com', subject: 'Demo', body: 'Good Morning\nDemo text body' },
