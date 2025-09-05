@@ -1,4 +1,5 @@
 import { Helmet } from 'react-helmet';
+import og from 'public/og.png'
 interface SEOProps {
   title: string;
   description: string;
@@ -11,7 +12,7 @@ export default function SEO({
   title,
   description,
   url = 'https://taskmate.dushyantportfolio.store/login',
-  image = '/public/og.png',
+  image = og,
   type = 'website',
 }: SEOProps) {
   return (
