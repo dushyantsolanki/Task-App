@@ -111,7 +111,7 @@ function Template() {
         }
     };
 
-    const addTemplate = async (template: Partial<Template>, resetForm: any, onClose: any) => {
+    const addTemplate = async (template: Partial<Template>, resetForm: any, onClose: any, setSubmitting: (bool: boolean) => void) => {
         try {
             const response = await AxiousInstance.post('/template', template);
             if (response.status === 201) {
@@ -122,10 +122,12 @@ function Template() {
             }
         } catch (error: any) {
             toast.error(error.response?.data?.message || "Failed to add template");
+        } finally {
+            setSubmitting(false)
         }
     };
 
-    const updateTemplate = async (template: Template, resetForm: any, onClose: any) => {
+    const updateTemplate = async (template: Template, resetForm: any, onClose: any, setSubmitting: (bool: boolean) => void) => {
         try {
             const response = await AxiousInstance.put(`/template/${initialValues?._id}`, template);
             if (response.status === 200) {
@@ -136,6 +138,8 @@ function Template() {
             }
         } catch (error: any) {
             toast.error(error.response?.data?.message || "Failed to update template");
+        } finally {
+            setSubmitting(false)
         }
     };
 

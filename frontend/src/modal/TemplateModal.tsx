@@ -24,8 +24,8 @@ interface TemplateModalProps {
     isOpen: boolean;
     onClose: () => void;
     initialValues?: Template | null;
-    handleAdd: (values: Template, resetForm: () => void, onClose: () => void) => void
-    handleEdit: (values: Template, resetForm: () => void, onClose: () => void) => void
+    handleAdd: (values: Template, resetForm: () => void, onClose: () => void, setSubmitting: (bool: boolean) => void) => void
+    handleEdit: (values: Template, resetForm: () => void, onClose: () => void, setSubmitting: (bool: boolean) => void) => void
 }
 
 const TemplateModal = ({ isOpen, onClose, initialValues, handleEdit, handleAdd }: TemplateModalProps) => {
@@ -51,10 +51,10 @@ const TemplateModal = ({ isOpen, onClose, initialValues, handleEdit, handleAdd }
         enableReinitialize: true,
         onSubmit: (values) => {
             if (!!initialValues) {
-                handleEdit(values, formik.resetForm, onClose)
+                handleEdit(values, formik.resetForm, onClose, formik.setSubmitting)
 
             } else {
-                handleAdd(values, formik.resetForm, onClose)
+                handleAdd(values, formik.resetForm, onClose, formik.setSubmitting)
             }
         },
     });
@@ -204,7 +204,7 @@ const TemplateModal = ({ isOpen, onClose, initialValues, handleEdit, handleAdd }
                         <Button
                             type="button"
                             variant="outline"
-                            className="w-full sm:w-auto h-10 sm:h-11"
+                            className="w-full sm:w-auto "
                             onClick={onClose}
                         >
                             Cancel
@@ -213,7 +213,7 @@ const TemplateModal = ({ isOpen, onClose, initialValues, handleEdit, handleAdd }
                     <Button
                         type="submit"
                         form="template-form"
-                        className="w-full sm:w-auto h-10 sm:h-11"
+                        className="w-full sm:w-auto"
                     >
                         Save
                     </Button>

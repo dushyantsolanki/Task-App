@@ -5,13 +5,14 @@ import { sendLeadUpdate } from '../sockets/events/lead.event.js';
 
 export const getLeads = async (req, res) => {
   try {
+    const { userId } = req.user;
     const page = parseInt(req.query.page) || 1;
     const limit = parseInt(req.query.limit) || 10;
     const search = req.query.search || '';
 
     const skip = (page - 1) * limit;
 
-    const query = { isDeleted: false };
+    const query = { isDeleted: false, createdBy: new mongoose.Types.ObjectId(userId) };
 
     if (search) {
       query.$or = [

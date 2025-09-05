@@ -317,7 +317,7 @@ const LeadViewModal = ({ isOpen, onClose, lead }: ViewModalProps) => {
                         <Button
                             type="button"
                             variant="outline"
-                            className="w-full sm:w-auto h-10 sm:h-11"
+                            className="w-full sm:w-auto"
                             onClick={onClose}
                         >
                             Close

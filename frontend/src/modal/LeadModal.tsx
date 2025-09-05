@@ -28,8 +28,8 @@ interface ModalFormProps {
     isOpen: boolean;
     onClose: () => void;
     initialValues?: Lead | null;
-    handleAdd: (values: Lead, resetForm: () => void, onClose: () => void) => void
-    handleEdit: (values: Lead, resetForm: () => void, onClose: () => void) => void
+    handleAdd: (values: Lead, resetForm: () => void, onClose: () => void, setSubmitting: (bool: boolean) => void) => void
+    handleEdit: (values: Lead, resetForm: () => void, onClose: () => void, setSubmitting: (bool: boolean) => void) => void
 }
 
 
@@ -101,7 +101,7 @@ const LeadModal = ({ isOpen, onClose, initialValues, handleAdd,
                     emails: values.emails.filter((email) => email.trim() !== ""),
                     phones: values.phones.filter((phone) => phone.trim() !== ""),
                     categories: values.categories.filter((category) => category.trim() !== ""),
-                }, formik.resetForm, onClose)
+                }, formik.resetForm, onClose, formik.setSubmitting)
             }
             else {
                 handleAdd({
@@ -109,7 +109,7 @@ const LeadModal = ({ isOpen, onClose, initialValues, handleAdd,
                     emails: values.emails.filter((email) => email.trim() !== ""),
                     phones: values.phones.filter((phone) => phone.trim() !== ""),
                     categories: values.categories.filter((category) => category.trim() !== ""),
-                }, formik.resetForm, onClose)
+                }, formik.resetForm, onClose, formik.setSubmitting)
             }
 
         },
@@ -487,7 +487,7 @@ const LeadModal = ({ isOpen, onClose, initialValues, handleAdd,
                         <Button
                             type="button"
                             variant="outline"
-                            className="w-full sm:w-auto h-10 sm:h-11"
+                            className="w-full sm:w-auto "
                             onClick={onClose}
                         >
                             Cancel
@@ -497,7 +497,7 @@ const LeadModal = ({ isOpen, onClose, initialValues, handleAdd,
                         type="submit"
                         disabled={formik.isSubmitting}
                         form="lead-form"
-                        className="w-full sm:w-auto h-10 sm:h-11"
+                        className="w-full sm:w-auto "
                     >
                         Save
                     </Button>

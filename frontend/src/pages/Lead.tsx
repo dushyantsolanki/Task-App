@@ -122,21 +122,25 @@ function Lead() {
         }
     };
 
-    const addLead = async (lead: Partial<Lead>, resetForm: any, onClose: any) => {
+    const addLead = async (lead: Partial<Lead>, resetForm: any, onClose: any, setSubmitting: (val: Boolean) => void) => {
         try {
             const response = await AxiousInstance.post('/lead', lead);
             if (response.status === 201) {
                 resetForm()
                 onClose()
+
                 toast.success(response.data.message || "Lead added successfully");
                 await getAllLeads(pagination.pageIndex, pagination.pageSize, titleFilter);
             }
         } catch (error: any) {
             toast.error(error.response?.data?.message || "Failed to add lead");
         }
+        finally {
+            setSubmitting(false)
+        }
     };
 
-    const updateLead = async (lead: Lead, resetForm: any, onClose: any) => {
+    const updateLead = async (lead: Lead, resetForm: any, onClose: any, setSubmitting: (val: Boolean) => void) => {
         try {
             const response = await AxiousInstance.put(`/lead/${initialValues?._id}`, lead);
             if (response.status === 200) {
@@ -147,6 +151,9 @@ function Lead() {
             }
         } catch (error: any) {
             toast.error(error.response?.data?.message || "Failed to update lead");
+        }
+        finally {
+            setSubmitting(false)
         }
     };
 
@@ -639,7 +646,7 @@ function Lead() {
                 isOpen={isModalOpen}
                 onClose={() => { setIsModalOpen(false); setInitialValues(null) }}
                 initialValues={initialValues}
-                handleAdd={addLead}
+                handleAdd={addLead as any}
                 handleEdit={updateLead as any}
             />
 
