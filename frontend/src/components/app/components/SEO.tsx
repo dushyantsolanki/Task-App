@@ -11,7 +11,7 @@ export default function SEO({
   title,
   description,
   url = 'https://taskmate.dushyantportfolio.store/login',
-  image = '/OG_GRAPH.png',
+  image = '/public/og.png',
   type = 'website',
 }: SEOProps) {
   return (

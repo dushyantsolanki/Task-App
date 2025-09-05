@@ -14,7 +14,7 @@ const useNotify = () => {
     return toast.custom((id) => (
       <div
         className={`relative flex items-center gap-4 p-4 rounded-2xl md:w-100 
-                   backdrop-blur-xl bg-white/30 dark:bg-black/20 
+                   backdrop-blur-xs bg-white/30 dark:bg-black/20 
                    border ${colors.border}
                    overflow-hidden transition-all duration-300 `}
       >
