@@ -11,7 +11,7 @@ createRoot(document.getElementById('root')!).render(
     <SocketProvider>
       <ThemeProvider defaultTheme="dark" storageKey="vite-ui-theme">
         <App />
-        <Toaster position="top-center" expand />
+        <Toaster position="top-right" expand />
       </ThemeProvider>
     </SocketProvider>
   </StrictMode>,
