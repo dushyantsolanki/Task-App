@@ -278,15 +278,30 @@ async function scrapeFullPage(page, url) {
 
 // main scrap function
 async function scrap(query) {
-  const browser = await chromium.launch({ headless: false });
-  const page = await browser.newPage();
+  const browser = await chromium.launch({
+    headless: true,
+    args: ['--disable-blink-features=AutomationControlled'],
+  });
+  const context = await browser.newContext({
+    viewport: { width: 1920, height: 1080 },
+    userAgent:
+      'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36',
+  });
+  await context.addInitScript(() => {
+    Object.defineProperty(navigator, 'webdriver', {
+      get: () => undefined,
+    });
+  });
+  const page = await context.newPage();
 
   try {
     // search Bing
     await page.goto(`https://www.bing.com/search?q=${encodeURIComponent(query)}`, {
       waitUntil: 'domcontentloaded',
     });
-    await page.waitForSelector('#b_results');
+    await page.waitForSelector('#b_results', { state: 'attached' });
+    await page.waitForSelector('#b_results', { state: 'visible', timeout: 60000 });
+    await page.waitForSelector('#b_results > li', { state: 'visible' });
 
     // get results
     const results = await page.evaluate(() => {
@@ -331,7 +346,7 @@ app.get('/api/overview', async (req, res) => {
   try {
     const data = await scrap(q);
     if (data.error) return res.status(500).json(data);
-
+    console.log(data.content);
     const summary = await runGroqSearchQA(data.content, q);
 
     res.json({
