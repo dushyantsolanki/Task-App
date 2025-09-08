@@ -526,7 +526,7 @@ import stealth from 'puppeteer-extra-plugin-stealth';
 import { sendAILeadStatus } from '../sockets/events/lead.event.js';
 
 const ai = new GoogleGenAI({ apiKey: process.env.GOOGLE_GEMINI_API_KEY });
-// chromium.use(stealth());
+chromium.use(stealth());
 
 function sleep(ms) {
   return new Promise((resolve) => setTimeout(resolve, ms));
@@ -805,11 +805,11 @@ async function scrapeCompany(companyName, userId) {
       headless: true,
       args: [
         '--disable-blink-features=AutomationControlled',
-        // '--disable-web-security',
-        // '--disable-features=IsolateOrigins,site-per-process',
-        // '--no-sandbox',
-        // '--disable-setuid-sandbox',
-        // '--disable-dev-shm-usage',
+        '--disable-web-security',
+        '--disable-features=IsolateOrigins,site-per-process',
+        '--no-sandbox',
+        '--disable-setuid-sandbox',
+        '--disable-dev-shm-usage',
       ],
     });
 
@@ -826,12 +826,6 @@ async function scrapeCompany(companyName, userId) {
       },
     });
 
-    await context.addInitScript(() => {
-      Object.defineProperty(navigator, 'webdriver', {
-        get: () => undefined,
-      });
-    });
-
     const page = await context.newPage();
     page.setDefaultTimeout(60000);
     sendAILeadStatus({
@@ -840,85 +834,84 @@ async function scrapeCompany(companyName, userId) {
       statusMsg: `AI has launched a secure browser instance for data collection.`,
     });
 
-    // Step 1: Scrape Google Maps
+    // Step 1: Scrape BING MAPS (not Google)
     sendAILeadStatus({
       type: 'ai_lead_status',
       recipient: userId,
-      statusMsg: `AI is navigating to Google Maps to search for ${companyName}.`,
+      statusMsg: `AI is navigating to Bing Maps to search for ${companyName}.`,
     });
-    console.log('Navigating to Google Maps search page');
-    await page.goto(`https://www.google.com/maps/search/${encodeURIComponent(companyName)}`, {
+    console.log('Navigating to Bing Maps search page');
+
+    // 🔍 Bing Maps Search URL
+    const searchUrl = `https://www.bing.com/maps?q=${encodeURIComponent(companyName)}`;
+    await page.goto(searchUrl, {
       waitUntil: 'domcontentloaded',
       timeout: 30000,
     });
 
-    await page.screenshot({ path: 'maps-scrape-error.png', fullPage: true });
-
     // Check for captcha
-    // if (await detectAndHandleCaptcha(page, userId)) {
-    //   console.log('Handling CAPTCHA challenges, resuming scraping');
-    //   sendAILeadStatus({
-    //     type: 'ai_lead_status',
-    //     recipient: userId,
-    //     statusMsg: `AI is solving the CAPTCHA to proceed.`,
-    //   });
-    // }
+    if (await detectAndHandleCaptcha(page, userId)) {
+      console.log('Handling CAPTCHA challenges, resuming scraping');
+      sendAILeadStatus({
+        type: 'ai_lead_status',
+        recipient: userId,
+        statusMsg: `AI is solving the CAPTCHA to proceed.`,
+      });
+    }
 
-    await sleep(1000 + Math.random() * 2500);
+    await sleep(100 + Math.random() * 1000);
     await randomMouseMovement(page, 3);
-    await humanScroll(page);
 
-    // Try multiple selectors in order
-    const selectors = [
-      '.DUwDvf', // current
-      '[class*="fontHeadlineSmall"]', // often used for titles
-      'h1[class*="fontHeadlineLarge"]', // place name on detail page
-      'div[data-attrid="title"]', // sometimes used in SERP
-    ];
-
-    let found = false;
-
-    for (const selector of selectors) {
-      try {
-        console.log(`Trying selector: ${selector}`);
-        const element = page.locator(selector);
-        await element.waitFor({ state: 'visible', timeout: 20000 });
-        const text = await element.textContent();
-        console.log(`✅ Matched with "${selector}":`, text?.trim());
-        found = true;
-        break;
-      } catch (e) {
-        console.log(`Selector "${selector}" not found.`);
-      }
-    }
-
-    if (!found) {
-      throw new Error('None of the target selectors became visible.');
-    }
-
-    // await page.waitForSelector('.DUwDvf', { timeout: 15000 }).catch(() => {
-    //   throw new Error('Unable to find company details. Please verify the company name.');
-    // });
-
+    // Wait for business info module to appear
     sendAILeadStatus({
       type: 'ai_lead_status',
       recipient: userId,
-      statusMsg: `AI is collecting core company profile details from Maps.`,
+      statusMsg: `AI is collecting core company profile details from Bing Maps.`,
     });
+
+    try {
+      await page.waitForSelector('.infoModule.b_divsec', { state: 'visible', timeout: 30000 });
+    } catch (e) {
+      throw new Error(
+        'Unable to find company details on Bing Maps. Please verify the company name.',
+      );
+    }
+
+    // ✅ Extract data from Bing Maps UI
     const result = await page.evaluate(() => {
       const getText = (selector) => document.querySelector(selector)?.textContent?.trim() || null;
       const getHref = (selector) => document.querySelector(selector)?.href || null;
-      const addressText = getText('[data-item-id="address"] .Io6YTe') || '';
+
+      // 📍 Title (business name) — often in h1 or .b_entityTitle
+      const title = getText('h1.b_entityTitle') || getText('.b_entityTitle') || null;
+
+      // 📍 Address
+      const address = getText('div[aria-label="Address"] .iconDataList') || null;
+
+      // 📞 Phone
+      const phoneEl = document.querySelector('div[aria-label="Phone"] a[aria-label^="Phone"]');
+      const phoneHref = phoneEl?.href || '';
+      const phone = phoneHref.startsWith('tel:') ? phoneHref.replace('tel:', '').trim() : null;
+
+      // 🌐 Website
+      const website = getHref('div[aria-label="Website"] a[aria-label^="Website"]') || null;
+
+      // 🏷️ Categories — Bing often shows this near title or in subtitle
+      const categoriesText = getText('.b_subTitle') || '';
+      const categories = categoriesText ? [categoriesText] : [];
 
       return {
-        title: getText('.DUwDvf'),
-        address: addressText,
-        website: getHref('a[data-item-id="authority"]'),
-        phones: getText('[data-item-id^="phone:tel"] .Io6YTe'),
-        categories: getText('.DkEaL') ? [getText('.DkEaL')] : [],
+        title,
+        address,
+        website,
+        phones: phone ? [phone] : [],
+        categories,
+        emails: [], // will populate from website later
+        domain: null,
       };
     });
 
+    // Set domain if website found
     if (result.website) {
       try {
         const url = new URL(result.website);
@@ -926,14 +919,9 @@ async function scrapeCompany(companyName, userId) {
       } catch (e) {
         result.domain = null;
       }
-    } else {
-      result.domain = null;
     }
 
-    result.phones = result.phones ? [result.phones] : [];
-    result.emails = [];
-
-    // Step 2: Scrape website for contact info
+    // Step 2: Scrape website for contact info (unchanged)
     if (result.website) {
       console.log(
         `Collecting company profile details (name, address, category, phone) from ${result.website}`,
@@ -944,7 +932,6 @@ async function scrapeCompany(companyName, userId) {
         statusMsg: `AI is navigating to the company's website for deeper analysis.`,
       });
       await page.goto(result.website, { waitUntil: 'domcontentloaded', timeout: 60000 });
-      await page.screenshot({ path: 'site.png', fullPage: true });
       sendAILeadStatus({
         type: 'ai_lead_status',
         recipient: userId,
@@ -985,7 +972,7 @@ async function scrapeCompany(companyName, userId) {
     if (!result.title) throw new Error('Company Name is required');
     if (!result.address) throw new Error('Address is required');
     if (!result.phones.length) throw new Error('At least one phone is required');
-    if (!result.categories.length) throw new Error('At least one category is required');
+    if (!result.categories.length) console.warn('No categories found (optional on Bing)');
     if (!result.emails.length) console.warn('No emails found');
 
     return result;
@@ -1035,8 +1022,9 @@ const AILeadScrapper = async (company, userId, req, res) => {
         rawData,
         null,
         0,
-      )} 
-Always output valid JSON only. Use the following structure: {"title": "","address": "","city": "","state": "","postalCode":"","countryCode": "","phones": [],"categories": [],"emails": [],"website":""} Rules: 1. "title": Company or business name only. 2. "address": Full street address, without city/state duplication. 3. "city", "state", "countryCode": Extract and fill if present in the address. Use ISO-2 country codes (e.g., "IN" for India, "US" for United States). 4. "phones": Extract all valid phone numbers, remove duplicates, format consistently with country code if available. Ignore obviously fake or placeholder numbers like 1234567890, 0000000000. 5. "emails": Extract all valid emails, remove duplicates. Ignore generic, placeholder, or obviously fake emails like test@test.com, example@example.com. 6. "categories": Business categories or industry keywords (keep as an array of strings). 7. If a field is missing, return an empty string "" or empty array []. 8. "website": Company website. Use "" if unknown. 9. Do not add extra fields. Do not include explanations. Return only the JSON object.`;
+      )}. 
+      Always output valid JSON only. Use the following structure: {"title": "","address": "","city": "","state": "","postalCode":"","countryCode": "","phones": [],"categories": [],"emails": [],"website":""} Rules: 1. "title": Company or business name only. 2. "address": Full street address, without city/state duplication. 3. "city", "state", "countryCode": Extract and fill if present in the address. Use ISO-2 country codes (e.g., "IN" for India, "US" for United States). 4. "phones": Extract all valid phone numbers, remove duplicates, format consistently with country code if available. Ignore obviously fake or placeholder numbers like 1234567890, 0000000000. 5. "emails": Extract all valid emails, remove duplicates. Ignore generic, placeholder, or obviously fake emails like test@test.com, example@example.com. 6. "categories": Business categories or industry keywords (keep as an array of strings). 7. If a field is missing, return an empty string "" or empty array []. 8. "website": Company website. Use "" if unknown. 9. Do not add extra fields. Do not include explanations. Return only the JSON object.
+`;
 
       const response = await ai.models.generateContent({
         model: 'gemini-1.5-flash', // Corrected to a standard model name; adjust if needed
