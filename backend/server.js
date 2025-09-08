@@ -52,7 +52,7 @@ app.get('/geo-region', (req, res) => {
   const ip = req.clientIp; // Provides IP behind proxies/CDNs too
   var geo = geoip.lookup(ip);
   console.log(geo);
-  res.send(`Your IP: ${ip}`);
+  res.send({ ...geo, ip });
 });
 
 const PORT = process.env.PORT || 3000;
