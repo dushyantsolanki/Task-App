@@ -1,4 +1,5 @@
 import mongoose from 'mongoose';
+import geoip from 'geoip-country';
 import logger from '../configs/pino.config.js';
 import { Lead } from '../models/index.js';
 import { sendLeadUpdate } from '../sockets/events/lead.event.js';
@@ -187,6 +188,8 @@ export const generateAILead = async (req, res) => {
   try {
     const { userId } = req.user;
     const { name } = req.body;
+    const ip = req.clientIp;
+    let geo = geoip.lookup(ip);
 
     if (!name) {
       return res.status(400).json({
@@ -195,7 +198,7 @@ export const generateAILead = async (req, res) => {
       });
     }
 
-    await AILeadScrapper(name, userId, req, res);
+    await AILeadScrapper(`${name} ${geo?.name || 'India'}`, userId, req, res);
   } catch (err) {
     logger.error(err, 'Error in generateAILead');
     return res.status(500).json({

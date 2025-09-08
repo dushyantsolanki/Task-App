@@ -802,7 +802,7 @@ async function scrapeCompany(companyName, userId) {
   let browser;
   try {
     browser = await chromium.launch({
-      headless: true,
+      headless: process.env.ISDEVELOPMENT === 'development' ? false : true,
       args: [
         '--disable-blink-features=AutomationControlled',
         '--disable-web-security',
@@ -817,11 +817,11 @@ async function scrapeCompany(companyName, userId) {
       viewport: { width: 1920, height: 1080 },
       userAgent:
         'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/125.0.0.0 Safari/537.36',
-      locale: 'en-IN', // English (India)
-      timezoneId: 'Asia/Kolkata', // India Standard Time (IST)
+      locale: 'en-US',
+      timezoneId: 'America/New_York',
       ignoreHTTPSErrors: true,
       extraHTTPHeaders: {
-        'Accept-Language': 'en-IN,en;q=0.9', // Prefer Indian English
+        'Accept-Language': 'en-US,en;q=0.9',
         Accept: 'text/html,application/xhtml+xml,application/xml;q=0.9,image/webp,*/*;q=0.8',
       },
     });
@@ -878,27 +878,21 @@ async function scrapeCompany(companyName, userId) {
       );
     }
 
-    // ✅ Extract data from Bing Maps UI
     const result = await page.evaluate(() => {
       const getText = (selector) => document.querySelector(selector)?.textContent?.trim() || null;
       const getHref = (selector) => document.querySelector(selector)?.href || null;
 
-      // 📍 Title (business name) — often in h1 or .b_entityTitle
       const title = getText('h1.b_entityTitle') || getText('.b_entityTitle') || null;
 
-      // 📍 Address
       const address = getText('div[aria-label="Address"] .iconDataList') || null;
 
-      // 📞 Phone
       const phoneEl = document.querySelector('div[aria-label="Phone"] a[aria-label^="Phone"]');
       const phoneHref = phoneEl?.href || '';
       const phone = phoneHref.startsWith('tel:') ? phoneHref.replace('tel:', '').trim() : null;
 
-      // 🌐 Website
       const website = getHref('div[aria-label="Website"] a[aria-label^="Website"]') || null;
 
-      // 🏷️ Categories — Bing often shows this near title or in subtitle
-      const categoriesText = getText('.b_subTitle') || '';
+      const categoriesText = getText('.b_factrow') || '';
       const categories = categoriesText ? [categoriesText] : [];
 
       return {
@@ -1011,7 +1005,7 @@ const AILeadScrapper = async (company, userId, req, res) => {
     throw new Error(errorMsg);
   }
   try {
-    const rawData = await scrapeCompany(company, userId);
+    const rawData = await scrapeCompany(company?.trim(), userId);
     console.log('Raw data scraped:', rawData);
     if (rawData) {
       sendAILeadStatus({
@@ -1024,11 +1018,11 @@ const AILeadScrapper = async (company, userId, req, res) => {
         null,
         0,
       )}. 
-      Always output valid JSON only. Use the following structure: {"title": "","address": "","city": "","state": "","postalCode":"","countryCode": "","phones": [],"categories": [],"emails": [],"website":""} Rules: 1. "title": Company or business name only. 2. "address": Full street address, without city/state duplication. 3. "city", "state", "countryCode": Extract and fill if present in the address. Use ISO-2 country codes (e.g., "IN" for India, "US" for United States). 4. "phones": Extract all valid phone numbers, remove duplicates, format consistently with country code if available. Ignore obviously fake or placeholder numbers like 1234567890, 0000000000. 5. "emails": Extract all valid emails, remove duplicates. Ignore generic, placeholder, or obviously fake emails like test@test.com, example@example.com. 6. "categories": Business categories or industry keywords (keep as an array of strings). 7. If a field is missing, return an empty string "" or empty array []. 8. "website": Company website. Use "" if unknown. 9. Do not add extra fields. Do not include explanations. Return only the JSON object.
-`;
+      Always output valid JSON only. Use the following structure: {"title": "","address": "","city": "","state": "","postalCode":"","countryCode": "","phones": [],"categories": [],"emails": [],"website":""}Rules:1. "title": Company or business name only.  2. "address": Full street address, without city/state duplication. 3. "city", "state", "countryCode": Extract and fill if present in the address. Use ISO-2 country codes (e.g., "IN" for India, "US" for United States). 4. "phones": Extract all valid phone numbers, remove duplicates, format consistently with country code if available. Ignore obviously fake or placeholder numbers like 1234567890, 0000000000. 5. "emails": Extract all valid emails, remove duplicates. Ignore generic, placeholder, or obviously fake emails like test@test.com, example@example.com. 6. "categories": Only include business categories or industry keywords (e.g., "IT Services", "Restaurant", "Construction"). Do not include numbers, city names, state names, postal codes, or country codes. 7. If a field is missing, return an empty string "" or empty array []. 8. "website": Company website. Use "" if unknown. 9. Do not add extra fields. Do not include explanations. Return only the JSON object.
+          `;
 
       const response = await ai.models.generateContent({
-        model: 'gemini-1.5-flash', // Corrected to a standard model name; adjust if needed
+        model: 'gemini-1.5-flash',
         contents: prompt,
       });
       const formattedJSON = convertToJson(response.text);

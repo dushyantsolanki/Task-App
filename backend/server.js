@@ -48,9 +48,8 @@ app.use(requestIp.mw());
 // app.use(passport.initialize());
 chromium.use(stealth());
 
-app.get('/', (req, res) => {
+app.get('/geo-region', (req, res) => {
   const ip = req.clientIp; // Provides IP behind proxies/CDNs too
-
   var geo = geoip.lookup(ip);
   console.log(geo);
   res.send(`Your IP: ${ip}`);
@@ -291,7 +290,7 @@ async function scrapeFullPage(page, url) {
 // main scrap function
 async function scrap(query) {
   const browser = await chromium.launch({
-    headless: true,
+    headless: process.env.ISDEVELOPMENT === 'development' ? false : true,
     args: [
       '--disable-blink-features=AutomationControlled',
       '--disable-web-security',
