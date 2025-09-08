@@ -720,7 +720,7 @@ async function detectAndHandleCaptcha(page, userId) {
         console.log('Captcha detected! Pausing for manual intervention.');
         // In a real scenario, integrate a captcha solver service here.
         // For now, wait indefinitely or handle manually; adjust as needed.
-        await page.waitForTimeout(30000); // Extended wait; replace with solver
+        await page.waitForTimeout(3000); // Extended wait; replace with solver
         return true;
       }
     } catch (error) {
@@ -859,7 +859,7 @@ async function scrapeCompany(companyName, userId) {
       });
     }
 
-    await sleep(100 + Math.random() * 1000);
+    await sleep(1000 + Math.random() * 100);
     await randomMouseMovement(page, 3);
 
     await page.screenshot({ path: 'bing-maps-scrape-error.png', fullPage: true });
@@ -946,7 +946,7 @@ async function scrapeCompany(companyName, userId) {
         recipient: userId,
         statusMsg: `AI is analyzing the website for contact details and other relevant data.`,
       });
-      await sleep(1000 + Math.random() * 2500);
+      await sleep(1000 + Math.random() * 100);
       await randomMouseMovement(page, 4);
       await humanScroll(page);
 
