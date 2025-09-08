@@ -72,12 +72,13 @@ const LeadSchema = new mongoose.Schema(
     },
     phones: {
       type: [String],
-      validate: {
-        validator: function (arr) {
-          return arr && arr.length > 0;
-        },
-        message: 'At least one phone is required',
-      },
+      default: [],
+      // validate: {
+      //   validator: function (arr) {
+      //     return arr && arr.length > 0;
+      //   },
+      //   message: 'At least one phone is required',
+      // },
     },
     createdBy: {
       type: mongoose.Schema.Types.ObjectId,

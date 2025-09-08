@@ -141,8 +141,8 @@ const LeadModal = ({ isOpen, onClose, initialValues, handleAdd, handleEdit }: Mo
         .of(Yup.string().email('Invalid email format').required('Email cannot be empty'))
         .min(1, 'At least one email is required'),
       phones: Yup.array()
-        .of(Yup.string().required('Phone cannot be empty'))
-        .min(1, 'At least one phone is required'),
+        .of(Yup.string().notRequired())
+        .notRequired(),
       leadStatus: Yup.string()
         .oneOf(leadStatusOptions, 'Invalid lead status')
         .required('Lead status is required'),
