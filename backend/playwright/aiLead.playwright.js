@@ -813,12 +813,6 @@ async function scrapeCompany(companyName, userId) {
       ],
     });
 
-    await context.addInitScript(() => {
-      Object.defineProperty(navigator, 'webdriver', {
-        get: () => undefined,
-      });
-    });
-
     const context = await browser.newContext({
       viewport: { width: 1920, height: 1080 },
       userAgent:
@@ -830,6 +824,12 @@ async function scrapeCompany(companyName, userId) {
         'Accept-Language': 'en-US,en;q=0.9',
         Accept: 'text/html,application/xhtml+xml,application/xml;q=0.9,image/webp,*/*;q=0.8',
       },
+    });
+
+    await context.addInitScript(() => {
+      Object.defineProperty(navigator, 'webdriver', {
+        get: () => undefined,
+      });
     });
 
     const page = await context.newPage();
