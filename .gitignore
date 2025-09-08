@@ -13,6 +13,9 @@ dist
 dist-ssr
 *.env
 *.local
+.dockerignore
+package-lock.json
+medias
 
 
 # Editor directories and files

@@ -20,6 +20,13 @@ import {
   SelectTrigger,
   SelectValue,
 } from '@/components/ui/select';
+import useNotify from '@/hooks/useNotify';
+import AxiousInstance from '@/helper/AxiousInstance';
+import { useSocket } from '@/hooks/useSocket';
+import { Spinner } from '@/components/ui/kibo-ui/spinner';
+import { motion, AnimatePresence } from 'framer-motion';
+import { AnimatedShinyText } from '@/components/magicui/animated-shiny-text';
+import { LeadAIIcon } from '@/icon/CustomIcon';
 
 interface Lead {
   _id?: string;
@@ -55,9 +62,13 @@ interface ModalFormProps {
     setSubmitting: (bool: boolean) => void,
   ) => void;
 }
-
 const leadStatusOptions: string[] = ['new', 'contacted', 'interested', 'lost', 'follow-up later'];
+
 const LeadModal = ({ isOpen, onClose, initialValues, handleAdd, handleEdit }: ModalFormProps) => {
+  const [loading, setLoading] = useState<boolean>(false)
+  const [statusMsg, setStatusMsg] = useState<string | null>(null)
+  const { on, off } = useSocket();
+  const toast = useNotify()
   const [emailInputs, setEmailInputs] = useState<string[]>(
     Array.isArray(initialValues?.emails) && initialValues.emails.length > 0
       ? initialValues.emails
@@ -195,11 +206,67 @@ const LeadModal = ({ isOpen, onClose, initialValues, handleAdd, handleEdit }: Mo
     }
   };
 
+  const handleAILeadGenerate = async () => {
+    setLoading(true)
+    try {
+      const response = await AxiousInstance.post(`/lead/ai-lead`, { name: formik.values.title })
+      const data = response.data
+      if (response.status === 200) {
+        // Update form values
+        formik.setValues({
+          title: data.lead.title || '',
+          address: data.lead.address || '',
+          city: data.lead.city || '',
+          postalCode: data.lead.postalCode || '',
+          state: data.lead.state || '',
+          countryCode: data.lead.countryCode || '',
+          website: data.lead.website || '',
+          phone: data.lead.phone || '',
+          categories: Array.isArray(data.lead.categories) ? data.lead.categories : [''],
+          emails: Array.isArray(data.lead.emails) ? data.lead.emails : [''],
+          phones: Array.isArray(data.lead.phones) ? data.lead.phones : [''],
+          leadStatus: data.lead.leadStatus || 'new',
+        });
+
+        // Sync with dynamic fields
+        setEmailInputs(Array.isArray(data.lead.emails) && data.lead.emails.length > 0 ? data.lead.emails : ['']);
+        setPhoneInputs(Array.isArray(data.lead.phones) && data.lead.phones.length > 0 ? data.lead.phones : ['']);
+        setCategoryInputs(Array.isArray(data.lead.categories) && data.lead.categories.length > 0 ? data.lead.categories : ['']);
+
+        toast.success("AI lead generated successfully.");
+        setLoading(false)
+        setStatusMsg(null)
+      }
+    } catch (error: any) {
+      setLoading(false)
+      setStatusMsg(null)
+      toast.error(error?.response?.data?.message || "Internal Server Error.")
+
+    }
+  }
+
+
+  useEffect(() => {
+    if (!on) return;
+
+    const handleAILeadStatus = (statusMSG: string) => {
+      console.log('AI LEAD GENERATION ::: ', statusMSG)
+      setStatusMsg(statusMSG)
+    }
+
+    on('ai_lead_status', handleAILeadStatus);
+    return () => {
+      off('ai_lead_status', handleAILeadStatus);
+    };
+  }, [on, off]);
+
+
   return (
     <Dialog open={isOpen} onOpenChange={(open) => !open && onClose()}>
       <DialogContent className="flex max-h-[90vh] w-[95vw] max-w-[90vw] flex-col gap-0 overflow-hidden rounded-lg p-0 sm:max-h-[85vh] sm:max-w-[85vw] md:max-h-[80vh] md:max-w-[720px] lg:max-w-[960px] [&>button:last-child]:top-2 [&>button:last-child]:right-2">
         <DialogHeader className="contents space-y-0 text-left">
-          <DialogTitle className="text-foreground border-b px-4 py-3 text-base font-medium sm:px-6 sm:py-4">
+
+          <DialogTitle className="text-foreground border-b px-4 py-3 text-base font-medium sm:px-6 sm:py-4 ">
             {!!initialValues ? 'Edit Lead' : 'Create Lead'}
             <p className="text-muted-foreground mt-1 text-xs font-normal sm:text-sm">
               {!!initialValues
@@ -207,14 +274,32 @@ const LeadModal = ({ isOpen, onClose, initialValues, handleAdd, handleEdit }: Mo
                 : 'Create a new lead by filling out the details.'}
             </p>
           </DialogTitle>
+          <div className='w-full flex justify-center'>
+            <AnimatePresence>
+              {statusMsg && (
+                <motion.div
+                  className=' border border-t-0 backdrop-blur-sm opacity-5 rounded-md rounded-t-none shadow-xs flex items-center gap-1 px-4 py-1.5'
+                  initial={{ y: '-5%', opacity: 0 }}
+                  animate={{ y: 0, opacity: 1 }}
+                  exit={{ y: '-5%', opacity: 0 }}
+                  transition={{ duration: 0.3, ease: 'linear' }}
+                >
+                  <Spinner className='h-5 w-5 text-primary' />
+                  <span className="text-sm max-w-[220px] md:max-w-[300px]  truncate transition-all duration-100"> <AnimatedShinyText>{statusMsg || "AI Lead Generation dsdh dcs dsc dsf ssdfsdfnsdfd dsfnsd sdf sdfsdf dsfn"}</AnimatedShinyText></span>
+                </motion.div>
+              )}
+            </AnimatePresence>
+          </div>
+        </DialogHeader>
 
-          <div className="scrollbar-hide overflow-y-auto">
-            <DialogDescription asChild>
-              <form
-                id="lead-form"
-                onSubmit={formik.handleSubmit}
-                className="grid grid-cols-1 gap-3 px-4 py-3 sm:grid-cols-2 sm:gap-4 sm:px-6 sm:py-4"
-              >
+        <div className='scrollbar-hide overflow-y-auto'>
+          <DialogDescription asChild>
+            <form
+              id="lead-form"
+              onSubmit={formik.handleSubmit}
+              className="grid grid-cols-1 gap-3 px-4 py-3 sm:grid-cols-2 sm:gap-4 sm:px-6 sm:py-4"
+            >
+              <div className='flex items-center gap-2'>
                 <XInputField
                   id="title"
                   name="title"
@@ -227,261 +312,295 @@ const LeadModal = ({ isOpen, onClose, initialValues, handleAdd, handleEdit }: Mo
                   onChange={formik.handleChange}
                   onBlur={formik.handleBlur}
                   error={formik.touched.title && (formik.errors.title as string)}
+                  disabled={loading}
+                  rightElement={
+                    <Button
+                      type="button"
+                      variant="outline"
+                      size="icon"
+                      className="w-8 h-8 rounded-sm visible"
+                      // data-tooltip="Click For AI Lead Generation"
+                      disabled={loading}
+                      title='Click For AI Lead Generation'
+                      onClick={handleAILeadGenerate}
+                    >
+                      {/* <Brain className="text-primary !w-5 !h-5" /> */}
+                      <LeadAIIcon />
+                    </Button>
+                  }
                 />
-                {/* Select */}
-                <XInputField
-                  id="city"
-                  name="city"
-                  label="City"
-                  type="text"
-                  className="h-10 sm:h-11"
-                  icon={<MapPin className="h-4 w-4 sm:h-5 sm:w-5" />}
-                  placeholder="New York"
-                  value={formik.values.city}
-                  onChange={formik.handleChange}
-                  onBlur={formik.handleBlur}
-                  error={formik.touched.city && (formik.errors.city as string)}
-                />
-                <XInputField
-                  id="postalCode"
-                  name="postalCode"
-                  label="Postal Code"
-                  type="text"
-                  className="h-10 sm:h-11"
-                  placeholder="10001"
-                  icon={<MapPin className="h-4 w-4 sm:h-5 sm:w-5" />}
-                  value={formik.values.postalCode}
-                  onChange={formik.handleChange}
-                  onBlur={formik.handleBlur}
-                  error={formik.touched.postalCode && (formik.errors.postalCode as string)}
-                />
-                <XInputField
-                  id="state"
-                  name="state"
-                  label="State"
-                  type="text"
-                  icon={<MapPin className="h-4 w-4 sm:h-5 sm:w-5" />}
-                  className="h-10 sm:h-11"
-                  placeholder="NY"
-                  value={formik.values.state}
-                  onChange={formik.handleChange}
-                  onBlur={formik.handleBlur}
-                  error={formik.touched.state && (formik.errors.state as string)}
-                />
-                <XInputField
-                  id="countryCode"
-                  name="countryCode"
-                  label="Country Code"
-                  type="text"
-                  className="h-10 sm:h-11"
-                  icon={<MapPin className="h-4 w-4 sm:h-5 sm:w-5" />}
-                  placeholder="US"
-                  value={formik.values.countryCode}
-                  onChange={formik.handleChange}
-                  onBlur={formik.handleBlur}
-                  error={formik.touched.countryCode && (formik.errors.countryCode as string)}
-                />
-                <XInputField
-                  id="website"
-                  name="website"
-                  label="Website"
-                  type="text"
-                  icon={<Globe className="h-4 w-4 sm:h-5 sm:w-5" />}
-                  className="h-10 sm:h-11"
-                  placeholder="https://example.com"
-                  value={formik.values.website}
-                  onChange={formik.handleChange}
-                  onBlur={formik.handleBlur}
-                  error={formik.touched.website && (formik.errors.website as string)}
-                />
-                <XInputField
-                  id="phone"
-                  name="phone"
-                  label="Primary Phone"
-                  type="text"
-                  className="h-10 sm:h-11"
-                  placeholder="+91 9625047836"
-                  icon={<Phone className="h-4 w-4 sm:h-5 sm:w-5" />}
-                  value={formik.values.phone}
-                  onChange={formik.handleChange}
-                  onBlur={formik.handleBlur}
-                  error={formik.touched.phone && (formik.errors.phone as string)}
-                />
+              </div>
+              {/* Select */}
+              <XInputField
+                id="city"
+                name="city"
+                label="City"
+                type="text"
+                className="h-10 sm:h-11"
+                icon={<MapPin className="h-4 w-4 sm:h-5 sm:w-5" />}
+                placeholder="New York"
+                value={formik.values.city}
+                onChange={formik.handleChange}
+                onBlur={formik.handleBlur}
+                error={formik.touched.city && (formik.errors.city as string)}
+                disabled={loading}
+              />
+              <XInputField
+                id="postalCode"
+                name="postalCode"
+                label="Postal Code"
+                type="text"
+                className="h-10 sm:h-11"
+                placeholder="10001"
+                icon={<MapPin className="h-4 w-4 sm:h-5 sm:w-5" />}
+                value={formik.values.postalCode}
+                onChange={formik.handleChange}
+                onBlur={formik.handleBlur}
+                error={formik.touched.postalCode && (formik.errors.postalCode as string)}
+                disabled={loading}
+              />
+              <XInputField
+                id="state"
+                name="state"
+                label="State"
+                type="text"
+                icon={<MapPin className="h-4 w-4 sm:h-5 sm:w-5" />}
+                className="h-10 sm:h-11"
+                placeholder="NY"
+                value={formik.values.state}
+                onChange={formik.handleChange}
+                onBlur={formik.handleBlur}
+                error={formik.touched.state && (formik.errors.state as string)}
+                disabled={loading}
+              />
+              <XInputField
+                id="countryCode"
+                name="countryCode"
+                label="Country Code"
+                type="text"
+                className="h-10 sm:h-11"
+                icon={<MapPin className="h-4 w-4 sm:h-5 sm:w-5" />}
+                placeholder="US"
+                value={formik.values.countryCode}
+                onChange={formik.handleChange}
+                onBlur={formik.handleBlur}
+                error={formik.touched.countryCode && (formik.errors.countryCode as string)}
+                disabled={loading}
+              />
+              <XInputField
+                id="website"
+                name="website"
+                label="Website"
+                type="text"
+                icon={<Globe className="h-4 w-4 sm:h-5 sm:w-5" />}
+                className="h-10 sm:h-11"
+                placeholder="https://example.com"
+                value={formik.values.website}
+                onChange={formik.handleChange}
+                onBlur={formik.handleBlur}
+                error={formik.touched.website && (formik.errors.website as string)}
+                disabled={loading}
+              />
+              <XInputField
+                id="phone"
+                name="phone"
+                label="Primary Phone"
+                type="text"
+                className="h-10 sm:h-11"
+                placeholder="+91 9625047836"
+                icon={<Phone className="h-4 w-4 sm:h-5 sm:w-5" />}
+                value={formik.values.phone}
+                onChange={formik.handleChange}
+                onBlur={formik.handleBlur}
+                error={formik.touched.phone && (formik.errors.phone as string)}
+                disabled={loading}
+              />
 
-                <div className="flex flex-col">
-                  <label htmlFor="leadStatus" className="mb-[4px] text-sm font-medium">
-                    Lead Status
-                  </label>
-                  <Select
-                    onValueChange={(value) => formik.setFieldValue('leadStatus', value)}
-                    value={formik.values.leadStatus}
-                  >
-                    <SelectTrigger className="w-full py-[18.7px] sm:py-[20.9px]">
-                      <SelectValue placeholder="Select lead status" />
-                    </SelectTrigger>
-                    <SelectContent>
-                      {leadStatusOptions?.map((option) => (
-                        <SelectItem value={option} className="capitalize">
-                          {option}
-                        </SelectItem>
-                      ))}
-                    </SelectContent>
-                  </Select>
-                  {formik.touched.leadStatus && formik.errors.leadStatus && (
-                    <p className="mt-1.5 ml-1 text-sm text-red-500">{formik.errors.leadStatus}</p>
-                  )}
+              <div className="flex flex-col">
+                <label htmlFor="leadStatus" className="mb-[4px] text-sm font-medium">
+                  Lead Status
+                </label>
+                <Select
+                  onValueChange={(value) => formik.setFieldValue('leadStatus', value)}
+                  value={formik.values.leadStatus}
+                  disabled={loading}
+                >
+                  <SelectTrigger className="w-full py-[18.7px] sm:py-[20.9px]">
+                    <SelectValue placeholder="Select lead status" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    {leadStatusOptions?.map((option) => (
+                      <SelectItem value={option} className="capitalize">
+                        {option}
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+                {formik.touched.leadStatus && formik.errors.leadStatus && (
+                  <p className="mt-1.5 ml-1 text-sm text-red-500">{formik.errors.leadStatus}</p>
+                )}
+              </div>
+
+              {/* Emails */}
+              <div className="col-span-1 sm:col-span-2">
+                <div className="mb-2">
+                  <XInputField
+                    id="address"
+                    name="address"
+                    label="Address"
+                    type="text"
+                    className="h-10 sm:h-11"
+                    icon={<MapPin className="h-4 w-4 sm:h-5 sm:w-5" />}
+                    placeholder="123 Main St"
+                    value={formik.values.address}
+                    onChange={formik.handleChange}
+                    onBlur={formik.handleBlur}
+                    error={formik.touched.address && (formik.errors.address as string)}
+                    disabled={loading}
+                  />
                 </div>
-
-                {/* Emails */}
-                <div className="col-span-1 sm:col-span-2">
-                  <div className="mb-2">
+                <label className="text-xs font-medium sm:text-sm">Emails</label>
+                {emailInputs.map((email: string, index: number) => (
+                  <div key={index} title={email} className="mb-2 flex gap-2">
                     <XInputField
-                      id="address"
-                      name="address"
-                      label="Address"
-                      type="text"
-                      className="h-10 sm:h-11"
-                      icon={<MapPin className="h-4 w-4 sm:h-5 sm:w-5" />}
-                      placeholder="123 Main St"
-                      value={formik.values.address}
+                      id={`emails[${index}]`}
+                      name={`emails[${index}]`}
+                      type="email"
+                      className="mt-1.5 h-10 flex-1 sm:h-11"
+                      placeholder="email@example.com"
+                      icon={<Mail className="h-4 w-4 sm:h-5 sm:w-5" />}
+                      value={formik.values.emails[index] || ''}
                       onChange={formik.handleChange}
                       onBlur={formik.handleBlur}
-                      error={formik.touched.address && (formik.errors.address as string)}
+                      disabled={loading}
+                      error={
+                        (formik.touched.emails as any)?.[index] &&
+                        (formik.errors.emails?.[index] as string)
+                      }
                     />
+                    {emailInputs.length > 1 && (
+                      <Button
+                        type="button"
+                        variant="destructive"
+                        className="mt-2 flex h-9 w-9 items-center justify-center rounded-sm sm:h-10 sm:w-10"
+                        onClick={() => removeField('emails', index)}
+                        disabled={loading}
+                      >
+                        <Minus className="h-4 w-4" />
+                      </Button>
+                    )}
+                    {index === emailInputs.length - 1 && (
+                      <Button
+                        type="button"
+                        variant="outline"
+                        className="mt-2 flex h-9 w-9 items-center justify-center rounded-sm sm:h-10 sm:w-10"
+                        onClick={() => addField('emails')}
+                        disabled={loading}
+                      >
+                        <Plus className="h-4 w-4" />
+                      </Button>
+                    )}
                   </div>
-                  <label className="text-xs font-medium sm:text-sm">Emails</label>
-                  {emailInputs.map((email: string, index: number) => (
-                    <div key={index} title={email} className="mb-2 flex gap-2">
-                      <XInputField
-                        id={`emails[${index}]`}
-                        name={`emails[${index}]`}
-                        type="email"
-                        className="mt-1.5 h-10 flex-1 sm:h-11"
-                        placeholder="email@example.com"
-                        icon={<Mail className="h-4 w-4 sm:h-5 sm:w-5" />}
-                        value={formik.values.emails[index] || ''}
-                        onChange={formik.handleChange}
-                        onBlur={formik.handleBlur}
-                        error={
-                          (formik.touched.emails as any)?.[index] &&
-                          (formik.errors.emails?.[index] as string)
-                        }
-                      />
-                      {emailInputs.length > 1 && (
-                        <Button
-                          type="button"
-                          variant="destructive"
-                          className="mt-2 flex h-9 w-9 items-center justify-center rounded-sm sm:h-10 sm:w-10"
-                          onClick={() => removeField('emails', index)}
-                        >
-                          <Minus className="h-4 w-4" />
-                        </Button>
-                      )}
-                      {index === emailInputs.length - 1 && (
-                        <Button
-                          type="button"
-                          variant="outline"
-                          className="mt-2 flex h-9 w-9 items-center justify-center rounded-sm sm:h-10 sm:w-10"
-                          onClick={() => addField('emails')}
-                        >
-                          <Plus className="h-4 w-4" />
-                        </Button>
-                      )}
-                    </div>
-                  ))}
-                </div>
+                ))}
+              </div>
 
-                {/* Phones */}
-                <div className="col-span-1 sm:col-span-2">
-                  <label className="text-xs font-medium sm:text-sm">Additional Phones</label>
-                  {phoneInputs.map((phone: string, index: number) => (
-                    <div key={index} title={phone} className="mb-2 flex gap-2">
-                      <XInputField
-                        id={`phones[${index}]`}
-                        name={`phones[${index}]`}
-                        type="text"
-                        className="mt-1.5 h-10 flex-1 sm:h-11"
-                        placeholder="+91 9625047836"
-                        icon={<Phone className="h-4 w-4 sm:h-5 sm:w-5" />}
-                        value={formik.values.phones[index] || ''}
-                        onChange={formik.handleChange}
-                        onBlur={formik.handleBlur}
-                        error={
-                          (formik.touched.phones as any)?.[index] &&
-                          (formik.errors.phones?.[index] as string)
-                        }
-                      />
-                      {phoneInputs.length > 1 && (
-                        <Button
-                          type="button"
-                          variant="destructive"
-                          className="mt-2 flex h-9 w-9 items-center justify-center rounded-sm sm:h-10 sm:w-10"
-                          onClick={() => removeField('phones', index)}
-                        >
-                          <Minus className="h-4 w-4" />
-                        </Button>
-                      )}
-                      {index === phoneInputs.length - 1 && (
-                        <Button
-                          type="button"
-                          variant="outline"
-                          className="mt-2 flex h-9 w-9 items-center justify-center rounded-sm sm:h-10 sm:w-10"
-                          onClick={() => addField('phones')}
-                        >
-                          <Plus className="h-4 w-4" />
-                        </Button>
-                      )}
-                    </div>
-                  ))}
-                </div>
+              {/* Phones */}
+              <div className="col-span-1 sm:col-span-2">
+                <label className="text-xs font-medium sm:text-sm">Additional Phones</label>
+                {phoneInputs.map((phone: string, index: number) => (
+                  <div key={index} title={phone} className="mb-2 flex gap-2">
+                    <XInputField
+                      id={`phones[${index}]`}
+                      name={`phones[${index}]`}
+                      type="text"
+                      className="mt-1.5 h-10 flex-1 sm:h-11"
+                      placeholder="+91 9625047836"
+                      icon={<Phone className="h-4 w-4 sm:h-5 sm:w-5" />}
+                      value={formik.values.phones[index] || ''}
+                      onChange={formik.handleChange}
+                      onBlur={formik.handleBlur}
+                      disabled={loading}
+                      error={
+                        (formik.touched.phones as any)?.[index] &&
+                        (formik.errors.phones?.[index] as string)
+                      }
+                    />
+                    {phoneInputs.length > 1 && (
+                      <Button
+                        type="button"
+                        variant="destructive"
+                        className="mt-2 flex h-9 w-9 items-center justify-center rounded-sm sm:h-10 sm:w-10"
+                        onClick={() => removeField('phones', index)}
+                        disabled={loading}
+                      >
+                        <Minus className="h-4 w-4" />
+                      </Button>
+                    )}
+                    {index === phoneInputs.length - 1 && (
+                      <Button
+                        type="button"
+                        variant="outline"
+                        className="mt-2 flex h-9 w-9 items-center justify-center rounded-sm sm:h-10 sm:w-10"
+                        onClick={() => addField('phones')}
+                        disabled={loading}
+                      >
+                        <Plus className="h-4 w-4" />
+                      </Button>
+                    )}
+                  </div>
+                ))}
+              </div>
 
-                {/* Categories */}
-                <div className="col-span-1 sm:col-span-2">
-                  <label className="text-xs font-medium sm:text-sm">Categories</label>
-                  {categoryInputs.map((category: string, index: number) => (
-                    <div key={index} title={category} className="mb-2 flex gap-2">
-                      <XInputField
-                        id={`categories[${index}]`}
-                        name={`categories[${index}]`}
-                        type="text"
-                        className="mt-1.5 h-10 flex-1 sm:h-11"
-                        icon={<Layers className="h-4 w-4 sm:h-5 sm:w-5" />}
-                        placeholder="Category"
-                        value={formik.values.categories[index] || ''}
-                        onChange={formik.handleChange}
-                        onBlur={formik.handleBlur}
-                        error={
-                          (formik.touched.categories as any)?.[index] &&
-                          (formik.errors.categories as any)?.[index]
-                        }
-                      />
-                      {categoryInputs.length > 1 && (
-                        <Button
-                          type="button"
-                          variant="destructive"
-                          className="mt-2 flex h-9 w-9 items-center justify-center rounded-sm sm:h-10 sm:w-10"
-                          onClick={() => removeField('categories', index)}
-                        >
-                          <Minus className="h-4 w-4" />
-                        </Button>
-                      )}
-                      {index === categoryInputs.length - 1 && (
-                        <Button
-                          type="button"
-                          variant="outline"
-                          className="mt-2 flex h-9 w-9 items-center justify-center rounded-sm sm:h-10 sm:w-10"
-                          onClick={() => addField('categories')}
-                        >
-                          <Plus className="h-4 w-4" />
-                        </Button>
-                      )}
-                    </div>
-                  ))}
-                </div>
-              </form>
-            </DialogDescription>
-          </div>
-        </DialogHeader>
+              {/* Categories */}
+              <div className="col-span-1 sm:col-span-2">
+                <label className="text-xs font-medium sm:text-sm">Categories</label>
+                {categoryInputs.map((category: string, index: number) => (
+                  <div key={index} title={category} className="mb-2 flex gap-2">
+                    <XInputField
+                      id={`categories[${index}]`}
+                      name={`categories[${index}]`}
+                      type="text"
+                      className="mt-1.5 h-10 flex-1 sm:h-11"
+                      icon={<Layers className="h-4 w-4 sm:h-5 sm:w-5" />}
+                      placeholder="Category"
+                      value={formik.values.categories[index] || ''}
+                      onChange={formik.handleChange}
+                      onBlur={formik.handleBlur}
+                      disabled={loading}
+                      error={
+                        (formik.touched.categories as any)?.[index] &&
+                        (formik.errors.categories as any)?.[index]
+                      }
+                    />
+                    {categoryInputs.length > 1 && (
+                      <Button
+                        type="button"
+                        variant="destructive"
+                        className="mt-2 flex h-9 w-9 items-center justify-center rounded-sm sm:h-10 sm:w-10"
+                        onClick={() => removeField('categories', index)}
+                        disabled={loading}
+                      >
+                        <Minus className="h-4 w-4" />
+                      </Button>
+                    )}
+                    {index === categoryInputs.length - 1 && (
+                      <Button
+                        type="button"
+                        variant="outline"
+                        className="mt-2 flex h-9 w-9 items-center justify-center rounded-sm sm:h-10 sm:w-10"
+                        onClick={() => addField('categories')}
+                        disabled={loading}
+                      >
+                        <Plus className="h-4 w-4" />
+                      </Button>
+                    )}
+                  </div>
+                ))}
+              </div>
+            </form>
+          </DialogDescription>
+        </div>
+
         <DialogFooter className="flex flex-col items-center justify-end gap-2 border-t px-4 py-3 sm:flex-row sm:gap-3 sm:px-6 sm:py-4">
           <DialogClose asChild>
             <Button type="button" variant="outline" className="w-full sm:w-auto" onClick={onClose}>
@@ -490,7 +609,7 @@ const LeadModal = ({ isOpen, onClose, initialValues, handleAdd, handleEdit }: Mo
           </DialogClose>
           <Button
             type="submit"
-            disabled={formik.isSubmitting}
+            disabled={formik.isSubmitting || loading}
             form="lead-form"
             className="w-full sm:w-auto"
           >
@@ -498,7 +617,7 @@ const LeadModal = ({ isOpen, onClose, initialValues, handleAdd, handleEdit }: Mo
           </Button>
         </DialogFooter>
       </DialogContent>
-    </Dialog>
+    </Dialog >
   );
 };
 

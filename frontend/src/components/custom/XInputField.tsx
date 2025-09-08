@@ -17,6 +17,7 @@ export const XInputField = ({
   icon,
   error,
   className,
+  rightElement,
   containerClassName,
   ...props
 }: XInputFieldProps) => {
@@ -36,8 +37,20 @@ export const XInputField = ({
 
         <Input
           {...props}
-          className={cn(icon && 'pl-10', error && 'border-red-500 ring-1 ring-red-500', className)}
+          className={cn(
+            icon && 'pl-10',
+            rightElement && 'pr-12',
+            error && 'border-red-500 ring-1 ring-red-500',
+            className
+
+          )}
         />
+
+        {rightElement && (
+          <span className="absolute right-2 top-1/2 -translate-y-1/2 flex items-center">
+            {rightElement}
+          </span>
+        )}
       </div>
       {error && <p className="mt-1.5 ml-1 text-sm text-red-500">{error}</p>}
     </div>

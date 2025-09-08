@@ -230,14 +230,22 @@ body {
 
 .fc-theme-standard td,
 .fc-theme-standard th {
-  border: none !important;
+  border: 0 solid transparent !important;
 }
 
 .fc .fc-scrollgrid,
 .fc .fc-scrollgrid-section,
 .fc .fc-col-header-cell,
 .fc .fc-daygrid-day {
-  border: none !important;
+  border: 0 solid transparent !important;
+}
+
+.fc .fc-scrollgrid-section-sticky > * {
+  background: transparent !important;
+}
+
+.fc .fc-daygrid-day.fc-day-today {
+  background-color: transparent;
 }
 
 @layer base {
@@ -267,4 +275,64 @@ body {
 
 .badge-pop {
   animation: pop 0.3s ease-in-out;
+}
+
+/* Tooltip container */
+[data-tooltip] {
+  position: relative;
+  @apply cursor-pointer;
+}
+
+/* Tooltip bubble */
+[data-tooltip]::before {
+  content: attr(data-tooltip);
+  position: absolute;
+  bottom: calc(100% + 8px); /* Spacing from element */
+  left: 50%;
+  transform: translateX(-50%);
+  background-color: var(--color-primary); /* Use Shadcn's popover color */
+  color: whitesmoke; /* Use Shadcn's popover foreground */
+  padding: 6px 10px;
+  border-radius: var(--radius-md); /* Use Shadcn's medium radius */
+  font-size: 0.75rem; /* text-xs */
+  line-height: 1rem;
+  white-space: nowrap;
+  opacity: 0;
+  pointer-events: none;
+  transition:
+    opacity 0.2s ease-in-out,
+    transform 0.2s ease-in-out;
+  transform-origin: bottom center;
+  z-index: 50;
+}
+
+/* Tooltip arrow */
+[data-tooltip]::after {
+  content: '';
+  position: absolute;
+  bottom: calc(100% + -4px);
+  left: 50%;
+  transform: translateX(-50%);
+  border-width: 6px;
+  border-style: solid;
+  border-color: var(--color-primary) transparent transparent transparent; /* Match bubble background */
+  opacity: 0;
+  transition: opacity 0.2s ease-in-out;
+  z-index: 50;
+}
+
+/* Show on hover/focus */
+[data-tooltip]:hover::before,
+[data-tooltip]:hover::after,
+[data-tooltip]:focus::before,
+[data-tooltip]:focus::after {
+  opacity: 1;
+}
+
+/* Respect reduced motion preferences */
+@media (prefers-reduced-motion: reduce) {
+  [data-tooltip]::before,
+  [data-tooltip]::after {
+    transition: none;
+  }
 }

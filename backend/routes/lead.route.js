@@ -3,6 +3,7 @@ import verifyToken from '../middlewares/verifyToken.middleware.js';
 import {
   addLead,
   deleteLead,
+  generateAILead,
   getLeads,
   getLeadStatusCounts,
   updateLead,
@@ -13,6 +14,7 @@ const router = express.Router();
 router.get('/', verifyToken, getLeads);
 router.get('/pie-chart', verifyToken, getLeadStatusCounts);
 router.post('/', verifyToken, addLead);
+router.post('/ai-lead', verifyToken, generateAILead);
 router.put('/:id', verifyToken, updateLead);
 router.delete('/:id', verifyToken, deleteLead);
 

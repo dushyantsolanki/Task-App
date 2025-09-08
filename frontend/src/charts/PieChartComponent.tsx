@@ -16,6 +16,10 @@ interface Props {
   nameKey: string;
 }
 export function PieChartComponent({ title, chartConfig, data, nameKey }: Props) {
+  function isAllCountsZero(data: { status: string; count: number; fill: string }[]): boolean {
+    return data.every(item => item.count === 0);
+  }
+
   return (
     <Card className="flex flex-col">
       <CardHeader className="items-center pb-0">
@@ -23,14 +27,15 @@ export function PieChartComponent({ title, chartConfig, data, nameKey }: Props) 
       </CardHeader>
       <CardContent className="flex-1 pb-0">
         <ChartContainer config={chartConfig} className="mx-auto aspect-square max-h-[300px]">
-          <PieChart>
+          {data?.length && isAllCountsZero(data) === false ? <PieChart>
             <Pie data={data} dataKey="count" label nameKey={nameKey} />
             <ChartTooltip content={<ChartTooltipContent hideLabel />} />
             <ChartLegend
               content={<ChartLegendContent nameKey={nameKey} />}
               className="-translate-y-2 flex-wrap gap-2 *:basis-1/4 *:justify-center"
             />
-          </PieChart>
+          </PieChart> : <h3 className='h-full flex items-center text-2xl font-medium  justify-center'>No Data Available</h3>}
+
         </ChartContainer>
       </CardContent>
     </Card>

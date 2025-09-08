@@ -13,7 +13,7 @@ import { useAuthStore } from '@/store/authStore';
 import { Tooltip, TooltipContent, TooltipTrigger } from '@/components/ui/tooltip';
 import { ImageZoom } from '@/components/ui/kibo-ui/image-zoom';
 import SEO from '@/components/app/components/SEO';
-// import { VideoPlayer, VideoPlayerContent, VideoPlayerControlBar, VideoPlayerMuteButton, VideoPlayerPlayButton, VideoPlayerSeekBackwardButton, VideoPlayerSeekForwardButton, VideoPlayerTimeDisplay, VideoPlayerTimeRange, VideoPlayerVolumeRange } from "@/components/ui/kibo-ui/video-player";
+import { VideoPlayer, VideoPlayerContent, VideoPlayerControlBar, VideoPlayerMuteButton, VideoPlayerPlayButton, VideoPlayerSeekBackwardButton, VideoPlayerSeekForwardButton, VideoPlayerTimeDisplay, VideoPlayerTimeRange, VideoPlayerVolumeRange } from "@/components/ui/kibo-ui/video-player";
 
 interface Source {
   title: string;
@@ -377,13 +377,31 @@ function MediaSidebar({ media }: { media: { images: string[]; videos: string[] }
                     height="200"
                     allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
                     allowFullScreen
-                    className="rounded-md"
+                    className="rounded-md border"
                   ></iframe>
                 ) : (
-                  <video controls className="h-48 w-full rounded-[--radius-md]">
-                    <source src={video} type="video/mp4" />
-                    Your browser does not support the video tag.
-                  </video>
+                  // <video controls className="h-48 w-full rounded-[--radius-md]">
+                  //   <source src={video} type="video/mp4" />
+                  //   Your browser does not support the video tag.
+                  // </video>
+
+                  <VideoPlayer className="overflow-hidden rounded-lg border">
+                    <VideoPlayerContent
+                      crossOrigin=""
+                      slot="media"
+                      src={video}
+                    />
+                    <VideoPlayerControlBar>
+                      <VideoPlayerPlayButton />
+                      <VideoPlayerSeekBackwardButton />
+                      <VideoPlayerSeekForwardButton />
+                      <VideoPlayerTimeRange />
+                      <VideoPlayerTimeDisplay showDuration />
+                      <VideoPlayerMuteButton />
+                      <VideoPlayerVolumeRange />
+                    </VideoPlayerControlBar>
+                  </VideoPlayer>
+
                 )}
               </div>
             ))}

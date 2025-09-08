@@ -18,7 +18,6 @@ import { Task, Template } from './models/index.js';
 import { faker } from '@faker-js/faker';
 import fs from 'fs';
 import { chromium } from 'playwright';
-// import './test.js';
 // import { emailQueue } from './queue/queue.js';
 // import emailWorker from './queue/worker/email.worker.js';
 // passport configurations
@@ -346,7 +345,6 @@ app.get('/api/overview', async (req, res) => {
   try {
     const data = await scrap(q);
     if (data.error) return res.status(500).json(data);
-    console.log(data.content);
     const summary = await runGroqSearchQA(data.content, q);
 
     res.json({

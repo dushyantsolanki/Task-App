@@ -2,6 +2,7 @@ import mongoose from 'mongoose';
 import logger from '../configs/pino.config.js';
 import { Lead } from '../models/index.js';
 import { sendLeadUpdate } from '../sockets/events/lead.event.js';
+import { AILeadScrapper } from '../playwright/aiLead.playwright.js';
 
 export const getLeads = async (req, res) => {
   try {
@@ -179,5 +180,27 @@ export const getLeadStatusCounts = async (req, res) => {
   } catch (err) {
     logger.error(err, 'Error in getLeadStatusCounts');
     return res.status(500).json({ success: false, message: err.message });
+  }
+};
+
+export const generateAILead = async (req, res) => {
+  try {
+    const { userId } = req.user;
+    const { name } = req.body;
+
+    if (!name) {
+      return res.status(400).json({
+        success: false,
+        message: 'Name is required for AI lead generation',
+      });
+    }
+
+    await AILeadScrapper(name, userId, req, res);
+  } catch (err) {
+    logger.error(err, 'Error in generateAILead');
+    return res.status(500).json({
+      success: false,
+      message: err.message || 'Internal server error',
+    });
   }
 };

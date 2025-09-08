@@ -15,3 +15,16 @@ export const sendLeadUpdate = async ({ type }) => {
     logger.error(err, 'Error in sendLeadUpdate');
   }
 };
+
+export const sendAILeadStatus = async ({ recipient, statusMsg }) => {
+  try {
+    const activeUsers = getActiveUsers();
+
+    const socketIds = activeUsers.get(recipient.toString());
+    for (const socketId of socketIds) {
+      io.to(socketId).emit('ai_lead_status', statusMsg);
+    }
+  } catch (err) {
+    logger.error(err, 'Error in sendAILeadStatus');
+  }
+};
