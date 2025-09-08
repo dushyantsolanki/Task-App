@@ -276,7 +276,7 @@ const LeadModal = ({ isOpen, onClose, initialValues, handleAdd, handleEdit }: Mo
           </DialogTitle>
           <div className='w-full flex justify-center'>
             <AnimatePresence>
-              {statusMsg && (
+              {loading && statusMsg && (
                 <motion.div
                   className=' border border-t-0 backdrop-blur-sm opacity-5 rounded-md rounded-t-none shadow-xs flex items-center gap-1 px-4 py-1.5'
                   initial={{ y: '-5%', opacity: 0 }}
