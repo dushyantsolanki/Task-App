@@ -526,7 +526,7 @@ import stealth from 'puppeteer-extra-plugin-stealth';
 import { sendAILeadStatus } from '../sockets/events/lead.event.js';
 
 const ai = new GoogleGenAI({ apiKey: process.env.GOOGLE_GEMINI_API_KEY });
-chromium.use(stealth());
+// chromium.use(stealth());
 
 function sleep(ms) {
   return new Promise((resolve) => setTimeout(resolve, ms));
@@ -805,12 +805,18 @@ async function scrapeCompany(companyName, userId) {
       headless: true,
       args: [
         '--disable-blink-features=AutomationControlled',
-        '--disable-web-security',
-        '--disable-features=IsolateOrigins,site-per-process',
-        '--no-sandbox',
-        '--disable-setuid-sandbox',
-        '--disable-dev-shm-usage',
+        // '--disable-web-security',
+        // '--disable-features=IsolateOrigins,site-per-process',
+        // '--no-sandbox',
+        // '--disable-setuid-sandbox',
+        // '--disable-dev-shm-usage',
       ],
+    });
+
+    await context.addInitScript(() => {
+      Object.defineProperty(navigator, 'webdriver', {
+        get: () => undefined,
+      });
     });
 
     const context = await browser.newContext({
@@ -847,22 +853,46 @@ async function scrapeCompany(companyName, userId) {
     });
 
     // Check for captcha
-    if (await detectAndHandleCaptcha(page, userId)) {
-      console.log('Handling CAPTCHA challenges, resuming scraping');
-      sendAILeadStatus({
-        type: 'ai_lead_status',
-        recipient: userId,
-        statusMsg: `AI is solving the CAPTCHA to proceed.`,
-      });
+    // if (await detectAndHandleCaptcha(page, userId)) {
+    //   console.log('Handling CAPTCHA challenges, resuming scraping');
+    //   sendAILeadStatus({
+    //     type: 'ai_lead_status',
+    //     recipient: userId,
+    //     statusMsg: `AI is solving the CAPTCHA to proceed.`,
+    //   });
+    // }
+
+    await sleep(1000 + Math.random() * 2500);
+    await randomMouseMovement(page, 3);
+    await humanScroll(page);
+
+    // Try multiple selectors in order
+    const selectors = [
+      '.DUwDvf', // current
+      '[class*="fontHeadlineSmall"]', // often used for titles
+      'h1[class*="fontHeadlineLarge"]', // place name on detail page
+      'div[data-attrid="title"]', // sometimes used in SERP
+    ];
+
+    let found = false;
+
+    for (const selector of selectors) {
+      try {
+        console.log(`Trying selector: ${selector}`);
+        const element = page.locator(selector);
+        await element.waitFor({ state: 'visible', timeout: 20000 });
+        const text = await element.textContent();
+        console.log(`✅ Matched with "${selector}":`, text?.trim());
+        found = true;
+        break;
+      } catch (e) {
+        console.log(`Selector "${selector}" not found.`);
+      }
     }
 
-    await sleep(100 + Math.random() * 1000);
-    await randomMouseMovement(page, 3);
-    // await humanScroll(page);
-
-    await page.waitForSelector('.DUwDvf', { state: 'attached' });
-    await page.waitForSelector('.DUwDvf', { state: 'visible', timeout: 60000 });
-    await page.waitForSelector('.DUwDvf', { state: 'visible' });
+    if (!found) {
+      throw new Error('None of the target selectors became visible.');
+    }
 
     // await page.waitForSelector('.DUwDvf', { timeout: 15000 }).catch(() => {
     //   throw new Error('Unable to find company details. Please verify the company name.');
