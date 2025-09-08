@@ -862,6 +862,7 @@ async function scrapeCompany(companyName, userId) {
     await sleep(100 + Math.random() * 1000);
     await randomMouseMovement(page, 3);
 
+    await page.screenshot({ path: 'bing-maps-scrape-error.png', fullPage: true });
     // Wait for business info module to appear
     sendAILeadStatus({
       type: 'ai_lead_status',
