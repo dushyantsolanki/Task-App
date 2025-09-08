@@ -720,7 +720,7 @@ async function detectAndHandleCaptcha(page, userId) {
         console.log('Captcha detected! Pausing for manual intervention.');
         // In a real scenario, integrate a captcha solver service here.
         // For now, wait indefinitely or handle manually; adjust as needed.
-        await page.waitForTimeout(30000); // Extended wait; replace with solver
+        await page.waitForTimeout(1000); // Extended wait; replace with solver
         return true;
       }
     } catch (error) {
