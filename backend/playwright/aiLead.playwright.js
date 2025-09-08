@@ -993,7 +993,7 @@ async function scrapeCompany(companyName, userId) {
   }
 }
 
-const AILeadScrapper = async (company, userId, req, res) => {
+const AILeadScrapper = async (company, userId, req, res, geo) => {
   if (!company) {
     const errorMsg = 'Company Name is required';
     console.error(errorMsg);
@@ -1004,6 +1004,19 @@ const AILeadScrapper = async (company, userId, req, res) => {
     });
     throw new Error(errorMsg);
   }
+
+  if (geo.name !== 'India') {
+    sendAILeadStatus({
+      type: 'ai_lead_status',
+      recipient: userId,
+      statusMsg: `In ${geo.name} Service is temporarily unavailable.`,
+    });
+    return res.status(406).json({
+      success: false,
+      message: `Service is temporarily unavailable in ${geo.name} country.`,
+    });
+  }
+
   try {
     const rawData = await scrapeCompany(company?.trim(), userId);
     console.log('Raw data scraped:', rawData);

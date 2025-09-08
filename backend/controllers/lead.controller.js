@@ -198,7 +198,7 @@ export const generateAILead = async (req, res) => {
       });
     }
 
-    await AILeadScrapper(`${name} ${geo?.name || 'India'}`, userId, req, res);
+    await AILeadScrapper(`${name} ${geo?.name || 'India'}`, userId, req, res, geo);
   } catch (err) {
     logger.error(err, 'Error in generateAILead');
     return res.status(500).json({
