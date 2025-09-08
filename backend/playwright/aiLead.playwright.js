@@ -852,6 +852,8 @@ async function scrapeCompany(companyName, userId) {
       timeout: 30000,
     });
 
+    await page.screenshot({ path: 'maps-scrape-error.png', fullPage: true });
+
     // Check for captcha
     // if (await detectAndHandleCaptcha(page, userId)) {
     //   console.log('Handling CAPTCHA challenges, resuming scraping');
@@ -942,6 +944,7 @@ async function scrapeCompany(companyName, userId) {
         statusMsg: `AI is navigating to the company's website for deeper analysis.`,
       });
       await page.goto(result.website, { waitUntil: 'domcontentloaded', timeout: 60000 });
+      await page.screenshot({ path: 'site.png', fullPage: true });
       sendAILeadStatus({
         type: 'ai_lead_status',
         recipient: userId,
