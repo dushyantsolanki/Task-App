@@ -803,14 +803,15 @@ async function scrapeCompany(companyName, userId) {
   try {
     browser = await chromium.launch({
       headless: true,
-      args: [
-        '--disable-blink-features=AutomationControlled',
-        '--disable-web-security',
-        '--disable-features=IsolateOrigins,site-per-process',
-        '--no-sandbox',
-        '--disable-setuid-sandbox',
-        '--disable-dev-shm-usage',
-      ],
+      args: ['--disable-blink-features=AutomationControlled'],
+      // args: [
+      //   '--disable-blink-features=AutomationControlled',
+      //   '--disable-web-security',
+      //   '--disable-features=IsolateOrigins,site-per-process',
+      //   '--no-sandbox',
+      //   '--disable-setuid-sandbox',
+      //   '--disable-dev-shm-usage',
+      // ],
     });
 
     const context = await browser.newContext({
