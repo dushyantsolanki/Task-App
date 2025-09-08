@@ -9,24 +9,25 @@ interface ToastProps {
   colors: any;
   message: string
 }
+
 const useNotify = () => {
   const createToast = (title: ToastProps['title'], message: ToastProps['message'], icon: ToastProps['icon'], colors: ToastProps['colors']) => {
     return toast.custom((id) => (
       <div
         className={`relative flex items-center gap-4 p-4 rounded-2xl md:w-100 
-                   backdrop-blur-xs bg-white/30 dark:bg-black/20 
+                   backdrop-blur-xl bg-white/10 dark:bg-black/30 
                    border ${colors.border}
                    overflow-hidden transition-all duration-300 `}
       >
         {/* Liquid Glass Reflection: flowing gradient sweep */}
         <div
-          className="absolute inset-0 -z-10 opacity-70 dark:opacity-20 transition-transform duration-1000"
+          className="absolute inset-0 -z-10 opacity-60 dark:opacity-30 transition-transform duration-1000"
           style={{
             background: `
               linear-gradient(-45deg, 
                 transparent 0%, 
-                rgba(255, 255, 255, 0.2) 30%, 
-                rgba(255, 255, 255, 0.08) 50%, 
+                ${colors.gradientLight} 30%, 
+                ${colors.gradient} 50%, 
                 transparent 80%
               ),
               linear-gradient(135deg, 
@@ -65,7 +66,7 @@ const useNotify = () => {
           className="text-gray-500 hover:text-gray-800 
                      dark:text-gray-400 dark:hover:text-gray-50 
                      hover:bg-black/5 dark:hover:bg-white/10  border
-                     w-8 h-8  cursor-pointer rounded-md transition-all duration-200 
+                     w-8 h-8 cursor-pointer rounded-md transition-all duration-200 
                      focus:outline-none focus:ring-0"
           aria-label="Close notification"
         >
@@ -77,17 +78,16 @@ const useNotify = () => {
 
   const success = (message = "Action is done", title = "Success") => {
     return createToast(
-
       title,
       message,
       <CheckCircle />,
       {
-        border: 'border-green-300/50 dark:border-green-800/40',
-        gradient: 'rgba(16, 185, 129, 0.08)',
-        gradientLight: 'rgba(16, 185, 129, 0.04)',
-        accent: 'from-green-400 to-green-500',
-        iconColor: 'text-green-500',
-        titleColor: 'text-green-500 dark:text-green-400'
+        border: 'border-green-300/50 dark:border-green-900/50',
+        gradient: 'rgba(16, 185, 129, 0.15)',
+        gradientLight: 'rgba(16, 185, 129, 0.05)',
+        accent: 'from-green-500 to-green-600',
+        iconColor: 'text-green-600 dark:text-green-500',
+        titleColor: 'text-green-600 dark:text-green-500'
       }
     );
   };
@@ -98,46 +98,44 @@ const useNotify = () => {
       message,
       <XCircle />,
       {
-        border: 'border-red-200/50 dark:border-red-800/50',
-        gradient: 'rgba(239, 68, 68, 0.08)',
-        gradientLight: 'rgba(239, 68, 68, 0.04)',
-        accent: 'from-red-400 to-red-500',
-        iconColor: 'text-red-500',
-        titleColor: 'text-red-500 dark:text-red-400'
+        border: 'border-red-300/50 dark:border-red-900/50',
+        gradient: 'rgba(239, 68, 68, 0.15)',
+        gradientLight: 'rgba(239, 68, 68, 0.05)',
+        accent: 'from-red-500 to-red-600',
+        iconColor: 'text-red-600 dark:text-red-500',
+        titleColor: 'text-red-600 dark:text-red-500'
       }
     );
   };
 
   const info = (message = "Here's some useful information.", title = "Information") => {
     return createToast(
-
       title,
       message,
       <Info />,
       {
-        border: 'border-blue-200/50 dark:border-blue-800/40',
-        gradient: 'rgba(59, 130, 246, 0.08)',
-        gradientLight: 'rgba(59, 130, 246, 0.04)',
-        accent: 'from-blue-400 to-blue-500',
-        iconColor: 'text-blue-500',
-        titleColor: 'text-blue-500 dark:text-blue-400'
+        border: 'border-blue-300/50 dark:border-blue-900/50',
+        gradient: 'rgba(59, 130, 246, 0.15)',
+        gradientLight: 'rgba(59, 130, 246, 0.05)',
+        accent: 'from-blue-500 to-blue-600',
+        iconColor: 'text-blue-600 dark:text-blue-500',
+        titleColor: 'text-blue-600 dark:text-blue-500'
       }
     );
   };
 
   const warning = (message = "Please check your input.", title = "Warning") => {
     return createToast(
-
       title,
       message,
       <AlertTriangle />,
       {
-        border: 'border-yellow-200/50 dark:border-yellow-800/40',
-        gradient: 'rgba(245, 158, 11, 0.08)',
-        gradientLight: 'rgba(245, 158, 11, 0.04)',
-        accent: 'from-yellow-400 to-yellow-500',
-        iconColor: 'text-yellow-500',
-        titleColor: 'text-yellow-500 dark:text-yellow-400'
+        border: 'border-yellow-300/50 dark:border-yellow-900/50',
+        gradient: 'rgba(245, 158, 11, 0.15)',
+        gradientLight: 'rgba(245, 158, 11, 0.05)',
+        accent: 'from-yellow-500 to-yellow-600',
+        iconColor: 'text-yellow-600 dark:text-yellow-500',
+        titleColor: 'text-yellow-600 dark:text-yellow-500'
       }
     );
   };

@@ -233,64 +233,236 @@ export const exportTasksToExcel = async (req, res) => {
   try {
     const { userId } = req.user;
 
-    // Fetch tasks
-    const tasks = await Task.find({ createdBy: userId, isDeleted: false }).populate(
-      'createdBy',
-      'name email',
-    );
+    const tasks = await Task.find({ createdBy: userId, isDeleted: false })
+      .populate('createdBy', 'name email')
+      .populate('share.shareTo', 'name email');
 
-    // Create a workbook and worksheet
+    if (!tasks?.length) {
+      return res.status(404).json({ success: false, message: 'Data Not Found' });
+    }
+
     const workbook = new ExcelJS.Workbook();
-    const worksheet = workbook.addWorksheet('Tasks');
+    const worksheet = workbook.addWorksheet('Tasks', {
+      properties: { tabColor: { argb: 'FF2196F3' } }, // Blue tab color
+      views: [{ state: 'frozen', ySplit: 1 }], // Freeze header row
+    });
 
-    // Define columns
     worksheet.columns = [
-      { header: 'Title', key: 'title', width: 20 },
-      { header: 'Description', key: 'description', width: 30 },
+      { header: 'Task ID', key: 'taskId', width: 15 },
+      { header: 'Title', key: 'title', width: 25 },
+      { header: 'Description', key: 'description', width: 35 },
       { header: 'Label', key: 'label', width: 15 },
       { header: 'Status', key: 'status', width: 15 },
-      { header: 'Priority', key: 'priority', width: 10 },
-      { header: 'User Name', key: 'name', width: 24 },
-      { header: 'User Email', key: 'email', width: 24 },
+      { header: 'Priority', key: 'priority', width: 12 },
+      { header: 'Start Date', key: 'startDate', width: 15 },
+      { header: 'End Date', key: 'endDate', width: 15 },
+      { header: 'Shared With', key: 'sharedWith', width: 30 },
+      { header: 'Permissions', key: 'permissions', width: 20 },
+      { header: 'User Name', key: 'name', width: 20 },
+      { header: 'User Email', key: 'email', width: 25 },
       { header: 'Created At', key: 'createdAt', width: 20 },
       { header: 'Updated At', key: 'updatedAt', width: 20 },
     ];
 
-    // Add rows
-    tasks.forEach((task) => {
-      worksheet.addRow({
-        title: task.title,
-        description: task.description,
-        label: task.label,
-        status: task.status,
-        priority: task.priority,
-        name: task.createdBy.name,
-        email: task.createdBy.email,
-        createdAt: task.createdAt?.toLocaleString('en-IN', {
-          day: '2-digit',
-          month: '2-digit',
-          year: 'numeric',
-          hour: '2-digit',
-          minute: '2-digit',
-        }),
-        updatedAt: task.updatedAt?.toLocaleString('en-IN', {
-          day: '2-digit',
-          month: '2-digit',
-          year: 'numeric',
-          hour: '2-digit',
-          minute: '2-digit',
-        }),
+    // Style the header row
+    const headerRow = worksheet.getRow(1);
+    headerRow.font = { name: 'Calibri', size: 12, bold: true, color: { argb: 'FFFFFFFF' } };
+    headerRow.fill = {
+      type: 'pattern',
+      pattern: 'solid',
+      fgColor: { argb: 'FF0288D1' }, // Dark blue background
+    };
+    headerRow.alignment = { vertical: 'middle', horizontal: 'center', wrapText: true };
+    headerRow.height = 30;
+
+    // Add filters to the header row
+    worksheet.autoFilter = {
+      from: { row: 1, column: 1 },
+      to: { row: 1, column: worksheet.columns.length },
+    };
+
+    tasks.forEach((task, index) => {
+      const sharedWith = task.share?.map((s) => s.shareTo?.email || 'N/A').join(', ') || 'N/A';
+      const permissions = task.share?.map((s) => s.permission).join(', ') || 'N/A';
+
+      const row = worksheet.addRow({
+        taskId: task.taskId || 'N/A',
+        title: task.title || 'N/A',
+        description: task.description || 'N/A',
+        label: task.label || 'N/A',
+        status: task.status || 'N/A',
+        priority: task.priority || 'N/A',
+        startDate: task.startDate || 'N/A',
+        endDate: task.endDate || 'N/A',
+        sharedWith,
+        permissions,
+        name: task.createdBy?.name || 'N/A',
+        email: task.createdBy?.email || 'N/A',
+        createdAt: task.createdAt
+          ? task.createdAt.toLocaleString('en-IN', {
+              timeZone: 'Asia/Kolkata',
+              day: '2-digit',
+              month: '2-digit',
+              year: 'numeric',
+              hour: '2-digit',
+              minute: '2-digit',
+            })
+          : 'N/A',
+        updatedAt: task.updatedAt
+          ? task.updatedAt.toLocaleString('en-IN', {
+              timeZone: 'Asia/Kolkata',
+              day: '2-digit',
+              month: '2-digit',
+              year: 'numeric',
+              hour: '2-digit',
+              minute: '2-digit',
+            })
+          : 'N/A',
       });
+
+      // Apply alternating row colors
+      row.fill = {
+        type: 'pattern',
+        pattern: 'solid',
+        fgColor: { argb: index % 2 === 0 ? 'FFF5F5F5' : 'FFFFFFFF' }, // Light gray for even rows, white for odd
+      };
+      row.font = { name: 'Calibri', size: 11 };
+      row.alignment = { vertical: 'middle', wrapText: true };
+      row.height = 25;
     });
 
-    // Set response headers
+    // Apply conditional formatting for Status column
+    worksheet.addConditionalFormatting({
+      ref: `E2:E${tasks.length + 1}`, // Status column
+      rules: [
+        {
+          type: 'expression',
+          formulae: ['E2="success"'],
+          style: {
+            fill: { type: 'pattern', pattern: 'solid', fgColor: { argb: 'FF4CAF50' } }, // Green for success
+            font: { color: { argb: 'FFFFFFFF' } },
+          },
+        },
+        {
+          type: 'expression',
+          formulae: ['E2="failed"'],
+          style: {
+            fill: { type: 'pattern', pattern: 'solid', fgColor: { argb: 'FFF44336' } }, // Red for failed
+            font: { color: { argb: 'FFFFFFFF' } },
+          },
+        },
+        {
+          type: 'expression',
+          formulae: ['E2="pending"'],
+          style: {
+            fill: { type: 'pattern', pattern: 'solid', fgColor: { argb: 'FFFFCA28' } }, // Yellow for pending
+          },
+        },
+      ],
+    });
+
+    // Apply conditional formatting for Priority column
+    worksheet.addConditionalFormatting({
+      ref: `F2:F${tasks.length + 1}`, // Priority column
+      rules: [
+        {
+          type: 'expression',
+          formulae: ['F2="high"'],
+          style: {
+            fill: { type: 'pattern', pattern: 'solid', fgColor: { argb: 'FFF44336' } }, // Red for high
+            font: { color: { argb: 'FFFFFFFF' } },
+          },
+        },
+        {
+          type: 'expression',
+          formulae: ['F2="medium"'],
+          style: {
+            fill: { type: 'pattern', pattern: 'solid', fgColor: { argb: 'FFFFCA28' } }, // Yellow for medium
+          },
+        },
+        {
+          type: 'expression',
+          formulae: ['F2="low"'],
+          style: {
+            fill: { type: 'pattern', pattern: 'solid', fgColor: { argb: 'FF4CAF50' } }, // Green for low
+          },
+        },
+      ],
+    });
+
+    // Add summary worksheet
+    const totalTasks = tasks.length;
+    const statusCounts = {
+      pending: tasks.filter((t) => t.status === 'pending').length,
+      processing: tasks.filter((t) => t.status === 'processing').length,
+      success: tasks.filter((t) => t.status === 'success').length,
+      failed: tasks.filter((t) => t.status === 'failed').length,
+    };
+    const priorityCounts = {
+      low: tasks.filter((t) => t.priority === 'low').length,
+      medium: tasks.filter((t) => t.priority === 'medium').length,
+      high: tasks.filter((t) => t.priority === 'high').length,
+    };
+
+    const summaryWorksheet = workbook.addWorksheet('Summary', {
+      properties: { tabColor: { argb: 'FFFFC107' } }, // Yellow tab color
+    });
+
+    summaryWorksheet.columns = [
+      { header: 'Metric', key: 'metric', width: 20 },
+      { header: 'Value', key: 'value', width: 15 },
+    ];
+
+    summaryWorksheet.addRow({ metric: 'Total Tasks', value: totalTasks });
+    summaryWorksheet.addRow({ metric: 'Pending Tasks', value: statusCounts.pending });
+    summaryWorksheet.addRow({ metric: 'Processing Tasks', value: statusCounts.processing });
+    summaryWorksheet.addRow({ metric: 'Successful Tasks', value: statusCounts.success });
+    summaryWorksheet.addRow({ metric: 'Failed Tasks', value: statusCounts.failed });
+    summaryWorksheet.addRow({ metric: 'High Priority Tasks', value: priorityCounts.high });
+    summaryWorksheet.addRow({ metric: 'Medium Priority Tasks', value: priorityCounts.medium });
+    summaryWorksheet.addRow({ metric: 'Low Priority Tasks', value: priorityCounts.low });
+
+    // Style the summary sheet header
+    const summaryHeader = summaryWorksheet.getRow(1);
+    summaryHeader.font = { name: 'Calibri', size: 12, bold: true, color: { argb: 'FFFFFFFF' } };
+    summaryHeader.fill = {
+      type: 'pattern',
+      pattern: 'solid',
+      fgColor: { argb: 'FF0288D1' }, // Dark blue
+    };
+    summaryHeader.alignment = { vertical: 'middle', horizontal: 'center' };
+
+    // Style summary data rows
+    summaryWorksheet.eachRow((row, rowNumber) => {
+      if (rowNumber > 1) {
+        row.fill = {
+          type: 'pattern',
+          pattern: 'solid',
+          fgColor: { argb: rowNumber % 2 === 0 ? 'FFF5F5F5' : 'FFFFFFFF' },
+        };
+        row.font = { name: 'Calibri', size: 11 };
+        row.alignment = { vertical: 'middle', horizontal: 'center' };
+      }
+    });
+
+    // Optimize column widths based on content
+    worksheet.columns.forEach((column) => {
+      let maxLength = 0;
+      column.eachCell({ includeEmpty: true }, (cell) => {
+        const columnLength = cell.value ? cell.value.toString().length : 0;
+        if (columnLength > maxLength) maxLength = columnLength;
+      });
+      column.width = Math.min(Math.max(maxLength + 2, column.width || 10), 50); // Min 10, max 50
+    });
     res.setHeader(
       'Content-Type',
       'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
     );
-    res.setHeader('Content-Disposition', 'attachment; filename=tasks.xlsx');
+    res.setHeader(
+      'Content-Disposition',
+      `attachment; filename=tasks_export_${new Date().toISOString().split('T')[0]}.xlsx`,
+    );
 
-    // Write to response
     await workbook.xlsx.write(res);
     res.end();
   } catch (err) {

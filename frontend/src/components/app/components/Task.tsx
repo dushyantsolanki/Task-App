@@ -336,6 +336,9 @@ export default function () {
       window.URL.revokeObjectURL(url);
     } catch (error: any) {
       console.error(error);
+      if (error?.status === 404) {
+        return toast.error("Data Not Found")
+      }
       toast.error(error.response?.data?.message || 'Failed to download tasks');
     }
   };

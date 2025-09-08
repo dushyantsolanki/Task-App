@@ -93,7 +93,7 @@ export default function RegisterForm({
       }
     } catch (error: any) {
       console.error('Frontend Google login failed:', error);
-      toast.error(error.response.data.message || 'Internal server error');
+      toast.error(error?.response?.data?.message || 'Internal server error');
     } finally {
       setLoading({ ...loading, google: false });
     }
@@ -123,7 +123,7 @@ export default function RegisterForm({
       }
     } catch (error: any) {
       console.error('Frontend Github login failed:', error);
-      toast.error(error.response.data.message || 'Internal server error');
+      toast.error(error?.response?.data?.message || 'Internal server error');
     } finally {
       setLoading({ ...loading, github: false });
     }
@@ -142,7 +142,7 @@ export default function RegisterForm({
         navigate('/verify-otp');
       }
     } catch (error: any) {
-      toast.error(error.response.data.message || 'Registration failed');
+      toast.error(error?.response?.data?.message || 'Registration failed');
       console.error('Error registering user:', error);
     }
   };

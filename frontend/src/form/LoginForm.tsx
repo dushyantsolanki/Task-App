@@ -52,7 +52,7 @@ export default function LoginForm({ className, ...props }: React.ComponentPropsW
       }
     } catch (error: any) {
       console.error('Frontend Google login failed:', error);
-      toast.error(error.response.data.message || 'Internal server error');
+      toast.error(error?.response?.data?.message || 'Internal server error');
     } finally {
       setLoading({ ...loading, google: false });
     }
@@ -82,7 +82,7 @@ export default function LoginForm({ className, ...props }: React.ComponentPropsW
       }
     } catch (error: any) {
       console.error('Frontend Github login failed:', error);
-      toast.error(error.response.data.message || 'Internal server error');
+      toast.error(error?.response?.data?.message || 'Internal server error');
     } finally {
       setLoading({ ...loading, github: false });
     }
@@ -104,7 +104,7 @@ export default function LoginForm({ className, ...props }: React.ComponentPropsW
         window.location.href = '/dashboard';
       }
     } catch (error: any) {
-      toast.error(error.response.data.message || 'Login failed');
+      toast.error(error?.response?.data?.message || 'Login failed');
     }
   };
 

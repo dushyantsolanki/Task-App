@@ -3,6 +3,7 @@ import verifyToken from '../middlewares/verifyToken.middleware.js';
 import {
   addLead,
   deleteLead,
+  exportLeadsToExcel,
   generateAILead,
   getLeads,
   getLeadStatusCounts,
@@ -12,6 +13,7 @@ import {
 const router = express.Router();
 
 router.get('/', verifyToken, getLeads);
+router.get('/export-leads', verifyToken, exportLeadsToExcel);
 router.get('/pie-chart', verifyToken, getLeadStatusCounts);
 router.post('/', verifyToken, addLead);
 router.post('/ai-lead', verifyToken, generateAILead);

@@ -202,7 +202,7 @@ function Lead() {
 
   const handleDownload = async () => {
     try {
-      const response = await AxiousInstance.get('/lead/export/excel', {
+      const response = await AxiousInstance.get('/lead/export-leads', {
         responseType: 'blob',
       });
 
@@ -218,6 +218,9 @@ function Lead() {
       window.URL.revokeObjectURL(url);
     } catch (error: any) {
       console.error(error);
+      if (error?.status === 404) {
+        return toast.error("Data Not Found")
+      }
       toast.error(error.response?.data?.message || 'Failed to download leads');
     }
   };
