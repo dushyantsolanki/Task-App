@@ -425,7 +425,7 @@ const LeadModal = ({ isOpen, onClose, initialValues, handleAdd, handleEdit }: Mo
                   value={formik.values.leadStatus}
                   disabled={loading}
                 >
-                  <SelectTrigger className="w-full py-[18.7px] sm:py-[20.9px]">
+                  <SelectTrigger className="w-full py-[18.7px] sm:py-[20.9px] capitalize">
                     <SelectValue placeholder="Select lead status" />
                   </SelectTrigger>
                   <SelectContent>
