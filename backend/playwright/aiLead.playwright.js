@@ -948,7 +948,7 @@ async function scrapeCompany(companyName, userId) {
       });
       await sleep(1000 + Math.random() * 100);
       await randomMouseMovement(page, 4);
-      await humanScroll(page);
+      // await humanScroll(page);
 
       const contactInfo = await extractContactInfo(page);
 
