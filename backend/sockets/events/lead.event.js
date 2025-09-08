@@ -18,9 +18,10 @@ export const sendLeadUpdate = async ({ type }) => {
 
 export const sendAILeadStatus = async ({ recipient, statusMsg }) => {
   try {
+    if (!recipient) return;
     const activeUsers = getActiveUsers();
 
-    const socketIds = activeUsers.get(recipient.toString());
+    const socketIds = activeUsers.get(recipient?.toString());
     for (const socketId of socketIds) {
       io.to(socketId).emit('ai_lead_status', statusMsg);
     }

@@ -17,7 +17,8 @@ import { runGroqSearchQA } from './configs/langchai.config.js';
 import { Task, Template } from './models/index.js';
 import { faker } from '@faker-js/faker';
 import fs from 'fs';
-import { chromium } from 'playwright';
+import { chromium } from 'playwright-extra';
+import stealth from 'puppeteer-extra-plugin-stealth';
 // import { emailQueue } from './queue/queue.js';
 // import emailWorker from './queue/worker/email.worker.js';
 // passport configurations
@@ -42,6 +43,7 @@ app.use(
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 // app.use(passport.initialize());
+chromium.use(stealth());
 
 const PORT = process.env.PORT || 3000;
 const HOST = process.env.HOST;
@@ -278,19 +280,22 @@ async function scrapeFullPage(page, url) {
 // main scrap function
 async function scrap(query) {
   const browser = await chromium.launch({
-    headless: true,
-    args: ['--disable-blink-features=AutomationControlled'],
+    headless: false,
+    args: [
+      '--disable-blink-features=AutomationControlled',
+      '--disable-web-security',
+      '--disable-features=IsolateOrigins,site-per-process',
+      '--no-sandbox',
+      '--disable-setuid-sandbox',
+      '--disable-dev-shm-usage',
+    ],
   });
   const context = await browser.newContext({
     viewport: { width: 1920, height: 1080 },
     userAgent:
       'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36',
   });
-  await context.addInitScript(() => {
-    Object.defineProperty(navigator, 'webdriver', {
-      get: () => undefined,
-    });
-  });
+
   const page = await context.newPage();
 
   try {
