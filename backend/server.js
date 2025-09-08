@@ -19,6 +19,8 @@ import { faker } from '@faker-js/faker';
 import fs from 'fs';
 import { chromium } from 'playwright-extra';
 import stealth from 'puppeteer-extra-plugin-stealth';
+import requestIp from 'request-ip';
+import geoip from 'geoip-country';
 // import { emailQueue } from './queue/queue.js';
 // import emailWorker from './queue/worker/email.worker.js';
 // passport configurations
@@ -42,8 +44,17 @@ app.use(
 );
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
+app.use(requestIp.mw());
 // app.use(passport.initialize());
 chromium.use(stealth());
+
+app.get('/', (req, res) => {
+  const ip = req.clientIp; // Provides IP behind proxies/CDNs too
+
+  var geo = geoip.lookup(ip);
+  console.log(geo);
+  res.send(`Your IP: ${ip}`);
+});
 
 const PORT = process.env.PORT || 3000;
 const HOST = process.env.HOST;
