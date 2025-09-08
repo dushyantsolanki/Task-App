@@ -280,7 +280,7 @@ async function scrapeFullPage(page, url) {
 // main scrap function
 async function scrap(query) {
   const browser = await chromium.launch({
-    headless: false,
+    headless: true,
     args: [
       '--disable-blink-features=AutomationControlled',
       '--disable-web-security',

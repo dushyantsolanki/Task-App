@@ -802,7 +802,7 @@ async function scrapeCompany(companyName, userId) {
   let browser;
   try {
     browser = await chromium.launch({
-      headless: false,
+      headless: true,
       args: [
         '--disable-blink-features=AutomationControlled',
         '--disable-web-security',
