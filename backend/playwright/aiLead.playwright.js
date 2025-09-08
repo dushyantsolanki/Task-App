@@ -793,7 +793,7 @@ async function extractContactInfo(page) {
 
 async function scrapeCompany(companyName, userId) {
   console.log(`Initiating scraper for: ${companyName}`);
-  sendAILeadStatus({
+  await sendAILeadStatus({
     type: 'ai_lead_status',
     recipient: userId,
     statusMsg: `AI is initiating the scraping process for: ${companyName}.`,
@@ -802,7 +802,7 @@ async function scrapeCompany(companyName, userId) {
   let browser;
   try {
     browser = await chromium.launch({
-      headless: true,
+      headless: false,
       args: [
         '--disable-blink-features=AutomationControlled',
         '--disable-web-security',
@@ -817,11 +817,11 @@ async function scrapeCompany(companyName, userId) {
       viewport: { width: 1920, height: 1080 },
       userAgent:
         'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/125.0.0.0 Safari/537.36',
-      locale: 'en-US',
-      timezoneId: 'America/New_York',
+      locale: 'en-IN', // English (India)
+      timezoneId: 'Asia/Kolkata', // India Standard Time (IST)
       ignoreHTTPSErrors: true,
       extraHTTPHeaders: {
-        'Accept-Language': 'en-US,en;q=0.9',
+        'Accept-Language': 'en-IN,en;q=0.9', // Prefer Indian English
         Accept: 'text/html,application/xhtml+xml,application/xml;q=0.9,image/webp,*/*;q=0.8',
       },
     });
