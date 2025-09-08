@@ -802,7 +802,7 @@ async function scrapeCompany(companyName, userId) {
   let browser;
   try {
     browser = await chromium.launch({
-      headless: true,
+      headless: false,
       args: [
         '--disable-blink-features=AutomationControlled',
         '--disable-web-security',
@@ -998,8 +998,8 @@ const AILeadScrapper = async (company, userId, req, res) => {
         rawData,
         null,
         0,
-      )}. Always output valid JSON only. Use the following structure: {"title": "","address": "","city": "","state": "","postalCode":"","countryCode": "","phones": [],"categories": [],"emails": [],"website":""} Rules: 1. "title": Company or business name only. 2. "address": Full street address, without city/state duplication. 3. "city", "state", "countryCode": Extract and fill if present in the address. Use ISO-2 country codes (e.g., "IN" for India, "US" for United States). 4. "phones": Extract all valid phone numbers, remove duplicates, format consistently with country code if available. Ignore obviously fake or placeholder numbers like 1234567890, 0000000000. 5. "emails": Extract all valid emails, remove duplicates. Ignore generic, placeholder, or obviously fake emails like test@test.com, example@example.com. 6. "categories": Business categories or industry keywords (keep as an array of strings). 7. If a field is missing, return an empty string "" or empty array []. 8. "website": Company website. Use "" if unknown. 9. Do not add extra fields. Do not include explanations. Return only the JSON object.
-`;
+      )} 
+Always output valid JSON only. Use the following structure: {"title": "","address": "","city": "","state": "","postalCode":"","countryCode": "","phones": [],"categories": [],"emails": [],"website":""} Rules: 1. "title": Company or business name only. 2. "address": Full street address, without city/state duplication. 3. "city", "state", "countryCode": Extract and fill if present in the address. Use ISO-2 country codes (e.g., "IN" for India, "US" for United States). 4. "phones": Extract all valid phone numbers, remove duplicates, format consistently with country code if available. Ignore obviously fake or placeholder numbers like 1234567890, 0000000000. 5. "emails": Extract all valid emails, remove duplicates. Ignore generic, placeholder, or obviously fake emails like test@test.com, example@example.com. 6. "categories": Business categories or industry keywords (keep as an array of strings). 7. If a field is missing, return an empty string "" or empty array []. 8. "website": Company website. Use "" if unknown. 9. Do not add extra fields. Do not include explanations. Return only the JSON object.`;
 
       const response = await ai.models.generateContent({
         model: 'gemini-1.5-flash', // Corrected to a standard model name; adjust if needed
