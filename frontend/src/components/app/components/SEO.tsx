@@ -12,9 +12,8 @@ export default function SEO({
   description,
   url = 'https://taskmate.dushyantportfolio.store/login',
   image = 'https://taskmate.dushyantportfolio.store/og.png',
-  type = 'website',
+  // type = 'website',
 }: SEOProps) {
-  console.log(type)
   return (
     <Helmet>
       {/* Open Graph */}

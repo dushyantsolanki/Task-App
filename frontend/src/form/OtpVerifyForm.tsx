@@ -51,7 +51,6 @@ export default function OtpVerifyForm({
         }, 2000);
       }
     } catch (error: any) {
-      console.log('Error verifying OTP:', error);
       toast.error(error.response.data.message || 'Internal server error');
     } finally {
       setIsLoading(false);
@@ -89,7 +88,6 @@ export default function OtpVerifyForm({
 
     if (otp.length === otpLength) {
       try {
-        console.log('otp ::: ', otp);
         handleOTPVerification(otp);
       } catch (error) {
         console.error('OTP verification failed:', error);

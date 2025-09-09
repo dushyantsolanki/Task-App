@@ -99,7 +99,6 @@ export default function LoginForm({ className, ...props }: React.ComponentPropsW
       if (response.status === 200) {
         toast.success('Login successful');
         login(data.user);
-        console.log('User data:', data.user);
         connect(data.user.id);
         window.location.href = '/dashboard';
       }

@@ -96,7 +96,6 @@ export function AreaChartComponent() {
     const handleTaskUpdate = ({ type }: any) => {
       if (type === 'refresh') {
         getChartData();
-        console.log('Chart data refreshed');
       }
     };
 

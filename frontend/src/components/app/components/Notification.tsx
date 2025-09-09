@@ -40,7 +40,7 @@ export default function Notification({ className = '' }: NotificationProps) {
         setNotificationData(response.data.notifications);
       }
     } catch (error: any) {
-      console.log('Error ', error);
+      console.error('Error ', error);
     }
   };
 

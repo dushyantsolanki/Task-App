@@ -1012,17 +1012,18 @@ const AILeadScrapper = async (company, userId, req, res, geo) => {
     });
     throw new Error(errorMsg);
   }
-
-  if (geo.name !== 'India') {
-    sendAILeadStatus({
-      type: 'ai_lead_status',
-      recipient: userId,
-      statusMsg: `In ${geo.name} Service is temporarily unavailable.`,
-    });
-    return res.status(406).json({
-      success: false,
-      message: `Service is temporarily unavailable in ${geo.name} country.`,
-    });
+  if (process.env.ISDEVELOPMENT !== 'development') {
+    if (geo.name !== 'India') {
+      sendAILeadStatus({
+        type: 'ai_lead_status',
+        recipient: userId,
+        statusMsg: `In ${geo.name} Service is temporarily unavailable.`,
+      });
+      return res.status(406).json({
+        success: false,
+        message: `Service is temporarily unavailable in ${geo.name} country.`,
+      });
+    }
   }
 
   try {

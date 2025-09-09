@@ -77,7 +77,6 @@ const BigCalendar = () => {
     try {
       const response = await AxiousInstance.get('/calendar');
       if (response.status === 200) {
-        console.log(response.data);
         setEvents(response.data.events);
       }
     } catch (error: any) {

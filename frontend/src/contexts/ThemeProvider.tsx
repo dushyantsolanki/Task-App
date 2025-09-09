@@ -40,7 +40,6 @@ export function ThemeProvider({
         ? 'dark'
         : 'light';
 
-      console.log('systemTheme', systemTheme);
       root.classList.add(systemTheme);
       return;
     }

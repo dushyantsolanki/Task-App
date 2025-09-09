@@ -39,3 +39,19 @@ export const getNextSequence = async (name) => {
     throw error;
   }
 };
+
+const SECRET_KEY = crypto.createHash('sha256').update(process.env.ENCRYPTION_SECRETE).digest();
+console.log('ENCRIYPTION SECRET_KEY ::::: ', SECRET_KEY);
+const ALGO = 'aes-256-cbc';
+
+export function encrypt(text) {
+  const iv = crypto.randomBytes(16);
+  const cipher = crypto.createCipheriv(ALGO, SECRET_KEY, iv);
+  let encrypted = cipher.update(text, 'utf8', 'base64');
+  encrypted += cipher.final('base64');
+
+  return {
+    encryptedData: encrypted,
+    iv: iv.toString('base64'),
+  };
+}

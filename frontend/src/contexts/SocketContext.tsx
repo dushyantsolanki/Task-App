@@ -29,7 +29,7 @@ export const SocketProvider = ({ children }: { children: React.ReactNode }) => {
   const enableSound = () => {
     // setIsSoundEnabled(true)
     sound.play().catch((error) => {
-      console.log('Failed to play notification sound:', error);
+      console.error('Failed to play notification sound:', error);
     });
   };
 

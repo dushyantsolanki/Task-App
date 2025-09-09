@@ -35,7 +35,7 @@ const App: React.FC = () => {
         // alert('You denied for the notification');
       }
     } catch (error) {
-      console.log('Error :>', error);
+      console.error('Error :>', error);
     }
   }
 
@@ -76,9 +76,9 @@ const App: React.FC = () => {
                 const wrappedElement =
                   allowedRoles && allowedRoles.length > 0
                     ? // <ProtectedRoute allowedRoles={allowedRoles}>
-                      { element }
+                    { element }
                     : // </ProtectedRoute>
-                      element;
+                    element;
 
                 return (
                   <Route

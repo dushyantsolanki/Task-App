@@ -148,7 +148,6 @@ function Lead() {
 
       if (response.status === 200) {
         const data: ApiResponse = response.data;
-        console.log(data);
         setTableData(() => data.leads || []);
         setTotalCount(data.totalCount || 0);
         setTotalPages(data.totalPages || 0);
@@ -409,7 +408,6 @@ function Lead() {
       cell: ({ row }) => {
         const status = row.original.leadStatus as keyof typeof chartConfig;
         const config: any = chartConfig[status];
-        console.log(config)
         return (
           <Badge
             variant="outline"

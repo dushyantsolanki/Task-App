@@ -250,7 +250,6 @@ const LeadModal = ({ isOpen, onClose, initialValues, handleAdd, handleEdit }: Mo
     if (!on) return;
 
     const handleAILeadStatus = (statusMSG: string) => {
-      console.log('AI LEAD GENERATION ::: ', statusMSG)
       setStatusMsg(statusMSG)
     }
 
