@@ -34,12 +34,12 @@ const processQueue = (error: any) => {
 AxiousInstance.interceptors.response.use(
   (response) => {
     // Decrypt if response contains encryptedData + iv
-    if (response.data?.encryptedData && response.data?.iv) {
-      response.data = decryptResponse(
-        response.data.encryptedData,
-        response.data.iv
-      );
-    }
+    // if (response.data?.encryptedData && response.data?.iv) {
+    //   response.data = decryptResponse(
+    //     response.data.encryptedData,
+    //     response.data.iv
+    //   );
+    // }
     return response;
   },
   async (error) => {

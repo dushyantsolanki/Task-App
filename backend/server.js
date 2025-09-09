@@ -49,7 +49,7 @@ app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 app.use(requestIp.mw());
 // app.use(passport.initialize());
-app.use(encryptResponse);
+// app.use(encryptResponse);
 chromium.use(stealth());
 
 app.get('/geo-region', (req, res) => {
@@ -229,62 +229,98 @@ export const generateFakeTemplates = async (count = 10, userId = null) => {
   }
 };
 
-// scrape full page
 async function scrapeFullPage(page, url) {
   try {
     await page.goto(url, { waitUntil: 'networkidle' });
 
-    // full text
+    // Full text content
+
     const content = await page.evaluate(() => document.body.innerText);
 
-    // images
+    // Images: only keep absolute HTTP(S) URLs that look like real images
     const imageUrls = await page.evaluate(() => {
       const urls = [];
       document.querySelectorAll('img').forEach((img) => {
-        const src = img.src;
-        const alt = img.alt;
-        const width = parseInt(img.width || '0', 10);
-        const height = parseInt(img.height || '0', 10);
+        let src = img.src;
+        const alt = img.alt || '';
+        const width = parseInt(img.width || img.clientWidth || '0', 10);
+        const height = parseInt(img.height || img.clientHeight || '0', 10);
 
+        // Skip if no src, data URL, or not absolute HTTP/HTTPS
+        if (!src || src.startsWith('data:') || !/^https?:\/\//i.test(src)) return;
+
+        // Skip if too small
+        if (width < 50 || height < 50) return;
+
+        // Skip if likely decorative/icon/ad
         if (
-          !src ||
-          src.startsWith('data:') ||
-          !src.startsWith('http') ||
-          width < 50 ||
-          height < 50 ||
-          /(sprite|logo|icon|arrow|ads|blank|pixel)/i.test(src) ||
-          (alt && /(icon|logo|arrow|social)/i.test(alt))
+          /(sprite|logo|icon|arrow|ads|blank|pixel|tracking|spacer)/i.test(src) ||
+          /(icon|logo|arrow|social|button|decorative)/i.test(alt)
         )
           return;
 
+        // Optional: ensure it ends with common image extensions (optional but safer)
+        if (!/\.(jpg|jpeg|png|webp|gif|bmp|svg)$/i.test(src.split('?')[0])) return;
+
         urls.push(src);
       });
-      return urls;
+      return [...new Set(urls)]; // dedupe
     });
 
-    // videos
+    // Videos: get playable video sources and known embeds
     const videoUrls = await page.evaluate(() => {
       const urls = [];
-      document.querySelectorAll('video, video source, iframe').forEach((el) => {
-        const src = el.src || el.getAttribute('src');
-        if (!src) return;
 
-        if (el.tagName === 'IFRAME') {
+      // Handle <video> elements and their <source> children
+      document.querySelectorAll('video').forEach((video) => {
+        // Check video's own src
+        let src = video.src;
+        if (src && /^https?:\/\//i.test(src) && /\.(mp4|webm|ogg)$/i.test(src.split('?')[0])) {
+          urls.push(src);
+        }
+
+        // Check <source> children
+        video.querySelectorAll('source').forEach((source) => {
+          src = source.src || source.getAttribute('src');
           if (
-            src.includes('youtube.com/embed') ||
-            src.includes('player.vimeo.com') ||
-            src.includes('dailymotion.com/embed')
+            src &&
+            /^https?:\/\//i.test(src) &&
+            /\.(mp4|mov|avi|mkv|wmv|flv|mpeg|mpg|3gp|ogv|mxf|m4v|asf|ts|vob|rmvb)$/i.test(
+              src.split('?')[0],
+            )
           ) {
             urls.push(src);
           }
-        } else if (src.startsWith('http')) {
+        });
+      });
+
+      // Handle iframe embeds (YouTube, Vimeo, Dailymotion, etc.)
+      document.querySelectorAll('iframe').forEach((iframe) => {
+        const src = iframe.src || iframe.getAttribute('src');
+        if (!src || !/^https?:\/\//i.test(src)) return;
+
+        if (
+          src.includes('youtube.com/embed') ||
+          src.includes('youtu.be') ||
+          src.includes('player.vimeo.com') ||
+          src.includes('dailymotion.com/embed') ||
+          src.includes('facebook.com/plugins/video.php') ||
+          src.includes('instagram.com/p/') ||
+          src.includes('tiktok.com/embed')
+        ) {
           urls.push(src);
         }
       });
-      return urls;
+
+      return [...new Set(urls)]; // dedupe
     });
 
-    return { success: true, content, images: imageUrls, videos: videoUrls };
+    return {
+      success: true,
+      content,
+      images: imageUrls,
+      videos: videoUrls,
+    };
   } catch (err) {
     console.error(`Failed to scrape ${url}:`, err.message);
     return { success: false, content: '', images: [], videos: [] };
@@ -345,7 +381,7 @@ async function scrap(query) {
       const site = results[i];
       const scraped = await scrapeFullPage(page, site.link);
 
-      if (scraped.success && scraped.content.trim().length > 100) {
+      if (scraped.success && scraped.content.trim().length > 50) {
         return { site: results, ...scraped };
       }
     }
@@ -377,6 +413,14 @@ app.get('/api/v1/overview', async (req, res) => {
   }
 });
 
+server.listen(PORT, async () => {
+  await connectDB();
+  console.log(
+    `Server is running........... \nLocal Network : http://localhost:${PORT} \n${
+      HOST ? 'Your Network : ' + '' + 'http://' + getIPAdress() + ':' + PORT : ''
+    }`,
+  );
+});
 // await emailQueue.add(
 //   'sendEmail',
 //   { to: 'dushyantsolanki.2002@gmail.com', subject: 'Demo', body: 'Good Morning\nDemo text body' },
@@ -386,12 +430,3 @@ app.get('/api/v1/overview', async (req, res) => {
 //     attempts: 3, // retry if fail
 //   },
 // );
-
-server.listen(PORT, async () => {
-  await connectDB();
-  console.log(
-    `Server is running........... \nLocal Network : http://localhost:${PORT} \n${
-      HOST ? 'Your Network : ' + '' + 'http://' + getIPAdress() + ':' + PORT : ''
-    }`,
-  );
-});
