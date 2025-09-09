@@ -1,17 +1,17 @@
 import axios from 'axios';
-import CryptoJS from 'crypto-js';
+// import CryptoJS from 'crypto-js';
 
-function decryptResponse(encryptedData: string, iv: string) {
-  const decrypted = CryptoJS.AES.decrypt(encryptedData, SECRET_KEY, {
-    iv: CryptoJS.enc.Base64.parse(iv),
-    mode: CryptoJS.mode.CBC,
-    padding: CryptoJS.pad.Pkcs7,
-  });
-  return JSON.parse(decrypted.toString(CryptoJS.enc.Utf8));
-}
+// function decryptResponse(encryptedData: string, iv: string) {
+//   const decrypted = CryptoJS.AES.decrypt(encryptedData, SECRET_KEY, {
+//     iv: CryptoJS.enc.Base64.parse(iv),
+//     mode: CryptoJS.mode.CBC,
+//     padding: CryptoJS.pad.Pkcs7,
+//   });
+//   return JSON.parse(decrypted.toString(CryptoJS.enc.Utf8));
+// }
 
 
-const SECRET_KEY = CryptoJS.SHA256("158XWQ@&bdhsVVSMKZALI__ANDG%$_Vdtwyx");
+// const SECRET_KEY = CryptoJS.SHA256("158XWQ@&bdhsVVSMKZALI__ANDG%$_Vdtwyx");
 const AxiousInstance = axios.create({
   baseURL: import.meta.env.VITE_API_BASE_URL || 'https://task-mate-full-stack.onrender.com/api/v1',
   withCredentials: true, // har request ke sath cookies jayengi
