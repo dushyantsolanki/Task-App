@@ -10,7 +10,7 @@ import indexRoute from './routes/index.js';
 import logger from './configs/pino.config.js';
 import { initSocketIO } from './sockets/index.js';
 import './configs/firebase.config.js';
-import './crons/calendar.jobs.js';
+// import './crons/calendar.jobs.js';
 import Notification from './models/notification.model.js';
 import path from 'path';
 import { runGroqSearchQA } from './configs/langchai.config.js';
@@ -21,10 +21,13 @@ import { chromium } from 'playwright-extra';
 import stealth from 'puppeteer-extra-plugin-stealth';
 import requestIp from 'request-ip';
 import geoip from 'geoip-country';
+import { encryptResponse } from './middlewares/encryption.middleware.js';
 // import { emailQueue } from './queue/queue.js';
 // import emailWorker from './queue/worker/email.worker.js';
 // passport configurations
 // configurePassport();
+
+// import './test.js';
 
 const app = express();
 const server = createServer(app);
@@ -46,6 +49,7 @@ app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 app.use(requestIp.mw());
 // app.use(passport.initialize());
+app.use(encryptResponse);
 chromium.use(stealth());
 
 app.get('/geo-region', (req, res) => {
