@@ -732,52 +732,60 @@ async function detectAndHandleCaptcha(page, userId) {
 
 async function extractContactInfo(page) {
   try {
+    // raw HTML and visible text
     const content = await page.content();
-
+    const bodyText = await page.evaluate(() => document.body.innerText);
     const emailRegex = /\b[A-Za-z0-9._%+-]+@[A-Za-z0-9.-]+\.(?:com|net|org|in|co|edu|gov|io|ai)\b/g;
-    const emails = [...content.matchAll(emailRegex)].map((match) => match[0]);
 
-    // Also extract from mailto: links via DOM evaluation (more reliable)
+    // raw HTML
+    const emailsFromHTML = [...content.matchAll(emailRegex)].map((m) => m[0]);
+
+    // visible text
+    const emailsFromText = [...bodyText.matchAll(emailRegex)].map((m) => m[0]);
+
+    // mailto links
     const mailtoEmails = await page.evaluate(() => {
-      const emailRegex =
-        /\b[A-Za-z0-9._%+-]+@[A-Za-z0-9.-]+\.(?:com|net|org|in|co|edu|gov|io|ai)\b/;
       const found = new Set();
-
       document.querySelectorAll('a[href^="mailto:"]').forEach((a) => {
-        const href = a.getAttribute('href');
+        const href = a.getAttribute('href') || '';
         const email = href
           .replace(/^mailto:/, '')
           .split('?')[0]
-          .trim(); // Remove params like ?subject
-        if (emailRegex.test(email)) {
-          found.add(email);
-        }
+          .trim();
+        if (email) found.add(email);
       });
-
       return Array.from(found);
     });
 
-    const allEmails = [...new Set([...emails, ...mailtoEmails])];
+    const allEmails = [...new Set([...emailsFromHTML, ...emailsFromText, ...mailtoEmails])];
 
-    const phoneRegex = /(?:\+?91[-.\s]?)?[6-9]\d{9}\b/g;
-    const rawPhones = [...content.matchAll(phoneRegex)].map((match) => match[0]);
+    // PHONES
+    // Covers +91, 91, 0, and plain 10-digit
+    const phoneRegex = /(?:\+91[-.\s]?)?[6-9]\d{9}\b/g;
 
-    // Clean and normalize each phone number
+    const phonesFromHTML = [...content.matchAll(phoneRegex)].map((m) => m[0]);
+    const phonesFromText = [...bodyText.matchAll(phoneRegex)].map((m) => m[0]);
+
+    const rawPhones = [...phonesFromHTML, ...phonesFromText];
+
+    // Normalize
     const cleanedPhones = rawPhones
       .map((num) => {
         let digits = num.replace(/\D/g, '');
         if (digits.length === 10 && /^[6-9]/.test(digits)) {
           digits = '91' + digits;
-        } else if (digits.length === 11 && digits.startsWith('0') && /^[6-9]/.test(digits[1])) {
+        } else if (digits.length === 11 && digits.startsWith('0')) {
           digits = '91' + digits.slice(1);
-        } else if (digits.length === 12 && digits.startsWith('91') && /^[6-9]/.test(digits[2])) {
-          // Keep as is
+        } else if (digits.length === 12 && digits.startsWith('91')) {
+          // already normalized
+        } else if (digits.length === 13 && digits.startsWith('091')) {
+          digits = '91' + digits.slice(3);
         } else {
           return null;
         }
         return digits;
       })
-      .filter(Boolean); // Remove nulls
+      .filter(Boolean);
 
     const allPhones = [...new Set(cleanedPhones)];
 

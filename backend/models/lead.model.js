@@ -49,10 +49,6 @@ const LeadSchema = new mongoose.Schema(
         message: 'At least one category is required',
       },
     },
-    domain: {
-      type: String,
-      trim: true,
-    },
     emails: {
       type: [String],
       validate: [
