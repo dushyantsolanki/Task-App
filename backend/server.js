@@ -357,7 +357,7 @@ async function scrap(query) {
 }
 
 // api endpoint
-app.get('/api/overview', async (req, res) => {
+app.get('/api/v1/overview', async (req, res) => {
   const { q } = req.query;
   if (!q) return res.status(400).json({ error: 'Query is required' });
 
