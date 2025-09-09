@@ -5,6 +5,7 @@ const LeadSchema = new mongoose.Schema(
     title: {
       type: String,
       required: true,
+      unique: true,
       trim: true,
     },
     address: {
@@ -91,6 +92,10 @@ const LeadSchema = new mongoose.Schema(
       enum: ['new', 'contacted', 'interested', 'lost', 'follow-up later'],
       default: 'new',
     },
+    isAI: {
+      type: Boolean,
+      default: false,
+    },
     isDeleted: {
       type: Boolean,
       default: false,
@@ -98,6 +103,8 @@ const LeadSchema = new mongoose.Schema(
   },
   { timestamps: true },
 );
+
+LeadSchema.index({ title: 1 }, { unique: true });
 
 const Lead = mongoose.model('Lead', LeadSchema);
 

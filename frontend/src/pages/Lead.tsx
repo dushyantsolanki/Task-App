@@ -47,6 +47,7 @@ import { Checkbox } from '@/components/ui/checkbox';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import SEO from '@/components/app/components/SEO';
 import useNotify from '@/hooks/useNotify';
+import type { ChartConfig } from '@/components/ui/chart';
 
 interface Lead {
   _id?: string;
@@ -84,6 +85,32 @@ interface ApiResponse {
   hasNextPage: boolean;
   hasPrevPage: boolean;
 }
+
+const chartConfig = {
+  count: {
+    label: 'Leads',
+  },
+  new: {
+    label: 'New',
+    color: 'var(--chart-7)',
+  },
+  contacted: {
+    label: 'Contacted',
+    color: 'var(--chart-8)',
+  },
+  interested: {
+    label: 'Interested',
+    color: ' var(--chart-10)',
+  },
+  lost: {
+    label: 'Lost',
+    color: 'var(--chart-9) ',
+  },
+  'follow-up later': {
+    label: 'Follow Up Leter',
+    color: 'var(--chart-11)',
+  },
+} satisfies ChartConfig;
 
 function Lead() {
   const [sorting, setSorting] = useState<SortingState>([]);
@@ -375,6 +402,25 @@ function Lead() {
         </div>
       ),
     },
+
+    {
+      accessorKey: "leadStatus",
+      header: "Lead",
+      cell: ({ row }) => {
+        const status = row.original.leadStatus as keyof typeof chartConfig;
+        const config: any = chartConfig[status];
+        console.log(config)
+        return (
+          <Badge
+            variant="outline"
+            className={`px-4 py-1.5 text-xs rounded-sm capitalize`}
+            style={{ color: config?.color }}
+          >
+            {config?.label || status}
+          </Badge>
+        );
+      },
+    },
     {
       accessorKey: 'status',
       header: 'Status',
@@ -559,7 +605,7 @@ function Lead() {
           </div>
         </div>
 
-        <div className="scrollbar-hide max-h-[calc(100vh-20rem)] min-h-[10rem] overflow-y-auto rounded-lg border">
+        <div className="scrollbar-hide max-h-[calc(100vh-20rem)]  overflow-y-auto rounded-lg border">
           <Table>
             <TableHeader className="bg-muted/40">
               {table.getHeaderGroups().map((headerGroup) => (

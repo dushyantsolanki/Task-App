@@ -103,8 +103,17 @@ export const addLead = async (req, res) => {
       lead,
     });
   } catch (err) {
-    logger.error(err, 'Error in addLead');
-    return res.status(500).json({ success: false, message: err.message });
+    if (err.code === 11000 && err.keyPattern?.title) {
+      return res.status(400).json({
+        success: false,
+        message: `A lead with the title "${err.keyValue.title}" already exists`,
+      });
+    }
+
+    return res.status(500).json({
+      success: false,
+      message: err.message || 'Internal Server Error',
+    });
   }
 };
 
