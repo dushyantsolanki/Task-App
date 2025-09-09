@@ -14,6 +14,7 @@ import { Tooltip, TooltipContent, TooltipTrigger } from '@/components/ui/tooltip
 import { ImageZoom } from '@/components/ui/kibo-ui/image-zoom';
 import SEO from '@/components/app/components/SEO';
 import { VideoPlayer, VideoPlayerContent, VideoPlayerControlBar, VideoPlayerMuteButton, VideoPlayerPlayButton, VideoPlayerSeekBackwardButton, VideoPlayerSeekForwardButton, VideoPlayerTimeDisplay, VideoPlayerTimeRange, VideoPlayerVolumeRange } from "@/components/ui/kibo-ui/video-player";
+import AxiousInstance from '@/helper/AxiousInstance';
 
 interface Source {
   title: string;
@@ -145,10 +146,12 @@ export function Search() {
     setError(null);
     setHasSearched(true);
     try {
-      const response = await <AxiousInstance></AxiousInstance>.get(
+      const response = await AxiousInstance.get(
         `/overview?q=${encodeURIComponent(query)}`,
       );
+      // const response = await (`https://api.dushyantportfolio.store/api/overview?q=${encodeURIComponent(query)}`);
 
+      // if (!response.ok) throw new Error('Failed to fetch search results');
       const data: SearchResponse = await response.data;
       setResults(data);
     } catch (err) {
