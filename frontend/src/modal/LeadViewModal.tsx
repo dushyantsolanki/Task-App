@@ -383,13 +383,11 @@ const LeadViewModal = ({ isOpen, onClose, lead }: ViewModalProps) => {
                           </div>
                           <div className="flex-1">
                             <div className="flex items-center gap-2 sm:gap-3">
-                              <Mail className="text-muted-foreground h-4 w-4 flex-shrink-0 sm:h-5 sm:w-5" />
+                              <AlertCircle className="text-muted-foreground h-4 w-4 flex-shrink-0 sm:h-5 sm:w-5" />
                               <div className="min-w-0 flex-1">
-                                <label className="text-xs font-medium sm:text-sm">Last Opened</label>
+                                <label className="text-xs font-medium sm:text-sm">False Positive</label>
                                 <p className="text-foreground text-xs sm:text-sm">
-                                  {mail.lastOpenedAt
-                                    ? formatDateToIST(mail.lastOpenedAt)
-                                    : 'Not opened'}
+                                  {mail.isFalsePositive ? 'Yes' : 'No'}
                                 </p>
                               </div>
                             </div>
@@ -418,15 +416,6 @@ const LeadViewModal = ({ isOpen, onClose, lead }: ViewModalProps) => {
                             </div>
                           </div>
                         )}
-                        <div className="flex items-center gap-2 sm:gap-3">
-                          <AlertCircle className="text-muted-foreground h-4 w-4 flex-shrink-0 sm:h-5 sm:w-5" />
-                          <div className="min-w-0 flex-1">
-                            <label className="text-xs font-medium sm:text-sm">False Positive</label>
-                            <p className="text-foreground text-xs sm:text-sm">
-                              {mail.isFalsePositive ? 'Yes' : 'No'}
-                            </p>
-                          </div>
-                        </div>
                       </div>
                     ))
                   ) : (
