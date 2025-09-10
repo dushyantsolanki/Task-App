@@ -117,3 +117,20 @@ export const deleteTemplate = async (req, res) => {
     return res.status(500).json({ success: false, message: err.message });
   }
 };
+
+export const getTemplatesLookup = async (req, res) => {
+  try {
+    const { userId } = req.user;
+    const query = { isDeleted: false, createdBy: new mongoose.Types.ObjectId(userId) };
+
+    const templates = await Template.find(query, { name: 1 }).sort({ createdAt: -1 });
+    return res.status(200).json({
+      success: true,
+      message: 'Templates fetched successfully',
+      templates,
+    });
+  } catch (err) {
+    logger.error(err, 'Error in templatesLookup');
+    return res.status(500).json({ success: false, message: err.message });
+  }
+};

@@ -55,3 +55,17 @@ export function encrypt(text) {
     iv: iv.toString('base64'),
   };
 }
+
+export function textToHtml(text, mailId) {
+  let html = text.replace(/\n/g, '<br>');
+  if (mailId) {
+    html += `
+      <img
+        src="https://api.dushyantportfolio.store/track/open?mailId=${mailId}"
+        width="1"
+        height="1"
+        style="display:none;"
+      />`;
+  }
+  return html;
+}

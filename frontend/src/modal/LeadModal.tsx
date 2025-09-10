@@ -428,11 +428,11 @@ const LeadModal = ({ isOpen, onClose, initialValues, handleAdd, handleEdit }: Mo
                     <SelectValue placeholder="Select lead status" />
                   </SelectTrigger>
                   <SelectContent>
-                    {leadStatusOptions?.map((option) => (
+                    {leadStatusOptions?.length > 0 ? leadStatusOptions?.map((option) => (
                       <SelectItem value={option} className="capitalize">
                         {option}
                       </SelectItem>
-                    ))}
+                    )) : <div className='flex h-10 font-medium text-foreground/40 items-center justify-center'> No Data Found </div>}
                   </SelectContent>
                 </Select>
                 {formik.touched.leadStatus && formik.errors.leadStatus && (
@@ -612,8 +612,10 @@ const LeadModal = ({ isOpen, onClose, initialValues, handleAdd, handleEdit }: Mo
             form="lead-form"
             className="w-full sm:w-auto"
           >
-            Save
+            {formik.isSubmitting ? <><span className="border-white mr-2 h-4 w-4 animate-spin rounded-full border-2 border-t-transparent"></span>
+              Please wait...</> : "Save"}
           </Button>
+
         </DialogFooter>
       </DialogContent>
     </Dialog >

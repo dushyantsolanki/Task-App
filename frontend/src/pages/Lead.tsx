@@ -48,6 +48,7 @@ import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import SEO from '@/components/app/components/SEO';
 import useNotify from '@/hooks/useNotify';
 import type { ChartConfig } from '@/components/ui/chart';
+import { ColdMailModal, type IColdMail } from '@/modal/ColdMailModal';
 
 interface Lead {
   _id?: string;
@@ -63,7 +64,6 @@ interface Lead {
   domain?: string;
   emails: string[];
   phones: string[];
-  status: string;
   createdBy: {
     _id: string;
     name: string;
@@ -84,6 +84,11 @@ interface ApiResponse {
   currentPage: number;
   hasNextPage: boolean;
   hasPrevPage: boolean;
+}
+export interface ITemplates {
+  _id: string;
+  name: string;
+
 }
 
 const chartConfig = {
@@ -120,7 +125,7 @@ function Lead() {
   const [isLoading, setIsLoading] = useState(false);
   const [titleFilter, setTitleFilter] = useState('');
   const [viewLead, setViewLead] = useState(null);
-  const [selectedRows, setSelectedRows] = useState<string[]>([]);
+  const [selectedRow, setSelectedRow] = useState<Lead | null>(null);
   const [pagination, setPagination] = useState<PaginationState>({
     pageIndex: 0,
     pageSize: 10,
@@ -130,6 +135,8 @@ function Lead() {
   const pageIndex = pagination.pageIndex;
   const pageCount = totalPages;
   const toast = useNotify()
+  const [isColdMailModalOpen, setIsColdMailOpen] = useState<boolean>(false)
+  const [templates, setTemplates] = useState<ITemplates[]>([])
 
   const getAllLeads = async (
     pageIndex: number = pagination.pageIndex,
@@ -270,20 +277,9 @@ function Lead() {
     }, 500);
   };
 
-  const handleSelectAll = (checked: boolean) => {
-    const currentPageIds = tableData.map((lead) => lead._id!);
 
-    if (checked) {
-      // Add only rows from this page that are not already selected
-      setSelectedRows((prev) => [...new Set([...prev, ...currentPageIds])]);
-    } else {
-      // Remove only current page rows from selection
-      setSelectedRows((prev) => prev.filter((id) => !currentPageIds.includes(id)));
-    }
-  };
-
-  const handleRowSelect = (id: string, checked: boolean) => {
-    setSelectedRows((prev) => (checked ? [...prev, id] : prev.filter((rowId) => rowId !== id)));
+  const handleRowSelect = (row: any, checked: boolean) => {
+    setSelectedRow(checked ? row : null);
   };
 
   const handleRowClick = (lead: Lead, columnId: string) => {
@@ -304,12 +300,26 @@ function Lead() {
     }
     return pages;
   };
+  const getAllTemplates = async () => {
+    try {
+      const response = await AxiousInstance.get(`/template/lookup`);
+
+      if (response.status === 200) {
+        setTemplates(response.data.templates)
+
+      }
+    } catch (error: any) {
+      console.error('Fetch error:', error);
+
+    }
+  };
 
   useEffect(() => {
     getAllLeads(pagination.pageIndex, pagination.pageSize, titleFilter);
   }, [pagination.pageIndex, pagination.pageSize]);
 
   useEffect(() => {
+    getAllTemplates()
     return () => {
       if (debouncedFilter.current) {
         clearTimeout(debouncedFilter.current);
@@ -320,24 +330,11 @@ function Lead() {
   const columns: ColumnDef<Lead>[] = [
     {
       id: 'select',
-      header: () => {
-        const currentPageIds = tableData.map((lead) => lead._id!);
-        const allSelected =
-          currentPageIds.length > 0 && currentPageIds.every((id) => selectedRows.includes(id));
-
-        return (
-          <Checkbox
-            checked={allSelected}
-            onCheckedChange={(value) => handleSelectAll(!!value)}
-            aria-label="Select all"
-            title={'select all'}
-          />
-        );
-      },
+      header: "Lead",
       cell: ({ row }) => (
         <Checkbox
-          checked={selectedRows.includes(row.original._id!)}
-          onCheckedChange={(value) => handleRowSelect(row.original._id!, !!value)}
+          checked={selectedRow?._id === row.original._id}
+          onCheckedChange={(value) => handleRowSelect(row.original, !!value)}
           aria-label="Select row"
           onClick={(e) => e.stopPropagation()}
         />
@@ -415,20 +412,6 @@ function Lead() {
             style={{ color: config?.color }}
           >
             {config?.label || status}
-          </Badge>
-        );
-      },
-    },
-    {
-      accessorKey: 'status',
-      header: 'Status',
-      cell: ({ row }) => {
-        return (
-          <Badge
-            variant="outline"
-            className={`px-4 py-1.5 text-xs ${row.original.status === 'sent' ? 'text-green-500' : 'text-yellow-500'} rounded-sm capitalize`}
-          >
-            {row.original.status}
           </Badge>
         );
       },
@@ -544,8 +527,28 @@ function Lead() {
   });
 
   const handleSendMail = async () => {
-    console.log(selectedRows);
+    setIsColdMailOpen(true)
   };
+
+  const handleSendColdMail = async (values: IColdMail,
+    resetForm: any,
+    onClose: any,
+    setSubmitting: (val: Boolean) => void,) => {
+    try {
+      const response = await AxiousInstance.post(`/lead/cold-mail`, { ...values, leadId: selectedRow?._id })
+      if (response.status === 200) {
+        setSubmitting(false)
+        onClose()
+        resetForm()
+        toast.success(response.data?.message)
+      }
+    } catch (error: any) {
+      toast.error(error?.response?.data?.message)
+    } finally {
+      setSubmitting(false)
+    }
+  }
+
 
   return (
     <>
@@ -569,24 +572,26 @@ function Lead() {
                 <Plus className="h-4 w-4" />
                 <span className="hidden md:block">Add Lead</span>
               </Button>
+
               <div className="relative inline-block">
                 <Button
                   className="flex h-11 items-center gap-2"
                   variant="outline"
                   onClick={handleSendMail}
-                  disabled={selectedRows.length === 0}
+                  disabled={!selectedRow}
                 >
                   <Send className="h-4 w-4" />
                   <span className="hidden md:block">Send Mail</span>
                 </Button>
 
-                {selectedRows.length > 0 && (
+                {selectedRow && (
                   <span className="bg-primary badge-pop absolute -top-2 -right-2 inline-flex h-5 w-5 items-center justify-center rounded-full text-xs text-white">
-                    {selectedRows.length}
+                    1
                   </span>
                 )}
               </div>
             </div>
+
 
             <div className="flex w-full items-center gap-2 sm:w-auto">
               <Input
@@ -747,6 +752,7 @@ function Lead() {
       />
 
       <LeadViewModal isOpen={!!viewLead} lead={viewLead} onClose={() => setViewLead(null)} />
+      <ColdMailModal isOpen={isColdMailModalOpen} onClose={() => { setIsColdMailOpen(false); setSelectedRow(null) }} handleSendColdMail={handleSendColdMail as any} emails={selectedRow?.emails || []} templates={templates} />
     </>
   );
 }

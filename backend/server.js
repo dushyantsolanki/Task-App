@@ -21,7 +21,7 @@ import { chromium } from 'playwright-extra';
 import stealth from 'puppeteer-extra-plugin-stealth';
 import requestIp from 'request-ip';
 import geoip from 'geoip-country';
-import { encryptResponse } from './middlewares/encryption.middleware.js';
+// import { encryptResponse } from './middlewares/encryption.middleware.js';
 // import { emailQueue } from './queue/queue.js';
 // import emailWorker from './queue/worker/email.worker.js';
 // passport configurations
@@ -94,6 +94,22 @@ app.use((req, res, next) => {
 
 app.use('/api/v1', indexRoute);
 app.use('/upload', express.static(process.cwd() + 'medias'));
+
+// Endpoint for tracking cold email
+app.get('/track/open', async (req, res) => {
+  const { mailId } = req.query;
+
+  if (mailId) {
+    await ColdMail.findByIdAndUpdate(mailId, { status: 'opened' });
+  }
+
+  res.setHeader('Content-Type', 'image/svg+xml');
+  res.send(`
+    <svg xmlns="http://www.w3.org/2000/svg" width="1" height="1">
+      <rect width="1" height="1" fill="transparent"/>
+    </svg>
+  `);
+});
 
 app.get('/medias/:folder/:filename', (req, res) => {
   const { folder, filename } = req.params;

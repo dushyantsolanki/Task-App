@@ -8,6 +8,7 @@ import PortfolioQuery from './portfolioQuery.model.js';
 import PortfolioVisitor from './portfolioVisitor.model.js';
 import Lead from './lead.model.js';
 import Template from './template.model.js';
+import ColdMail from './coldMail.model.js';
 
 export {
   User,
@@ -20,4 +21,5 @@ export {
   PortfolioVisitor,
   Lead,
   Template,
+  ColdMail,
 };

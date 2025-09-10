@@ -13,7 +13,7 @@ const useNotify = () => {
   const createToast = (title: ToastProps['title'], message: ToastProps['message'], icon: ToastProps['icon'], colors: ToastProps['colors']) => {
     return toast.custom((id) => (
       <div
-        className={`relative flex items-center gap-4 p-4 rounded-2xl md:w-100 
+        className={`relative backdrop-blur-xl flex items-center gap-4 p-4 rounded-2xl md:w-100 
                     bg-white/30 dark:bg-black/20 
                    border ${colors.border}
                    overflow-hidden transition-all duration-300 `}

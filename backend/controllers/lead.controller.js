@@ -2,9 +2,11 @@ import mongoose from 'mongoose';
 import ExcelJS from 'exceljs';
 import geoip from 'geoip-country';
 import logger from '../configs/pino.config.js';
-import { Lead } from '../models/index.js';
+import { ColdMail, Lead, Template } from '../models/index.js';
 import { sendLeadUpdate } from '../sockets/events/lead.event.js';
 import { AILeadScrapper } from '../playwright/aiLead.playwright.js';
+import { sendColdGmail } from '../templates/email/mailer.js';
+import { textToHtml } from '../utils/utils.js';
 
 export const getLeads = async (req, res) => {
   try {
@@ -408,5 +410,51 @@ export const exportLeadsToExcel = async (req, res) => {
   } catch (err) {
     console.error('Excel export error:', err);
     res.status(500).json({ success: false, message: 'Failed to export leads to Excel' });
+  }
+};
+
+export const sendColdMail = async (req, res) => {
+  try {
+    const { template: templateId, recipient: email, leadId } = req.body;
+
+    if (!templateId || !email || !leadId) {
+      return res.status(400).json({ success: false, message: 'Missing required fields' });
+    }
+
+    const template = await Template.findById(templateId);
+    const lead = await Lead.findById(leadId);
+
+    if (!template) {
+      return res.status(404).json({ success: false, message: 'Template not found' });
+    }
+    if (!lead) {
+      return res.status(404).json({ success: false, message: 'Lead not found' });
+    }
+
+    const coldMail = new ColdMail({
+      leadId: lead._id,
+      templateId: template._id,
+      recipients: email,
+      status: 'sent',
+    });
+
+    const htmlBody = textToHtml(template.body, coldMail._id);
+
+    const info = await sendColdGmail(email, 'cold_mail', 'Task Mate', template.subject, htmlBody);
+
+    coldMail.messageId = info.messageId;
+    await coldMail.save();
+
+    lead.leadStatus = 'contacted';
+    await lead.save();
+
+    return res.status(200).json({
+      success: true,
+      message: 'Cold mail sent successfully and lead marked as contacted',
+      coldMail,
+    });
+  } catch (error) {
+    console.error('Error in sendColdMail:', error.message);
+    return res.status(500).json({ success: false, message: 'Internal server error' });
   }
 };

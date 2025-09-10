@@ -86,4 +86,26 @@ const sendPortfolioQueryMail = async (name, to, message, purpose) => {
   }
 };
 
-export { sendVerificationMail, sendPortfolioQueryMail };
+const sendColdGmail = async (to, purpose, senderName, subject, html) => {
+  let mailOptions;
+  if (purpose === 'cold_mail') {
+    mailOptions = {
+      from: `"${senderName}" <` + process.env.EMAIL_USER + '>',
+      to,
+      subject,
+      html,
+    };
+  }
+
+  try {
+    const info = await transporter.sendMail(mailOptions);
+    logger.info({ func: 'sendColdMail', message: `${info.response}` });
+
+    return info;
+  } catch (err) {
+    logger.error(err, 'Error in sendColdMail');
+    throw err;
+  }
+};
+
+export { sendVerificationMail, sendPortfolioQueryMail, sendColdGmail, transporter };

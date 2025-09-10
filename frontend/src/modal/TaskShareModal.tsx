@@ -93,7 +93,7 @@ const TaskShareModal = ({ isOpen, onClose, users, handleShare }: ShareModalProps
                       <SelectValue placeholder="Select a user to share with" />
                     </SelectTrigger>
                     <SelectContent>
-                      {users.map((user) => (
+                      {users?.length > 0 ? users.map((user) => (
                         <SelectItem key={user._id} value={user._id}>
                           <div className="flex items-center gap-2">
                             <Avatar key={user._id} className="h-8 w-8 border">
@@ -117,7 +117,7 @@ const TaskShareModal = ({ isOpen, onClose, users, handleShare }: ShareModalProps
                             <span>{user.name}</span>
                           </div>
                         </SelectItem>
-                      ))}
+                      )) : <div className='flex h-10 font-medium text-foreground/40 items-center justify-center'> No Data Found </div>}
                     </SelectContent>
                   </Select>
                   {formik.touched.shareTo && formik.errors.shareTo && (

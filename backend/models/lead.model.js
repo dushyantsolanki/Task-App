@@ -81,11 +81,6 @@ const LeadSchema = new mongoose.Schema(
       ref: 'User',
       required: true,
     },
-    status: {
-      type: String,
-      enum: ['sent', 'pending'],
-      default: 'pending',
-    },
     leadStatus: {
       type: String,
       enum: ['new', 'contacted', 'interested', 'lost', 'follow-up later'],

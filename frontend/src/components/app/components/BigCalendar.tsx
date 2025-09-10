@@ -363,7 +363,7 @@ const BigCalendar = () => {
                         <SelectValue />
                       </SelectTrigger>
                       <SelectContent>
-                        {colorOptions.map((colorOption) => (
+                        {colorOptions?.length > 0 ? colorOptions.map((colorOption) => (
                           <SelectItem key={colorOption.value} value={colorOption.value}>
                             <div className="flex items-center gap-2">
                               <div
@@ -373,7 +373,7 @@ const BigCalendar = () => {
                               {colorOption.label}
                             </div>
                           </SelectItem>
-                        ))}
+                        )) : <div className='flex h-10 font-medium text-foreground/40 items-center justify-center'> No Data Found </div>}
                       </SelectContent>
                     </Select>
                     {formik.touched.color && formik.errors.color && (

@@ -4,12 +4,14 @@ import {
   addTemplate,
   deleteTemplate,
   getTemplates,
+  getTemplatesLookup,
   updateTemplate,
 } from '../controllers/template.controller.js';
 
 const router = express.Router();
 
 router.get('/', verifyToken, getTemplates);
+router.get('/lookup', verifyToken, getTemplatesLookup);
 router.post('/', verifyToken, addTemplate);
 router.put('/:id', verifyToken, updateTemplate);
 router.delete('/:id', verifyToken, deleteTemplate);
