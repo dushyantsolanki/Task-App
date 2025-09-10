@@ -14,7 +14,7 @@ import './crons/calendar.jobs.js';
 import Notification from './models/notification.model.js';
 import path from 'path';
 import { runGroqSearchQA } from './configs/langchai.config.js';
-import { Task, Template } from './models/index.js';
+import { ColdMail, Task, Template } from './models/index.js';
 import { faker } from '@faker-js/faker';
 import fs from 'fs';
 import { chromium } from 'playwright-extra';
