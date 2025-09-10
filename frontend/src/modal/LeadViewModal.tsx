@@ -11,6 +11,7 @@ import { Button } from '@/components/ui/button';
 import { MapPin, Globe, Phone, Mail, Tag, Link, AlertCircle, User, Hash, Send } from 'lucide-react';
 import { Badge } from '@/components/ui/badge';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
+import { formatDateToIST } from '@/lib/utils';
 
 interface ColdMail {
   _id: string;
@@ -374,7 +375,7 @@ const LeadViewModal = ({ isOpen, onClose, lead }: ViewModalProps) => {
                                 <label className="text-xs font-medium sm:text-sm">First Opened</label>
                                 <p className="text-foreground text-xs sm:text-sm">
                                   {mail.openedAt
-                                    ? new Date(mail.openedAt).toLocaleString()
+                                    ? formatDateToIST(mail.openedAt)
                                     : 'Not opened'}
                                 </p>
                               </div>
@@ -387,7 +388,7 @@ const LeadViewModal = ({ isOpen, onClose, lead }: ViewModalProps) => {
                                 <label className="text-xs font-medium sm:text-sm">Last Opened</label>
                                 <p className="text-foreground text-xs sm:text-sm">
                                   {mail.lastOpenedAt
-                                    ? new Date(mail.lastOpenedAt).toLocaleString()
+                                    ? formatDateToIST(mail.lastOpenedAt)
                                     : 'Not opened'}
                                 </p>
                               </div>
@@ -409,7 +410,7 @@ const LeadViewModal = ({ isOpen, onClose, lead }: ViewModalProps) => {
                               </p>
                               <p className="text-foreground text-xs sm:text-sm">
                                 <strong>Received:</strong>{' '}
-                                {new Date(mail.reply.receivedAt).toLocaleString()}
+                                {formatDateToIST(mail.reply.receivedAt)}
                               </p>
                               <p className="text-foreground text-xs break-words sm:text-sm">
                                 <strong>Body:</strong> {mail.reply.body || 'N/A'}
