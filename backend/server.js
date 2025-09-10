@@ -100,16 +100,17 @@ app.get('/track/open', async (req, res) => {
   const { mailId } = req.query;
 
   if (mailId) {
-    await ColdMail.findByIdAndUpdate(mailId, { status: 'opened' });
-    console.log(mailId, 'Mail Opened.....');
+    const coldMail = await ColdMail.findById(mailId);
+
+    if (coldMail && coldMail.status !== 'opened') {
+      coldMail.status = 'opened';
+      await coldMail.save();
+      console.log(mailId, 'Mail Opened.....');
+    }
   }
 
-  res.setHeader('Content-Type', 'image/svg+xml');
-  res.send(`
-    <svg xmlns="http://www.w3.org/2000/svg" width="1" height="1">
-      <rect width="1" height="1" fill="transparent"/>
-    </svg>
-  `);
+  res.setHeader('Content-Type', 'image/gif');
+  res.end(Buffer.from('R0lGODlhAQABAPAAAP///wAAACH5BAAAAAAALAAAAAABAAEAAAICRAEAOw==', 'base64'));
 });
 
 app.get('/medias/:folder/:filename', (req, res) => {
