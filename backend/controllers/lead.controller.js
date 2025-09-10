@@ -6,7 +6,7 @@ import { ColdMail, Lead, Template } from '../models/index.js';
 import { sendLeadUpdate } from '../sockets/events/lead.event.js';
 import { AILeadScrapper } from '../playwright/aiLead.playwright.js';
 import { sendColdGmail } from '../templates/email/mailer.js';
-import { formatDateToIST, textToHtml } from '../utils/utils.js';
+import { textToHtml } from '../utils/utils.js';
 
 export const getLeads = async (req, res) => {
   try {
@@ -62,31 +62,13 @@ export const getLeads = async (req, res) => {
       coldMails: coldMailMap[lead._id.toString()] || [],
     }));
 
-    const formattedColdMails = coldMailsForLead.map((cm) => ({
-      ...cm,
-      createdAt: formatDateToIST(cm.createdAt),
-      updatedAt: formatDateToIST(cm.updatedAt),
-      openedAt: formatDateToIST(cm.openedAt),
-      lastOpenedAt: formatDateToIST(cm.lastOpenedAt),
-      reply: cm.reply
-        ? {
-            ...cm.reply,
-            receivedAt: formatDateToIST(cm.reply.receivedAt),
-          }
-        : null,
-      opens: cm.opens.map((o) => ({
-        ...o,
-        timestamp: formatDateToIST(o.timestamp),
-      })),
-    }));
-
     const hasNextPage = page < totalPages;
     const hasPrevPage = page > 1;
 
     return res.status(200).json({
       success: true,
       message: 'Leads fetched successfully',
-      leads: formattedColdMails,
+      leads: leadsWithColdMails,
       totalCount,
       totalPages,
       currentPage: page,
