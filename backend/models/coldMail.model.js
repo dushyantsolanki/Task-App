@@ -9,8 +9,8 @@ const replySchema = new mongoose.Schema({
 
 const openEventSchema = new mongoose.Schema({
   timestamp: { type: Date, default: Date.now },
-  ip: { type: String }, // IP of the request (may be Gmail proxy)
-  userAgent: { type: String, optional: true }, // Optional: client details
+  ip: { type: String },
+  country: { type: String },
 });
 
 const coldMailSchema = new mongoose.Schema(
