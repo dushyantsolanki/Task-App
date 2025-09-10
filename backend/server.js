@@ -97,6 +97,7 @@ app.use('/upload', express.static(process.cwd() + 'medias'));
 
 // Endpoint for tracking cold email
 app.get('/track/open', async (req, res) => {
+  console.log('MailID :::: ', mailId);
   const { mailId } = req.query;
 
   if (mailId) {
@@ -109,8 +110,12 @@ app.get('/track/open', async (req, res) => {
     }
   }
 
-  res.setHeader('Content-Type', 'image/gif');
-  res.end(Buffer.from('R0lGODlhAQABAPAAAP///wAAACH5BAAAAAAALAAAAAABAAEAAAICRAEAOw==', 'base64'));
+  res.setHeader('Content-Type', 'image/svg+xml');
+  res.send(`
+    <svg xmlns="http://www.w3.org/2000/svg" width="1" height="1">
+      <rect width="1" height="1" fill="transparent"/>
+    </svg>
+  `);
 });
 
 app.get('/medias/:folder/:filename', (req, res) => {
