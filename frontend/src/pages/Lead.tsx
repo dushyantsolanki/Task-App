@@ -314,6 +314,26 @@ function Lead() {
     }
   };
 
+  const handleSendColdMail = async (values: IColdMail,
+    resetForm: any,
+    onClose: any,
+    setSubmitting: (val: Boolean) => void,) => {
+    try {
+      const response = await AxiousInstance.post(`/lead/cold-mail`, { ...values, leadId: selectedRow?._id })
+      if (response.status === 200) {
+        getAllLeads(pagination.pageIndex, pagination.pageSize, titleFilter);
+        setSubmitting(false)
+        onClose()
+        resetForm()
+        toast.success(response.data?.message)
+      }
+    } catch (error: any) {
+      toast.error(error?.response?.data?.message)
+    } finally {
+      setSubmitting(false)
+    }
+  }
+
   useEffect(() => {
     getAllLeads(pagination.pageIndex, pagination.pageSize, titleFilter);
   }, [pagination.pageIndex, pagination.pageSize]);
@@ -529,25 +549,6 @@ function Lead() {
   const handleSendMail = async () => {
     setIsColdMailOpen(true)
   };
-
-  const handleSendColdMail = async (values: IColdMail,
-    resetForm: any,
-    onClose: any,
-    setSubmitting: (val: Boolean) => void,) => {
-    try {
-      const response = await AxiousInstance.post(`/lead/cold-mail`, { ...values, leadId: selectedRow?._id })
-      if (response.status === 200) {
-        setSubmitting(false)
-        onClose()
-        resetForm()
-        toast.success(response.data?.message)
-      }
-    } catch (error: any) {
-      toast.error(error?.response?.data?.message)
-    } finally {
-      setSubmitting(false)
-    }
-  }
 
 
   return (

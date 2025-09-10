@@ -100,7 +100,6 @@ app.use('/upload', express.static(process.cwd() + 'medias'));
 // Endpoint for tracking cold email
 app.get('/track/open', async (req, res) => {
   const { mailId } = req.query;
-  console.log('MailID :::: ', mailId);
   const ip = req.clientIp;
   let geo = await geoip.lookup(ip);
 
@@ -110,18 +109,15 @@ app.get('/track/open', async (req, res) => {
       select: 'createdBy',
     });
 
-    console.log('users :::: ', coldMail);
     if (coldMail) {
       // Ignore if too soon after creation (anti-false positive)
       const timeSinceCreate = Date.now() - coldMail.createdAt.getTime();
       if (timeSinceCreate < 5000) {
         // <5 seconds, likely prefetch/send artifact
-        console.log(mailId, 'Ignored early hit');
       } else if (coldMail.status !== 'opened') {
         coldMail.status = 'opened';
         coldMail.openedAt = new Date(); // Add field for first open time
         await coldMail.save();
-
         await sendNotification({
           senderId: coldMail?.leadId?.createdBy?.toString(),
           userIds: coldMail?.leadId?.createdBy?.toString(),
@@ -141,14 +137,12 @@ app.get('/track/open', async (req, res) => {
           imageUrl: 'https://i.ibb.co/PG7JTxNy/Chat-GPT-Image-Sep-10-2025-11-04-15-PM.png',
           pageLink: 'ai-automation/lead',
         });
-        console.log(mailId, 'Mail Opened.....');
       } else {
         // Track multiple opens (add openCount and opens array to model)
         coldMail.openCount = (coldMail.openCount || 0) + 1;
         coldMail.opens = coldMail.opens || [];
         coldMail.opens.push({ timestamp: new Date(), ip: ip, country: geo?.name });
         await coldMail.save();
-        console.log(mailId, 'Mail Re-Opened.....');
       }
     }
   }

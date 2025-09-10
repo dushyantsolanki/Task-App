@@ -8,9 +8,31 @@ import {
   DialogClose,
 } from '@/components/ui/dialog';
 import { Button } from '@/components/ui/button';
-import { MapPin, Globe, Phone, Mail, Tag, Link, AlertCircle, User, Hash } from 'lucide-react';
+import { MapPin, Globe, Phone, Mail, Tag, Link, AlertCircle, User, Hash, Send } from 'lucide-react';
 import { Badge } from '@/components/ui/badge';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
+
+interface ColdMail {
+  _id: string;
+  leadId: string;
+  templateId: string;
+  recipients: string;
+  status: 'sent' | 'delivered' | 'opened' | 'replied';
+  messageId?: string;
+  openedAt?: Date;
+  lastOpenedAt?: Date;
+  openCount: number;
+  opens: { timestamp: Date; ip?: string; country?: string }[];
+  isFalsePositive: boolean;
+  reply?: {
+    from: string;
+    subject?: string;
+    body?: string;
+    receivedAt: Date;
+  };
+  createdAt: Date;
+  updatedAt: Date;
+}
 
 interface Lead {
   _id?: string;
@@ -32,6 +54,7 @@ interface Lead {
     name: string;
     avatar: string;
   };
+  coldMails?: ColdMail[];
 }
 
 interface ViewModalProps {
@@ -148,7 +171,7 @@ const LeadViewModal = ({ isOpen, onClose, lead }: ViewModalProps) => {
                         <AlertCircle className="text-muted-foreground h-4 w-4 flex-shrink-0 sm:h-5 sm:w-5" />
                         <div className="min-w-0 flex-1">
                           <label className="text-xs font-medium sm:text-sm">Status</label>
-                          <p className="text-foreground text-xs sm:text-sm">
+                          <p className="text-foreground text-xs sm:text-sm capitalize">
                             <Badge variant="outline">{lead.leadStatus}</Badge>
                           </p>
                         </div>
@@ -297,6 +320,119 @@ const LeadViewModal = ({ isOpen, onClose, lead }: ViewModalProps) => {
                       </p>
                     )}
                   </div>
+                </div>
+
+                {/* Cold Mail History */}
+                <div className="flex flex-col gap-3 sm:gap-4">
+                  <h3 className="text-muted-foreground text-xs font-medium tracking-wide uppercase sm:text-sm">
+                    Cold Mail History
+                  </h3>
+                  {lead.coldMails && lead.coldMails.length > 0 ? (
+                    lead.coldMails.map((mail, index) => (
+                      <div
+                        key={mail._id}
+                        className="border rounded-md p-3 sm:p-4 flex flex-col gap-3 sm:gap-4"
+                      >
+                        <div className="flex items-center gap-2 sm:gap-3">
+                          <Send className="text-muted-foreground h-4 w-4 flex-shrink-0 sm:h-5 sm:w-5" />
+                          <div className="min-w-0 flex-1">
+                            <label className="text-xs font-medium sm:text-sm">Recipient</label>
+                            <p className="text-foreground text-xs break-all sm:text-sm">
+                              {mail.recipients || 'N/A'}
+                            </p>
+                          </div>
+                        </div>
+                        <div className="flex flex-col gap-3 sm:flex-row sm:gap-4">
+                          <div className="flex-1">
+                            <div className="flex items-center gap-2 sm:gap-3">
+                              <AlertCircle className="text-muted-foreground h-4 w-4 flex-shrink-0 sm:h-5 sm:w-5" />
+                              <div className="min-w-0 flex-1">
+                                <label className="text-xs font-medium sm:text-sm">Status</label>
+                                <p className="text-foreground text-xs sm:text-sm capitalize">
+                                  <Badge variant="outline">{mail.status}</Badge>
+                                </p>
+                              </div>
+                            </div>
+                          </div>
+                          <div className="flex-1">
+                            <div className="flex items-center gap-2 sm:gap-3">
+                              <Mail className="text-muted-foreground h-4 w-4 flex-shrink-0 sm:h-5 sm:w-5" />
+                              <div className="min-w-0 flex-1">
+                                <label className="text-xs font-medium sm:text-sm">Open Count</label>
+                                <p className="text-foreground text-xs sm:text-sm">
+                                  {mail.openCount || 0}
+                                </p>
+                              </div>
+                            </div>
+                          </div>
+                        </div>
+                        <div className="flex flex-col gap-3 sm:flex-row sm:gap-4">
+                          <div className="flex-1">
+                            <div className="flex items-center gap-2 sm:gap-3">
+                              <Mail className="text-muted-foreground h-4 w-4 flex-shrink-0 sm:h-5 sm:w-5" />
+                              <div className="min-w-0 flex-1">
+                                <label className="text-xs font-medium sm:text-sm">First Opened</label>
+                                <p className="text-foreground text-xs sm:text-sm">
+                                  {mail.openedAt
+                                    ? new Date(mail.openedAt).toLocaleString()
+                                    : 'Not opened'}
+                                </p>
+                              </div>
+                            </div>
+                          </div>
+                          <div className="flex-1">
+                            <div className="flex items-center gap-2 sm:gap-3">
+                              <Mail className="text-muted-foreground h-4 w-4 flex-shrink-0 sm:h-5 sm:w-5" />
+                              <div className="min-w-0 flex-1">
+                                <label className="text-xs font-medium sm:text-sm">Last Opened</label>
+                                <p className="text-foreground text-xs sm:text-sm">
+                                  {mail.lastOpenedAt
+                                    ? new Date(mail.lastOpenedAt).toLocaleString()
+                                    : 'Not opened'}
+                                </p>
+                              </div>
+                            </div>
+                          </div>
+                        </div>
+                        {mail.reply && (
+                          <div className="flex flex-col gap-2 sm:gap-3">
+                            <div className="flex items-center gap-2 sm:gap-3">
+                              <Mail className="text-muted-foreground h-4 w-4 flex-shrink-0 sm:h-5 sm:w-5" />
+                              <label className="text-xs font-medium sm:text-sm">Reply</label>
+                            </div>
+                            <div className="pl-6 sm:pl-8">
+                              <p className="text-foreground text-xs sm:text-sm">
+                                <strong>From:</strong> {mail.reply.from}
+                              </p>
+                              <p className="text-foreground text-xs sm:text-sm">
+                                <strong>Subject:</strong> {mail.reply.subject || 'N/A'}
+                              </p>
+                              <p className="text-foreground text-xs sm:text-sm">
+                                <strong>Received:</strong>{' '}
+                                {new Date(mail.reply.receivedAt).toLocaleString()}
+                              </p>
+                              <p className="text-foreground text-xs break-words sm:text-sm">
+                                <strong>Body:</strong> {mail.reply.body || 'N/A'}
+                              </p>
+                            </div>
+                          </div>
+                        )}
+                        <div className="flex items-center gap-2 sm:gap-3">
+                          <AlertCircle className="text-muted-foreground h-4 w-4 flex-shrink-0 sm:h-5 sm:w-5" />
+                          <div className="min-w-0 flex-1">
+                            <label className="text-xs font-medium sm:text-sm">False Positive</label>
+                            <p className="text-foreground text-xs sm:text-sm">
+                              {mail.isFalsePositive ? 'Yes' : 'No'}
+                            </p>
+                          </div>
+                        </div>
+                      </div>
+                    ))
+                  ) : (
+                    <p className="text-muted-foreground text-xs sm:text-sm">
+                      No cold mail history available
+                    </p>
+                  )}
                 </div>
               </div>
             </DialogDescription>
