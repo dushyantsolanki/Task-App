@@ -138,7 +138,7 @@ app.get('/track/open', async (req, res) => {
           body: `Your mail opened at ${coldMail?.openedAt?.toLocaleTimeString('en-IN', {
             timeZone: 'Asia/Kolkata',
           })}`,
-          imageUrl: 'https://i.ibb.co/Xfv4LYf8/Chat-GPT-Image-Aug-30-2025-12-17-18-AM.png',
+          imageUrl: 'https://i.ibb.co/PG7JTxNy/Chat-GPT-Image-Sep-10-2025-11-04-15-PM.png',
           pageLink: 'ai-automation/lead',
         });
         console.log(mailId, 'Mail Opened.....');
