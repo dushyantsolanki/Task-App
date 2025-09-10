@@ -97,9 +97,8 @@ app.use('/upload', express.static(process.cwd() + 'medias'));
 
 // Endpoint for tracking cold email
 app.get('/track/open', async (req, res) => {
-  console.log('MailID :::: ', mailId);
   const { mailId } = req.query;
-
+  console.log('MailID :::: ', mailId);
   if (mailId) {
     const coldMail = await ColdMail.findById(mailId);
 
