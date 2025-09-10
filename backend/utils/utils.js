@@ -68,3 +68,15 @@ export function textToHtml(text, mailId) {
   }
   return html;
 }
+
+export function formatDateToIST(date) {
+  if (!date) return null;
+  return new Date(date).toLocaleString('en-IN', {
+    timeZone: 'Asia/Kolkata',
+    day: '2-digit',
+    month: '2-digit',
+    year: 'numeric',
+    hour: '2-digit',
+    minute: '2-digit',
+  });
+}
