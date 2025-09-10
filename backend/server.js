@@ -101,6 +101,7 @@ app.get('/track/open', async (req, res) => {
 
   if (mailId) {
     await ColdMail.findByIdAndUpdate(mailId, { status: 'opened' });
+    console.log(mailId, 'Mail Opened.....');
   }
 
   res.setHeader('Content-Type', 'image/svg+xml');
