@@ -26,7 +26,7 @@ interface Lead {
   domain?: string;
   emails: string[];
   phones: string[];
-  status: string;
+  leadStatus: string;
   createdBy: {
     _id: string;
     name: string;
@@ -149,7 +149,7 @@ const LeadViewModal = ({ isOpen, onClose, lead }: ViewModalProps) => {
                         <div className="min-w-0 flex-1">
                           <label className="text-xs font-medium sm:text-sm">Status</label>
                           <p className="text-foreground text-xs sm:text-sm">
-                            <Badge variant="outline">{lead.status}</Badge>
+                            <Badge variant="outline">{lead.leadStatus}</Badge>
                           </p>
                         </div>
                       </div>

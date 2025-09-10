@@ -21,6 +21,8 @@ import { chromium } from 'playwright-extra';
 import stealth from 'puppeteer-extra-plugin-stealth';
 import requestIp from 'request-ip';
 import geoip from 'geoip-country';
+import { sendNotification } from './sockets/events/notification.event.js';
+import { sendFirebaseNotification } from './firebase/notification.firebase.js';
 // import { encryptResponse } from './middlewares/encryption.middleware.js';
 // import { emailQueue } from './queue/queue.js';
 // import emailWorker from './queue/worker/email.worker.js';
@@ -101,10 +103,14 @@ app.get('/track/open', async (req, res) => {
   console.log('MailID :::: ', mailId);
   const ip = req.clientIp;
   let geo = await geoip.lookup(ip);
-  console.log('HELLO GEO ::: ', geo);
-  if (mailId) {
-    const coldMail = await ColdMail.findById(mailId);
 
+  if (mailId) {
+    const coldMail = await ColdMail.findById(mailId).populate({
+      path: 'leadId',
+      select: 'createdBy',
+    });
+
+    console.log('users :::: ', coldMail);
     if (coldMail) {
       // Ignore if too soon after creation (anti-false positive)
       const timeSinceCreate = Date.now() - coldMail.createdAt.getTime();
@@ -115,6 +121,26 @@ app.get('/track/open', async (req, res) => {
         coldMail.status = 'opened';
         coldMail.openedAt = new Date(); // Add field for first open time
         await coldMail.save();
+
+        await sendNotification({
+          senderId: coldMail?.createdBy?._id,
+          userIds: coldMail?.createdBy?._id,
+          type: 'Mail Status',
+          path: 'ai-automation/lead',
+          title: `${coldMail.recipients} opened your mail.`,
+          body: `${coldMail.recipients} opened your mail.`,
+          eventType: 'notification',
+        });
+        await sendFirebaseNotification({
+          mode: 'creator',
+          creatorId: userId?.toString(),
+          title: `Your mail opened by ${coldMail?.recipients}`,
+          body: `Your mail opened at ${coldMail?.openedAt?.toLocaleTimeString('en-IN', {
+            timeZone: 'Asia/Kolkata',
+          })}`,
+          imageUrl: 'https://i.ibb.co/Xfv4LYf8/Chat-GPT-Image-Aug-30-2025-12-17-18-AM.png',
+          pageLink: 'ai-automation/lead',
+        });
         console.log(mailId, 'Mail Opened.....');
       } else {
         // Track multiple opens (add openCount and opens array to model)
@@ -127,17 +153,16 @@ app.get('/track/open', async (req, res) => {
     }
   }
 
-  // No-cache headers to encourage re-fetches on multiple opens
   res.setHeader('Cache-Control', 'no-cache, no-store, must-revalidate');
   res.setHeader('Pragma', 'no-cache');
   res.setHeader('Expires', '0');
 
-  res.setHeader('Content-Type', 'image/svg+xml');
-  res.send(`
-    <svg xmlns="http://www.w3.org/2000/svg" width="1" height="1">
-      <rect width="1" height="1" fill="transparent"/>
-    </svg>
-  `);
+  res.setHeader('Content-Type', 'image/png');
+  const pixel = Buffer.from(
+    'iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAQAAAC1HAwCAAAAC0lEQVR42mP8Xw8AAoMBgAknhkYAAAAASUVORK5CYII=',
+    'base64',
+  );
+  res.end(pixel);
 });
 
 app.get('/medias/:folder/:filename', (req, res) => {

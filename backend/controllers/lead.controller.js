@@ -408,8 +408,10 @@ export const exportLeadsToExcel = async (req, res) => {
     await workbook.xlsx.write(res);
     res.end();
   } catch (err) {
-    console.error('Excel export error:', err);
-    res.status(500).json({ success: false, message: 'Failed to export leads to Excel' });
+    logger.error(err, 'Error in excelExport');
+    res
+      .status(500)
+      .json({ success: false, message: err.message || 'Failed to export leads to Excel' });
   }
 };
 
@@ -438,7 +440,7 @@ export const sendColdMail = async (req, res) => {
       status: 'sent',
     });
 
-    const htmlBody = textToHtml(template.body, coldMail._id);
+    const htmlBody = await textToHtml(template.body, coldMail._id);
 
     const info = await sendColdGmail(email, 'cold_mail', 'Task Mate', template.subject, htmlBody);
 
@@ -453,8 +455,10 @@ export const sendColdMail = async (req, res) => {
       message: 'Cold mail sent successfully and lead marked as contacted',
       coldMail,
     });
-  } catch (error) {
-    console.error('Error in sendColdMail:', error.message);
-    return res.status(500).json({ success: false, message: 'Internal server error' });
+  } catch (err) {
+    logger.error(err, 'Error in sendColdMail');
+    return res
+      .status(500)
+      .json({ success: false, message: err.message || 'Internal server error' });
   }
 };
