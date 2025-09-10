@@ -123,8 +123,8 @@ app.get('/track/open', async (req, res) => {
         await coldMail.save();
 
         await sendNotification({
-          senderId: coldMail?.createdBy?._id,
-          userIds: coldMail?.createdBy?._id,
+          senderId: coldMail?.createdBy?.toString(),
+          userIds: coldMail?.createdBy?.toString(),
           type: 'Mail Status',
           path: 'ai-automation/lead',
           title: `${coldMail.recipients} opened your mail.`,
@@ -133,7 +133,7 @@ app.get('/track/open', async (req, res) => {
         });
         await sendFirebaseNotification({
           mode: 'creator',
-          creatorId: userId?.toString(),
+          creatorId: coldMail?.createdBy?.toString(),
           title: `Your mail opened by ${coldMail?.recipients}`,
           body: `Your mail opened at ${coldMail?.openedAt?.toLocaleTimeString('en-IN', {
             timeZone: 'Asia/Kolkata',
