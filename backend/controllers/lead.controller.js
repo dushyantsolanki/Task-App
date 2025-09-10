@@ -17,7 +17,10 @@ export const getLeads = async (req, res) => {
 
     const skip = (page - 1) * limit;
 
-    const query = { isDeleted: false, createdBy: new mongoose.Types.ObjectId(userId) };
+    const query = {
+      isDeleted: false,
+      createdBy: new mongoose.Types.ObjectId(userId),
+    };
 
     if (search) {
       query.$or = [
@@ -33,6 +36,7 @@ export const getLeads = async (req, res) => {
     const totalCount = await Lead.countDocuments(query);
     const totalPages = Math.ceil(totalCount / limit);
 
+    // fetch leads first
     const leads = await Lead.find(query)
       .sort({ createdAt: -1, _id: 1 })
       .populate({ path: 'createdBy', select: 'avatar name' })
@@ -40,13 +44,31 @@ export const getLeads = async (req, res) => {
       .limit(limit)
       .lean();
 
+    const leadIds = leads.map((lead) => lead._id);
+
+    const coldMails = await ColdMail.find({ leadId: { $in: leadIds } })
+      .populate({ path: 'templateId', select: 'subject body' })
+      .lean();
+
+    const coldMailMap = coldMails.reduce((acc, cm) => {
+      const key = cm.leadId.toString();
+      if (!acc[key]) acc[key] = [];
+      acc[key].push(cm);
+      return acc;
+    }, {});
+
+    const leadsWithColdMails = leads.map((lead) => ({
+      ...lead,
+      coldMails: coldMailMap[lead._id.toString()] || [],
+    }));
+
     const hasNextPage = page < totalPages;
     const hasPrevPage = page > 1;
 
     return res.status(200).json({
       success: true,
       message: 'Leads fetched successfully',
-      leads,
+      leads: leadsWithColdMails,
       totalCount,
       totalPages,
       currentPage: page,
@@ -72,7 +94,6 @@ export const addLead = async (req, res) => {
       website,
       phone,
       categories,
-      domain,
       emails,
       phones,
       leadStatus,
@@ -215,7 +236,7 @@ export const generateAILead = async (req, res) => {
     logger.error(err, 'Error in generateAILead');
     return res.status(500).json({
       success: false,
-      message: err.message || 'Internal server error',
+      message: err?.message || 'Internal server error',
     });
   }
 };
@@ -442,7 +463,7 @@ export const sendColdMail = async (req, res) => {
 
     const htmlBody = await textToHtml(template.body, coldMail._id);
 
-    const info = await sendColdGmail(email, 'cold_mail', 'Task Mate', template.subject, htmlBody);
+    const info = await sendColdGmail(email, 'cold_mail', '', template.subject, htmlBody);
 
     coldMail.messageId = info.messageId;
     await coldMail.save();

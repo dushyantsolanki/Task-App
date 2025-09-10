@@ -1091,7 +1091,7 @@ const AILeadScrapper = async (company, userId, req, res, geo) => {
 
     return res.status(500).json({
       success: false,
-      message: err.message || 'Internal server error',
+      message: error?.message || 'Internal server error',
     });
   }
 };
