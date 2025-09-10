@@ -99,15 +99,36 @@ app.use('/upload', express.static(process.cwd() + 'medias'));
 app.get('/track/open', async (req, res) => {
   const { mailId } = req.query;
   console.log('MailID :::: ', mailId);
+
   if (mailId) {
     const coldMail = await ColdMail.findById(mailId);
 
-    if (coldMail && coldMail.status !== 'opened') {
-      coldMail.status = 'opened';
-      await coldMail.save();
-      console.log(mailId, 'Mail Opened.....');
+    if (coldMail) {
+      // Ignore if too soon after creation (anti-false positive)
+      const timeSinceCreate = Date.now() - coldMail.createdAt.getTime();
+      if (timeSinceCreate < 5000) {
+        // <5 seconds, likely prefetch/send artifact
+        console.log(mailId, 'Ignored early hit');
+      } else if (coldMail.status !== 'opened') {
+        coldMail.status = 'opened';
+        coldMail.openedAt = new Date(); // Add field for first open time
+        await coldMail.save();
+        console.log(mailId, 'Mail Opened.....');
+      } else {
+        // Track multiple opens (add openCount and opens array to model)
+        coldMail.openCount = (coldMail.openCount || 0) + 1;
+        coldMail.opens = coldMail.opens || [];
+        coldMail.opens.push({ timestamp: new Date(), ip: req.ip }); // Log IP (though proxied)
+        await coldMail.save();
+        console.log(mailId, 'Mail Re-Opened.....');
+      }
     }
   }
+
+  // No-cache headers to encourage re-fetches on multiple opens
+  res.setHeader('Cache-Control', 'no-cache, no-store, must-revalidate');
+  res.setHeader('Pragma', 'no-cache');
+  res.setHeader('Expires', '0');
 
   res.setHeader('Content-Type', 'image/svg+xml');
   res.send(`
