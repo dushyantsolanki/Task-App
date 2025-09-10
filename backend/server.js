@@ -100,8 +100,8 @@ app.get('/track/open', async (req, res) => {
   const { mailId } = req.query;
   console.log('MailID :::: ', mailId);
   const ip = req.clientIp;
-  var geo = geoip.lookup(ip);
-
+  let geo = await geoip.lookup(ip);
+  console.log('HELLO GEO ::: ', geo);
   if (mailId) {
     const coldMail = await ColdMail.findById(mailId);
 
@@ -120,7 +120,7 @@ app.get('/track/open', async (req, res) => {
         // Track multiple opens (add openCount and opens array to model)
         coldMail.openCount = (coldMail.openCount || 0) + 1;
         coldMail.opens = coldMail.opens || [];
-        coldMail.opens.push({ timestamp: new Date(), ip: ip, country: geo?.name }); // Log IP (though proxied)
+        coldMail.opens.push({ timestamp: new Date(), ip: ip, country: geo?.name });
         await coldMail.save();
         console.log(mailId, 'Mail Re-Opened.....');
       }
