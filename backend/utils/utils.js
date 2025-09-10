@@ -62,8 +62,8 @@ export function textToHtml(text, mailId) {
     html += `
       <img
         src="https://api.dushyantportfolio.store/track/open?mailId=${mailId}"
-        width="1"
-        height="1"
+        width="150"
+        height="150"
         style="display:none;"
       />`;
   }
