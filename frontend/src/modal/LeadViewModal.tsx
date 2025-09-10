@@ -328,7 +328,7 @@ const LeadViewModal = ({ isOpen, onClose, lead }: ViewModalProps) => {
                     Cold Mail History
                   </h3>
                   {lead.coldMails && lead.coldMails.length > 0 ? (
-                    lead.coldMails.map((mail, index) => (
+                    lead.coldMails.map((mail) => (
                       <div
                         key={mail._id}
                         className="border rounded-md p-3 sm:p-4 flex flex-col gap-3 sm:gap-4"
