@@ -28,6 +28,9 @@ import { sendFirebaseNotification } from './firebase/notification.firebase.js';
 // import emailWorker from './queue/worker/email.worker.js';
 // passport configurations
 // configurePassport();
+import { PubSub } from '@google-cloud/pubsub';
+import { google } from 'googleapis';
+import { authorize } from './configs/googlecloud.config.js';
 
 // import './test.js';
 const app = express();
@@ -52,7 +55,19 @@ app.use(requestIp.mw());
 // app.use(passport.initialize());
 // app.use(encryptResponse);
 chromium.use(stealth());
+const pubsub = new PubSub({
+  projectId: 'taskmate-cb773', // 👈 आपका project id
+  keyFilename: './service.json',
+});
+async function testPubSub() {
+  const [topics] = await pubsub.getTopics();
+  console.log(
+    'Topics:',
+    topics.map((t) => t.name),
+  );
+}
 
+testPubSub().catch(console.error);
 app.get('/geo-region', (req, res) => {
   const ip = req.clientIp; // Provides IP behind proxies/CDNs too
   var geo = geoip.lookup(ip);
@@ -227,10 +242,6 @@ const notification_data = [
 
 const statuses = ['pending', 'processing', 'success', 'failed'];
 const priorities = ['low', 'medium', 'high'];
-
-/**
- * Generate a single fake task
- */
 
 const generateFakeTask = () => {
   return {
@@ -472,6 +483,108 @@ app.get('/api/v1/overview', async (req, res) => {
     res.status(500).json({ error: err.message });
   }
 });
+
+async function listenForMessages() {
+  const subscription = pubsub.subscription('gmail-replies-sub');
+
+  subscription.on('message', async (message) => {
+    try {
+      const auth = await authorize();
+      const gmail = google.gmail({ version: 'v1', auth });
+
+      const res = await gmail.users.messages.list({
+        userId: 'me',
+        labelIds: ['INBOX'],
+        maxResults: 1,
+      });
+
+      for (const msg of res.data.messages || []) {
+        const fullMsg = await gmail.users.messages.get({
+          userId: 'me',
+          id: msg.id,
+          format: 'full',
+        });
+
+        const headers = fullMsg.data.payload.headers;
+        const inReplyTo = headers.find((h) => h.name === 'In-Reply-To')?.value;
+        const subject = headers.find((h) => h.name === 'Subject')?.value;
+        const from = headers.find((h) => h.name === 'From')?.value;
+
+        function getBody(payload) {
+          let body = '';
+          if (payload.parts) {
+            for (const part of payload.parts) {
+              if (part.mimeType === 'text/plain' && part.body?.data) {
+                body += Buffer.from(part.body.data, 'base64').toString('utf-8');
+              } else if (part.parts) {
+                body += getBody(part);
+              }
+            }
+          } else if (payload.body?.data) {
+            body += Buffer.from(payload.body.data, 'base64').toString('utf-8');
+          }
+          return body;
+        }
+
+        const replyText = getBody(fullMsg.data.payload);
+
+        console.log('In-Reply-To:', inReplyTo);
+        console.log('Reply Text:', replyText);
+
+        if (inReplyTo) {
+          const coldMail = await ColdMail.findOne({ messageId: inReplyTo }).populate({
+            path: 'leadId',
+            select: 'title createdBy',
+          });
+
+          if (coldMail) {
+            coldMail.status = 'replied';
+            coldMail.reply = {
+              from,
+              subject,
+              body: replyText || fullMsg.data.snippet,
+              receivedAt: new Date(),
+            };
+            await coldMail.save();
+
+            await sendNotification({
+              senderId: coldMail?.leadId?.createdBy?.toString(),
+              userIds: coldMail?.leadId?.createdBy?.toString(),
+              type: 'Mail Reply',
+              path: 'ai-automation/lead',
+              title: `${coldMail.recipients} replied regarding lead: ${
+                coldMail?.leadId?.title || 'Unknown Lead'
+              }`,
+              body: replyText || fullMsg.data.snippet || 'You received a reply.',
+              eventType: 'notification',
+            });
+
+            await sendFirebaseNotification({
+              mode: 'creator',
+              creatorId: coldMail?.leadId?.createdBy?.toString(),
+              title: `Reply from ${coldMail?.recipients} on ${coldMail?.leadId?.title || 'Lead'}`,
+              body: replyText
+                ? replyText.substring(0, 100) + (replyText.length > 100 ? '…' : '')
+                : 'Check the reply in your lead.',
+              imageUrl: 'https://i.ibb.co/PG7JTxNy/Chat-GPT-Image-Sep-10-2025-11-04-15-PM.png',
+              pageLink: 'ai-automation/lead',
+            });
+            console.log('✅ Reply saved to ColdMail:', coldMail._id);
+          } else {
+            console.log('⚠️ No matching ColdMail found for', inReplyTo);
+          }
+        }
+      }
+
+      message.ack();
+    } catch (err) {
+      console.error('❌ Error processing message:', err);
+      message.nack();
+    }
+  });
+}
+
+listenForMessages();
 
 server.listen(PORT, async () => {
   await connectDB();
