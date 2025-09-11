@@ -467,13 +467,13 @@ const LeadViewModal = ({ isOpen, onClose, lead }: ViewModalProps) => {
                                     <CollapsibleContent className="mt-2 border-l-2 pl-4">
                                       <div className="flex flex-col gap-2">
                                         <p className="text-xs sm:text-sm">
-                                          <strong>From:</strong> {reply.from}
+                                          <strong>From:</strong> <span className='text-foreground'> {reply.from} </span>
                                         </p>
                                         <p className="text-xs sm:text-sm">
-                                          <strong>Subject:</strong> {reply.subject || 'N/A'}
+                                          <strong>Subject:</strong>  <span className='text-foreground'> {reply.subject || 'N/A'} </span>
                                         </p>
                                         <p className="text-xs sm:text-sm">
-                                          <strong>Received:</strong> {formatDateToIST(reply.receivedAt)}
+                                          <strong>Received:</strong>  <span className='text-foreground'> {formatDateToIST(reply.receivedAt)} </span>
                                         </p>
                                         <div className="text-xs sm:text-sm break-all">
                                           <strong>Body:</strong>
@@ -482,7 +482,7 @@ const LeadViewModal = ({ isOpen, onClose, lead }: ViewModalProps) => {
                                               {main}
                                             </p>
                                             {quoted && (
-                                              <div className="mt-2 border-l-2 border-muted pl-2 text-muted-foreground text-xs sm:text-sm" style={{ whiteSpace: 'pre-line' }}>
+                                              <div className="mt-2 border-l-2 border-muted pl-2 text-pink-500/80 dark:text-pink-400/60 text-xs sm:text-sm" style={{ whiteSpace: 'pre-line' }}>
                                                 {quoted}
                                               </div>
                                             )}
