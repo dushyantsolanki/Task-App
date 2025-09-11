@@ -158,8 +158,7 @@ export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
             <data.company.logo />
           </div>
           <div className="grid flex-1 text-left text-sm leading-tight">
-            <span className="truncate font-medium">{data.company.name}</span>
-            <Greeting />
+            <Greeting companyName={data.company.name} />
           </div>
         </SidebarMenuButton>
       </SidebarHeader>

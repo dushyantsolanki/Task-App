@@ -2,6 +2,7 @@ import React from 'react';
 import { Outlet } from 'react-router-dom';
 import { GalleryVerticalEnd } from 'lucide-react';
 import { AnimatedShinyText } from '@/components/magicui/animated-shiny-text';
+import { DotLottieReact } from '@lottiefiles/dotlottie-react';
 
 const AuthLayout: React.FC = () => {
   return (
@@ -30,12 +31,24 @@ const AuthLayout: React.FC = () => {
       </div>
 
       {/* Right Image Panel */}
-      <div className="bg-muted relative hidden lg:block">
-        <img
+      <div className="border-0 relative hidden lg:block">
+        {/* <img
           loading="lazy"
           src="https://cdnb.artstation.com/p/assets/images/images/008/558/509/4k/mo-yan-jhin7-new8-final-final-layers-1.jpg"
           alt="Image"
           className="absolute inset-0 h-full w-full object-cover dark:brightness-[0.4] dark:contrast-100"
+        /> */}
+
+        {/* <DotLottieReact
+          src="https://lottie.host/7e6cc677-5f9d-4489-95aa-2318a8fadcb7/kc8hYB1h4h.lottie"
+          loop
+          autoplay
+        /> */}
+
+        <DotLottieReact
+          src="https://lottie.host/45b19de0-2d30-42b3-a3a2-c588f299c608/MKz1tzspew.lottie"
+          loop
+          autoplay
         />
       </div>
     </div>
