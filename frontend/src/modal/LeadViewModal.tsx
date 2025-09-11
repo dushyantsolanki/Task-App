@@ -475,7 +475,7 @@ const LeadViewModal = ({ isOpen, onClose, lead }: ViewModalProps) => {
                                         <p className="text-xs sm:text-sm">
                                           <strong>Received:</strong> {formatDateToIST(reply.receivedAt)}
                                         </p>
-                                        <div className="text-xs sm:text-sm">
+                                        <div className="text-xs sm:text-sm break-all">
                                           <strong>Body:</strong>
                                           <div className="mt-1">
                                             <p className={isMeaningless ? 'text-muted-foreground italic' : 'text-foreground'} style={{ whiteSpace: 'pre-line' }}>
