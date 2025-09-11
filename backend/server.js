@@ -128,7 +128,7 @@ app.get('/track/open', async (req, res) => {
       const timeSinceCreate = Date.now() - coldMail.createdAt.getTime();
       if (timeSinceCreate < 5000) {
         // <5 seconds, likely prefetch/send artifact
-      } else if (coldMail.status !== 'opened') {
+      } else if (coldMail.status === 'sent') {
         coldMail.status = 'opened';
         coldMail.openedAt = new Date(); // Add field for first open time
         await coldMail.save();
@@ -181,7 +181,7 @@ app.get('/track/open', async (req, res) => {
   res.end(pixel);
 });
 
-app.get('/medias/:folder/:filename', (req, res) => {
+app.get('/medias/:folder/:filenasentme', (req, res) => {
   const { folder, filename } = req.params;
 
   const filePath = path.join(__dirname, 'medias', folder, filename);
@@ -570,7 +570,7 @@ async function listenForMessages() {
               title: `${coldMail.recipients} replied regarding lead: ${
                 coldMail?.leadId?.title || 'Unknown Lead'
               }`,
-              body: replyText?.split('On')[0]?.slice(0, 20) || 'You received a reply.',
+              body: replyText?.split('On')[0]?.slice(0, 50) || 'You received a reply.',
               eventType: 'notification',
             });
 
