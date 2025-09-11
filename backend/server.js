@@ -161,14 +161,6 @@ app.get('/track/open', async (req, res) => {
     }
   }
 
-  // const filePath = path.resolve(__dirname, 'medias', 'mail', 'mail_tracking.svg');
-  // res.sendFile(filePath, (err) => {
-  //   if (err) {
-  //     console.error('Error sending file:', err);
-  //     res.status(err.status || 500).end();
-  //   }
-  // });
-
   res.setHeader('Cache-Control', 'no-cache, no-store, must-revalidate');
   res.setHeader('Pragma', 'no-cache');
   res.setHeader('Expires', '0');
@@ -181,7 +173,7 @@ app.get('/track/open', async (req, res) => {
   res.end(pixel);
 });
 
-app.get('/medias/:folder/:filenasentme', (req, res) => {
+app.get('/medias/:folder/:filename', (req, res) => {
   const { folder, filename } = req.params;
 
   const filePath = path.join(__dirname, 'medias', folder, filename);
