@@ -566,7 +566,7 @@ async function listenForMessages() {
               title: `${coldMail.recipients} replied regarding lead: ${
                 coldMail?.leadId?.title || 'Unknown Lead'
               }`,
-              body: replyText || fullMsg.data.snippet || 'You received a reply.',
+              body: replyText?.split('On')[0]?.slice(0, 20) || 'You received a reply.',
               eventType: 'notification',
             });
 
