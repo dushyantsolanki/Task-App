@@ -394,24 +394,26 @@ const LeadViewModal = ({ isOpen, onClose, lead }: ViewModalProps) => {
                           </div>
                         </div>
                         {mail.reply && (
-                          <div className="flex flex-col gap-2 sm:gap-3">
+                          <div className="flex flex-col gap-0 sm:gap-0">
                             <div className="flex items-center gap-2 sm:gap-3">
                               <Mail className="text-muted-foreground h-4 w-4 flex-shrink-0 sm:h-5 sm:w-5" />
                               <label className="text-xs font-medium sm:text-sm">Reply</label>
                             </div>
                             <div className="pl-6 sm:pl-8">
-                              <p className="text-foreground text-xs sm:text-sm">
+                              <p className="text-xs sm:text-sm">
                                 <strong>From:</strong> {mail.reply.from}
                               </p>
-                              <p className="text-foreground text-xs sm:text-sm">
+                              <p className=" text-xs sm:text-sm">
                                 <strong>Subject:</strong> {mail.reply.subject || 'N/A'}
                               </p>
-                              <p className="text-foreground text-xs sm:text-sm">
+                              <p className=" text-xs sm:text-sm">
                                 <strong>Received:</strong>{' '}
                                 {formatDateToIST(mail.reply.receivedAt)}
                               </p>
-                              <p className="text-foreground text-xs break-words sm:text-sm">
-                                <strong>Body:</strong> {mail.reply.body || 'N/A'}
+                              <p className="text-xs break-words sm:text-sm">
+                                <strong>Body:</strong> <span className='text-foreground'>{mail?.reply?.body?.split('On')[0] || 'N/A'}</span> <span className='text-pink-200/80'>
+                                  {mail?.reply?.body?.split('On')[1] || ''}
+                                </span>
                               </p>
                             </div>
                           </div>

@@ -516,6 +516,8 @@ async function listenForMessages() {
           format: 'full',
         });
 
+        const threadId = fullMsg.data.threadId;
+        const messageId = fullMsg.data.id;
         const headers = fullMsg.data.payload.headers;
         const inReplyTo = headers.find((h) => h.name === 'In-Reply-To')?.value;
         const subject = headers.find((h) => h.name === 'Subject')?.value;
@@ -534,7 +536,7 @@ async function listenForMessages() {
           } else if (payload.body?.data) {
             body += Buffer.from(payload.body.data, 'base64').toString('utf-8');
           }
-          return body?.replace(/^>\s?/gm, '\n')?.trim();
+          return body?.replace(/^>\s?/gm, '<br>')?.trim();
         }
 
         const replyText = getBody(fullMsg.data.payload);
@@ -543,19 +545,21 @@ async function listenForMessages() {
         console.log('Reply Text:', replyText);
 
         if (inReplyTo) {
-          const coldMail = await ColdMail.findOne({ messageId: inReplyTo }).populate({
-            path: 'leadId',
-            select: 'title createdBy',
-          });
+          let coldMail = await ColdMail.findOne({
+            $or: [{ messageId: inReplyTo }, { threadId: threadId }],
+          }).populate({ path: 'leadId', select: 'title createdBy' });
 
           if (coldMail) {
             coldMail.status = 'replied';
-            coldMail.reply = {
+            coldMail.threadId = coldMail.threadId || threadId;
+            coldMail.replies.push({
               from,
               subject,
               body: replyText || fullMsg.data.snippet,
               receivedAt: new Date(),
-            };
+              messageId,
+              threadId,
+            });
             await coldMail.save();
 
             await sendNotification({

@@ -5,6 +5,8 @@ const replySchema = new mongoose.Schema({
   subject: { type: String },
   body: { type: String },
   receivedAt: { type: Date, default: Date.now },
+  messageId: { type: String },
+  threadId: { type: String },
 });
 
 const openEventSchema = new mongoose.Schema({
@@ -23,13 +25,14 @@ const coldMailSchema = new mongoose.Schema(
       enum: ['sent', 'delivered', 'opened', 'replied'],
       default: 'sent',
     },
-    messageId: { type: String }, // Gmail-provided sent email message ID
-    openedAt: { type: Date }, // First confirmed open (no default)
-    lastOpenedAt: { type: Date }, // Most recent open
-    openCount: { type: Number, default: 0 }, // Total opens
-    opens: [openEventSchema], // Array of open events
-    isFalsePositive: { type: Boolean, default: false }, // Flag for suspected false opens
-    reply: replySchema, // Store single reply (expandable to array in future)
+    messageId: { type: String }, // original Gmail messageId
+    threadId: { type: String }, // track full Gmail thread
+    openedAt: { type: Date },
+    lastOpenedAt: { type: Date },
+    openCount: { type: Number, default: 0 },
+    opens: [openEventSchema],
+    isFalsePositive: { type: Boolean, default: false },
+    replies: [replySchema],
   },
   { timestamps: true },
 );
