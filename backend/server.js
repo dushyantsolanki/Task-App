@@ -520,7 +520,7 @@ async function listenForMessages() {
         const inReplyTo = headers.find((h) => h.name === 'In-Reply-To')?.value;
         const subject = headers.find((h) => h.name === 'Subject')?.value;
         const from = headers.find((h) => h.name === 'From')?.value;
-
+        console.log('FROM ::: ', from);
         function getBody(payload) {
           let body = '';
           if (payload.parts) {
