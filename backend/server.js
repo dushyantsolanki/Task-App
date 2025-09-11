@@ -148,7 +148,7 @@ app.get('/track/open', async (req, res) => {
           body: `Your mail opened at ${coldMail?.openedAt?.toLocaleTimeString('en-IN', {
             timeZone: 'Asia/Kolkata',
           })}`,
-          imageUrl: 'https://i.ibb.co/PG7JTxNy/Chat-GPT-Image-Sep-10-2025-11-04-15-PM.png',
+          imageUrl: 'https://i.ibb.co/9HNGW34B/file-000000001558622fbac255717a10c528.png',
           pageLink: 'ai-automation/lead',
         });
       } else {
@@ -573,7 +573,7 @@ async function listenForMessages() {
               body: replyText
                 ? replyText.substring(0, 100) + (replyText.length > 100 ? '…' : '')
                 : 'Check the reply in your lead.',
-              imageUrl: 'https://i.ibb.co/PG7JTxNy/Chat-GPT-Image-Sep-10-2025-11-04-15-PM.png',
+              imageUrl: 'https://i.ibb.co/9HNGW34B/file-000000001558622fbac255717a10c528.png',
               pageLink: 'ai-automation/lead',
             });
             console.log('✅ Reply saved to ColdMail:', coldMail._id);

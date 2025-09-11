@@ -12,6 +12,8 @@ import { MapPin, Globe, Phone, Mail, Tag, Link, AlertCircle, User, Hash, Send } 
 import { Badge } from '@/components/ui/badge';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { formatDateToIST } from '@/lib/utils';
+import { Collapsible, CollapsibleContent, CollapsibleTrigger } from '@/components/ui/collapsible';
+import { useState } from 'react';
 
 interface ColdMail {
   _id: string;
@@ -67,17 +69,48 @@ interface ViewModalProps {
   lead: Lead | null;
 }
 
+// Utility to clean reply lines (remove >, >>>, <<<<<<< etc.)
+const cleanReplyLine = (line: string): string => {
+  return line.replace(/^[>\s<]+/g, '').trim();
+};
+
+// Utility to detect meaningless content (emoji-only or gibberish)
+const isMeaninglessContent = (text: string): boolean => {
+  const cleanedText = text.replace(/\s/g, '');
+  const emojiRegex = /^[\p{Emoji}\p{Emoji_Presentation}\p{Emoji_Component}]+$/u;
+  if (emojiRegex.test(cleanedText)) return true;
+
+  const words = cleanedText.replace(/[^\w\s]/g, '').split(/\s+/);
+  const validWords = words.filter((word) => word.length > 2 && /[aeiou]/i.test(word));
+  return validWords.length === 0 && words.length > 0;
+};
+
+// Enhanced parseReplyBody to separate main body and quoted text
 const parseReplyBody = (body: string | undefined) => {
-  if (!body) return { main: 'N/A', quoted: '' };
+  if (!body) return { main: 'No content provided', quoted: '', isMeaningless: false };
+
+  // Clean each line to remove ">" and "<<" style arrows
+  const cleanedBody = body
+    .split('\n')
+    .map((line) => cleanReplyLine(line))
+    .join('\n');
+
+  // Regex to detect quoted text starting with "On ... wrote:"
   const regex = /(^[\s\S]*?)(?=(^On\s.*wrote:))/m;
-  const match = body.match(regex);
+  const match = cleanedBody.match(regex);
+  const mainBody = match ? match[1].trim() : cleanedBody.trim();
+  const quotedBody = match ? cleanedBody.slice(match[1].length).trim() : '';
+
   return {
-    main: match ? match[1].trim() : body,
-    quoted: match ? body.slice(match[1].length).trim() : '',
+    main: mainBody || 'No meaningful content',
+    quoted: quotedBody,
+    isMeaningless: isMeaninglessContent(mainBody),
   };
 };
 
 const LeadViewModal = ({ isOpen, onClose, lead }: ViewModalProps) => {
+  const [openReplies, setOpenReplies] = useState<Record<string, boolean>>({});
+
   if (!lead) return null;
 
   return (
@@ -94,9 +127,8 @@ const LeadViewModal = ({ isOpen, onClose, lead }: ViewModalProps) => {
           <div className="scrollbar-hide overflow-y-auto">
             <DialogDescription asChild>
               <div className="flex flex-col gap-3 px-4 py-3 sm:gap-4 sm:px-6 sm:py-4">
-                {/* First Row - Important Details (Left) and Image (Right) */}
+                {/* Existing Lead Details (unchanged) */}
                 <div className="flex flex-col gap-3 sm:flex-row sm:gap-4">
-                  {/* Right: Avatar (but first on mobile) */}
                   <div className="order-first flex justify-center sm:order-last">
                     {lead.createdBy?.name && (
                       <Avatar className="h-32 w-32 rounded-md border sm:h-40 sm:w-40">
@@ -119,8 +151,6 @@ const LeadViewModal = ({ isOpen, onClose, lead }: ViewModalProps) => {
                       </Avatar>
                     )}
                   </div>
-
-                  {/* Left: Important Details */}
                   <div className="flex flex-1 flex-col gap-3 sm:gap-4">
                     <div className="flex items-center gap-2 sm:gap-3">
                       <Hash className="text-muted-foreground h-4 w-4 flex-shrink-0 sm:h-5 sm:w-5" />
@@ -152,7 +182,7 @@ const LeadViewModal = ({ isOpen, onClose, lead }: ViewModalProps) => {
                   </div>
                 </div>
 
-                {/* Basic Information */}
+                {/* Basic Information (unchanged) */}
                 <div className="flex flex-col gap-3 sm:gap-4">
                   <h3 className="text-muted-foreground text-xs font-medium tracking-wide uppercase sm:text-sm">
                     Basic Information
@@ -194,7 +224,7 @@ const LeadViewModal = ({ isOpen, onClose, lead }: ViewModalProps) => {
                   </div>
                 </div>
 
-                {/* Location & Contact Information */}
+                {/* Location & Contact Information (unchanged) */}
                 <div className="flex flex-col gap-3 sm:gap-4">
                   <h3 className="text-muted-foreground text-xs font-medium tracking-wide uppercase sm:text-sm">
                     Location & Contact Information
@@ -271,7 +301,7 @@ const LeadViewModal = ({ isOpen, onClose, lead }: ViewModalProps) => {
                   </div>
                 </div>
 
-                {/* Contact Arrays */}
+                {/* Contact Arrays (unchanged) */}
                 <div className="flex flex-col gap-3 sm:flex-row sm:gap-4">
                   <div className="flex-1">
                     <div className="mb-1.5 flex items-center gap-2 sm:gap-3">
@@ -315,7 +345,7 @@ const LeadViewModal = ({ isOpen, onClose, lead }: ViewModalProps) => {
                   </div>
                 </div>
 
-                {/* Categories */}
+                {/* Categories (unchanged) */}
                 <div className="flex flex-col gap-3 sm:gap-4">
                   <div className="flex items-center gap-2 sm:gap-3">
                     <Tag className="text-muted-foreground h-4 w-4 flex-shrink-0 sm:h-5 sm:w-5" />
@@ -407,29 +437,62 @@ const LeadViewModal = ({ isOpen, onClose, lead }: ViewModalProps) => {
                           </div>
                         </div>
                         {mail.replies && mail.replies.length > 0 ? (
-                          <div className="flex flex-col gap-0 sm:gap-0">
+                          <div className="flex flex-col gap-2 sm:gap-3">
                             <div className="flex items-center gap-2 sm:gap-3">
                               <Mail className="text-muted-foreground h-4 w-4 flex-shrink-0 sm:h-5 sm:w-5" />
                               <label className="text-xs font-medium sm:text-sm">Replies</label>
                             </div>
-                            <div className="pl-6 sm:pl-8">
-                              {mail.replies.map((reply, index) => (
-                                <div key={index} className="mb-2">
-                                  <p className="text-xs sm:text-sm">
-                                    <strong>From:</strong> {reply.from}
-                                  </p>
-                                  <p className="text-xs sm:text-sm">
-                                    <strong>Subject:</strong> {reply.subject || 'N/A'}
-                                  </p>
-                                  <p className="text-xs sm:text-sm">
-                                    <strong>Received:</strong> {formatDateToIST(reply.receivedAt)}
-                                  </p>
-                                  <p className="text-xs break-words sm:text-sm">
-                                    <strong>Body:</strong> <span className="text-foreground">{parseReplyBody(reply.body).main}</span>{' '}
-                                    <span className="text-pink-500/80 dark:text-pink-200/80 " style={{ whiteSpace: "pre-line" }}>{parseReplyBody(reply.body).quoted}</span>
-                                  </p>
-                                </div>
-                              ))}
+                            <div className="pl-6 sm:pl-8 flex flex-col gap-4">
+                              {mail.replies.map((reply, index) => {
+                                const { main, quoted, isMeaningless } = parseReplyBody(reply.body);
+                                return (
+                                  <Collapsible
+                                    key={index}
+                                    open={openReplies[`${mail._id}-${index}`] ?? !isMeaningless}
+                                    onOpenChange={(open) =>
+                                      setOpenReplies((prev) => ({
+                                        ...prev,
+                                        [`${mail._id}-${index}`]: open,
+                                      }))
+                                    }
+                                  >
+                                    <CollapsibleTrigger className="flex items-center gap-2 text-xs sm:text-sm font-medium">
+                                      <span>{isMeaningless ? 'Irrelevant Reply' : `Reply ${index + 1}`}</span>
+                                      {isMeaningless && (
+                                        <Badge variant="destructive" className="text-xs cursor-pointer">
+                                          Low Quality
+                                        </Badge>
+                                      )}
+                                    </CollapsibleTrigger>
+                                    <CollapsibleContent className="mt-2 border-l-2 pl-4">
+                                      <div className="flex flex-col gap-2">
+                                        <p className="text-xs sm:text-sm">
+                                          <strong>From:</strong> {reply.from}
+                                        </p>
+                                        <p className="text-xs sm:text-sm">
+                                          <strong>Subject:</strong> {reply.subject || 'N/A'}
+                                        </p>
+                                        <p className="text-xs sm:text-sm">
+                                          <strong>Received:</strong> {formatDateToIST(reply.receivedAt)}
+                                        </p>
+                                        <div className="text-xs sm:text-sm">
+                                          <strong>Body:</strong>
+                                          <div className="mt-1">
+                                            <p className={isMeaningless ? 'text-muted-foreground italic' : 'text-foreground'} style={{ whiteSpace: 'pre-line' }}>
+                                              {main}
+                                            </p>
+                                            {quoted && (
+                                              <div className="mt-2 border-l-2 border-muted pl-2 text-muted-foreground text-xs sm:text-sm" style={{ whiteSpace: 'pre-line' }}>
+                                                {quoted}
+                                              </div>
+                                            )}
+                                          </div>
+                                        </div>
+                                      </div>
+                                    </CollapsibleContent>
+                                  </Collapsible>
+                                );
+                              })}
                             </div>
                           </div>
                         ) : (
