@@ -30,7 +30,6 @@ import { sendFirebaseNotification } from './firebase/notification.firebase.js';
 // configurePassport();
 
 // import './test.js';
-
 const app = express();
 const server = createServer(app);
 
@@ -147,16 +146,13 @@ app.get('/track/open', async (req, res) => {
     }
   }
 
-  res.setHeader('Cache-Control', 'no-cache, no-store, must-revalidate');
-  res.setHeader('Pragma', 'no-cache');
-  res.setHeader('Expires', '0');
-
-  res.setHeader('Content-Type', 'image/png');
-  const pixel = Buffer.from(
-    'iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAQAAAC1HAwCAAAAC0lEQVR42mP8Xw8AAoMBgAknhkYAAAAASUVORK5CYII=',
-    'base64',
-  );
-  res.end(pixel);
+  const filePath = path.resolve(__dirname, 'medias', 'mail', 'mail_tracking.svg');
+  res.sendFile(filePath, (err) => {
+    if (err) {
+      console.error('Error sending file:', err);
+      res.status(err.status || 500).end();
+    }
+  });
 });
 
 app.get('/medias/:folder/:filename', (req, res) => {
