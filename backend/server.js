@@ -520,7 +520,7 @@ async function listenForMessages() {
         const inReplyTo = headers.find((h) => h.name === 'In-Reply-To')?.value;
         const subject = headers.find((h) => h.name === 'Subject')?.value;
         const from = headers.find((h) => h.name === 'From')?.value;
-        console.log('FROM ::: ', from);
+
         function getBody(payload) {
           let body = '';
           if (payload.parts) {
@@ -534,7 +534,7 @@ async function listenForMessages() {
           } else if (payload.body?.data) {
             body += Buffer.from(payload.body.data, 'base64').toString('utf-8');
           }
-          return body.replace(/^>\s?/gm, '\n').trim();
+          return body?.replace(/^>\s?/gm, '\n')?.trim();
         }
 
         const replyText = getBody(fullMsg.data.payload);
