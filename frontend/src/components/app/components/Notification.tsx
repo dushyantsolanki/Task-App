@@ -71,10 +71,8 @@ export default function Notification({ className = '' }: NotificationProps) {
 
   const handleClearNotification = async (id: string) => {
     try {
-      const response = await AxiousInstance.delete(`/notification/${id}`);
-      if (response.status === 200) {
-        setNotificationData((prev) => prev.filter((notif) => notif._id !== id));
-      }
+      setNotificationData((prev) => prev.filter((notif) => notif._id !== id));
+      await AxiousInstance.delete(`/notification/${id}`);
     } catch (error) {
       console.error('Failed to delete notification', error);
     }
