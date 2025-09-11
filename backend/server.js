@@ -523,7 +523,7 @@ async function listenForMessages() {
           } else if (payload.body?.data) {
             body += Buffer.from(payload.body.data, 'base64').toString('utf-8');
           }
-          return body;
+          return body.replace(/^>\s?/gm, '\n').trim();
         }
 
         const replyText = getBody(fullMsg.data.payload);
