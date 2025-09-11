@@ -20,17 +20,20 @@ interface ColdMail {
   recipients: string;
   status: 'sent' | 'delivered' | 'opened' | 'replied';
   messageId?: string;
+  threadId?: string;
   openedAt?: Date;
   lastOpenedAt?: Date;
   openCount: number;
   opens: { timestamp: Date; ip?: string; country?: string }[];
   isFalsePositive: boolean;
-  reply?: {
+  replies: {
     from: string;
     subject?: string;
     body?: string;
     receivedAt: Date;
-  };
+    messageId?: string;
+    threadId?: string;
+  }[];
   createdAt: Date;
   updatedAt: Date;
 }
@@ -63,6 +66,16 @@ interface ViewModalProps {
   onClose: () => void;
   lead: Lead | null;
 }
+
+const parseReplyBody = (body: string | undefined) => {
+  if (!body) return { main: 'N/A', quoted: '' };
+  const regex = /(^[\s\S]*?)(?=(^On\s.*wrote:))/m;
+  const match = body.match(regex);
+  return {
+    main: match ? match[1].trim() : body,
+    quoted: match ? body.slice(match[1].length).trim() : '',
+  };
+};
 
 const LeadViewModal = ({ isOpen, onClose, lead }: ViewModalProps) => {
   if (!lead) return null;
@@ -393,30 +406,34 @@ const LeadViewModal = ({ isOpen, onClose, lead }: ViewModalProps) => {
                             </div>
                           </div>
                         </div>
-                        {mail.reply && (
+                        {mail.replies && mail.replies.length > 0 ? (
                           <div className="flex flex-col gap-0 sm:gap-0">
                             <div className="flex items-center gap-2 sm:gap-3">
                               <Mail className="text-muted-foreground h-4 w-4 flex-shrink-0 sm:h-5 sm:w-5" />
-                              <label className="text-xs font-medium sm:text-sm">Reply</label>
+                              <label className="text-xs font-medium sm:text-sm">Replies</label>
                             </div>
                             <div className="pl-6 sm:pl-8">
-                              <p className="text-xs sm:text-sm">
-                                <strong>From:</strong> {mail.reply.from}
-                              </p>
-                              <p className=" text-xs sm:text-sm">
-                                <strong>Subject:</strong> {mail.reply.subject || 'N/A'}
-                              </p>
-                              <p className=" text-xs sm:text-sm">
-                                <strong>Received:</strong>{' '}
-                                {formatDateToIST(mail.reply.receivedAt)}
-                              </p>
-                              <p className="text-xs break-words sm:text-sm">
-                                <strong>Body:</strong> <span className='text-foreground'>{mail?.reply?.body?.split('On')[0] || 'N/A'}</span> <span className='text-pink-200/80'>
-                                  {mail?.reply?.body?.split('On')[1] || ''}
-                                </span>
-                              </p>
+                              {mail.replies.map((reply, index) => (
+                                <div key={index} className="mb-2">
+                                  <p className="text-xs sm:text-sm">
+                                    <strong>From:</strong> {reply.from}
+                                  </p>
+                                  <p className="text-xs sm:text-sm">
+                                    <strong>Subject:</strong> {reply.subject || 'N/A'}
+                                  </p>
+                                  <p className="text-xs sm:text-sm">
+                                    <strong>Received:</strong> {formatDateToIST(reply.receivedAt)}
+                                  </p>
+                                  <p className="text-xs break-words sm:text-sm">
+                                    <strong>Body:</strong> <span className="text-foreground">{parseReplyBody(reply.body).main}</span>{' '}
+                                    <span className="text-pink-500/80 dark:text-pink-200/80 " style={{ whiteSpace: "pre-line" }}>{parseReplyBody(reply.body).quoted}</span>
+                                  </p>
+                                </div>
+                              ))}
                             </div>
                           </div>
+                        ) : (
+                          <p className="text-muted-foreground text-xs sm:text-sm">No replies available</p>
                         )}
                       </div>
                     ))
