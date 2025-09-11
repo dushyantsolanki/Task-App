@@ -161,13 +161,24 @@ app.get('/track/open', async (req, res) => {
     }
   }
 
-  const filePath = path.resolve(__dirname, 'medias', 'mail', 'mail_tracking.svg');
-  res.sendFile(filePath, (err) => {
-    if (err) {
-      console.error('Error sending file:', err);
-      res.status(err.status || 500).end();
-    }
-  });
+  // const filePath = path.resolve(__dirname, 'medias', 'mail', 'mail_tracking.svg');
+  // res.sendFile(filePath, (err) => {
+  //   if (err) {
+  //     console.error('Error sending file:', err);
+  //     res.status(err.status || 500).end();
+  //   }
+  // });
+
+  res.setHeader('Cache-Control', 'no-cache, no-store, must-revalidate');
+  res.setHeader('Pragma', 'no-cache');
+  res.setHeader('Expires', '0');
+
+  res.setHeader('Content-Type', 'image/png');
+  const pixel = Buffer.from(
+    'iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAQAAAC1HAwCAAAAC0lEQVR42mP8Xw8AAoMBgAknhkYAAAAASUVORK5CYII=',
+    'base64',
+  );
+  res.end(pixel);
 });
 
 app.get('/medias/:folder/:filename', (req, res) => {
