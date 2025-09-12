@@ -1,5 +1,13 @@
 import mongoose from 'mongoose';
 
+const attachmentSchema = new mongoose.Schema({
+  filename: { type: String },
+  mimeType: { type: String },
+  size: { type: Number },
+  attachmentId: { type: String }, // Useful if you want to refetch
+  path: { type: String }, // Local storage path of file that are save in server
+});
+
 const replySchema = new mongoose.Schema({
   from: { type: String, lowercase: true, trim: true },
   subject: { type: String },
@@ -7,6 +15,7 @@ const replySchema = new mongoose.Schema({
   receivedAt: { type: Date, default: Date.now },
   messageId: { type: String },
   threadId: { type: String },
+  attachments: [attachmentSchema],
 });
 
 const openEventSchema = new mongoose.Schema({
