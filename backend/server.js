@@ -563,7 +563,7 @@ async function listenForMessages() {
 
           const buffer = Buffer.from(attachment.data.data, 'base64');
 
-          const filePath = path.join(process.cwd(), 'medias', 'mail', att.filename);
+          const filePath = path.join('medias', 'mail', att.filename);
           fs.writeFileSync(filePath, buffer);
 
           savedAttachments.push({ ...att, path: filePath });
