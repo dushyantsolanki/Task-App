@@ -559,7 +559,7 @@ const LeadViewModal = ({ isOpen, onClose, lead }: ViewModalProps) => {
                                             <strong>Attachments:</strong>
                                             <ul className="mt-1 list-disc pl-5">
                                               {reply.attachments.map((attachment, idx) => (
-                                                <li key={idx} className="flex items-center gap-6">
+                                                <li key={idx} className="flex my-2 items-center gap-4">
                                                   <span>{attachment.filename} ({(attachment.size / 1024).toFixed(2)} KB)</span>
                                                   {attachment.path && (
                                                     <Button
@@ -568,8 +568,8 @@ const LeadViewModal = ({ isOpen, onClose, lead }: ViewModalProps) => {
                                                       onClick={() => window.open(import.meta.env.VITE_IMAGE_BASE_URL + '/' + attachment.path, '_blank')}
                                                       aria-label={`Download ${attachment.filename}`}
                                                     >
-                                                      <Download className="h-4 w-4 mr-1" />
-                                                      Download
+                                                      <Download className="h-4 w-4  mr-1" />
+                                                      <span className='hidden md:block'>Download </span>
                                                     </Button>
                                                   )}
                                                 </li>
