@@ -559,7 +559,7 @@ const LeadViewModal = ({ isOpen, onClose, lead }: ViewModalProps) => {
                                             <strong>Attachments:</strong>
                                             <ul className="mt-1 list-disc pl-5">
                                               {reply.attachments.map((attachment, idx) => (
-                                                <li key={idx} className="flex my-1.5 items-center gap-2">
+                                                <li key={idx} className="flex items-center gap-6">
                                                   <span>{attachment.filename} ({(attachment.size / 1024).toFixed(2)} KB)</span>
                                                   {attachment.path && (
                                                     <Button
