@@ -8,7 +8,7 @@ import {
   DialogClose,
 } from '@/components/ui/dialog';
 import { Button } from '@/components/ui/button';
-import { MapPin, Globe, Phone, Mail, Tag, Link, AlertCircle, User, Hash, Send, Download } from 'lucide-react';
+import { MapPin, Globe, Phone, Mail, Tag, Link, AlertCircle, User, Hash, Send, ExternalLink } from 'lucide-react';
 import { Badge } from '@/components/ui/badge';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { formatDateToIST } from '@/lib/utils';
@@ -560,19 +560,21 @@ const LeadViewModal = ({ isOpen, onClose, lead }: ViewModalProps) => {
                                             <ul className="mt-1 list-disc pl-5">
                                               {reply.attachments.map((attachment, idx) => (
                                                 <li key={idx} className="flex my-2 items-center gap-4">
-                                                  <span>{attachment.filename} ({(attachment.size / 1024).toFixed(2)} KB)</span>
+                                                  <span>
+                                                    {attachment.filename} ({(attachment.size / 1024).toFixed(2)} KB)
+                                                  </span>
                                                   {attachment.path && (
-                                                    <Button
-                                                      variant="outline"
-                                                      size="sm"
-                                                      onClick={() => window.open(import.meta.env.VITE_IMAGE_BASE_URL + '/' + attachment.path, '_blank')}
-                                                      aria-label={`Download ${attachment.filename}`}
+                                                    <a
+                                                      href={`${import.meta.env.VITE_IMAGE_BASE_URL}/${attachment.path}`}
+                                                      target="_blank"
+                                                      rel="noopener noreferrer"
+                                                      className="text-primary inline-flex items-center text-xs hover:underline"
                                                     >
-                                                      <Download className="h-4 w-4  mr-1" />
-                                                      <span className='hidden md:block'>Download </span>
-                                                    </Button>
+                                                      <ExternalLink className="h-3 w-3" />
+                                                    </a>
                                                   )}
                                                 </li>
+
                                               ))}
                                             </ul>
                                           </div>
