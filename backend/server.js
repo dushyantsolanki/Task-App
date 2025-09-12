@@ -32,9 +32,12 @@ import { PubSub } from '@google-cloud/pubsub';
 import { google } from 'googleapis';
 import { authorize } from './configs/googlecloud.config.js';
 
-// import './test.js';
 const app = express();
 const server = createServer(app);
+
+const PORT = process.env.PORT || 3000;
+const HOST = process.env.HOST;
+const __dirname = path.resolve();
 
 initSocketIO(server);
 
@@ -55,10 +58,12 @@ app.use(requestIp.mw());
 // app.use(passport.initialize());
 // app.use(encryptResponse);
 chromium.use(stealth());
+
 const pubsub = new PubSub({
-  projectId: 'taskmate-cb773', // 👈 आपका project id
+  projectId: 'taskmate-cb773',
   keyFilename: './service.json',
 });
+
 async function testPubSub() {
   const [topics] = await pubsub.getTopics();
   console.log(
@@ -66,18 +71,14 @@ async function testPubSub() {
     topics.map((t) => t.name),
   );
 }
-
 testPubSub().catch(console.error);
+
 app.get('/geo-region', (req, res) => {
   const ip = req.clientIp; // Provides IP behind proxies/CDNs too
   var geo = geoip.lookup(ip);
   console.log(geo);
   res.send({ ...geo, ip });
 });
-
-const PORT = process.env.PORT || 3000;
-const HOST = process.env.HOST;
-const __dirname = path.resolve();
 
 // function to get the IP address of the machine
 const getIPAdress = () => {
@@ -530,20 +531,53 @@ async function listenForMessages() {
           }
           return body;
         }
-
         const replyText = getBody(fullMsg.data.payload);
 
-        console.log('In-Reply-To:', inReplyTo);
-        console.log('Reply Text:', replyText);
+        function findAttachments(parts = []) {
+          const attachments = [];
+          for (const part of parts) {
+            if (part.filename && part.body?.attachmentId) {
+              attachments.push({
+                filename: part.filename,
+                mimeType: part.mimeType,
+                size: part.body.size,
+                attachmentId: part.body.attachmentId,
+              });
+            }
+            if (part.parts) {
+              attachments.push(...findAttachments(part.parts));
+            }
+          }
+          return attachments;
+        }
+
+        const attachments = findAttachments(fullMsg.data.payload.parts || []);
+        const savedAttachments = [];
+
+        for (const att of attachments) {
+          const attachment = await gmail.users.messages.attachments.get({
+            userId: 'me',
+            messageId: msg.id,
+            id: att.attachmentId,
+          });
+
+          const buffer = Buffer.from(attachment.data.data, 'base64');
+
+          const filePath = path.join(process.cwd(), 'medias', 'mail', att.filename);
+          fs.writeFileSync(filePath, buffer);
+
+          savedAttachments.push({ ...att, path: filePath });
+        }
 
         if (inReplyTo) {
           let coldMail = await ColdMail.findOne({
-            $or: [{ messageId: inReplyTo }, { threadId: threadId }],
+            $or: [{ messageId: inReplyTo }, { threadId }],
           }).populate({ path: 'leadId', select: 'title createdBy' });
 
           if (coldMail) {
             coldMail.status = 'replied';
             coldMail.threadId = coldMail.threadId || threadId;
+
             coldMail.replies.push({
               from,
               subject,
@@ -551,7 +585,9 @@ async function listenForMessages() {
               receivedAt: new Date(),
               messageId,
               threadId,
+              attachments: savedAttachments,
             });
+
             await coldMail.save();
 
             await sendNotification({
@@ -576,6 +612,7 @@ async function listenForMessages() {
               imageUrl: 'https://i.ibb.co/9HNGW34B/file-000000001558622fbac255717a10c528.png',
               pageLink: 'ai-automation/lead',
             });
+
             console.log('✅ Reply saved to ColdMail:', coldMail._id);
           } else {
             console.log('⚠️ No matching ColdMail found for', inReplyTo);
