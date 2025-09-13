@@ -8,7 +8,7 @@ import {
   DialogClose,
 } from '@/components/ui/dialog';
 import { Button } from '@/components/ui/button';
-import { MapPin, Globe, Phone, Mail, Tag, Link, AlertCircle, User, Hash, Send, Download } from 'lucide-react';
+import { MapPin, Globe, Phone, Mail, Tag, Link, AlertCircle, User, Hash, Send, Download, Paperclip, Reply, MailOpen, ClipboardCheck } from 'lucide-react';
 import { Badge } from '@/components/ui/badge';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { formatDateToIST } from '@/lib/utils';
@@ -462,7 +462,7 @@ const LeadViewModal = ({ isOpen, onClose, lead }: ViewModalProps) => {
 
                         {/* Open Events */}
                         {mail.opens && mail.opens.length > 0 ? (
-                          <div className="flex flex-col gap-2 sm:gap-3">
+                          <div className="flex flex-col gap-2 sm:gap-3 cursor-pointer overflow-y-auto">
                             <Collapsible
                               open={openOpens[mail._id] ?? false}
                               onOpenChange={(open) =>
@@ -472,10 +472,10 @@ const LeadViewModal = ({ isOpen, onClose, lead }: ViewModalProps) => {
                                 }))
                               }
                             >
-                              <CollapsibleTrigger className="flex items-center gap-2 text-xs sm:text-sm font-medium" aria-label="Toggle open events">
-                                Open Events ({mail.opens.length})
+                              <CollapsibleTrigger className="flex items-center gap-2 text-xs sm:text-sm font-medium cursor-pointer" aria-label="Toggle open events">
+                                <ClipboardCheck className="text-muted-foreground h-4 w-4 flex-shrink-0 sm:h-5 sm:w-5" />  Open Events ({mail.opens.length})
                               </CollapsibleTrigger>
-                              <CollapsibleContent className="mt-2 border-l-2 pl-4">
+                              <CollapsibleContent className="mt-2 ml-2  border-l-2 pl-4 ">
                                 <div className="flex flex-col gap-2">
                                   {mail.opens.map((openEvent, index) => (
                                     <div key={index} className="text-xs sm:text-sm">
@@ -519,18 +519,21 @@ const LeadViewModal = ({ isOpen, onClose, lead }: ViewModalProps) => {
                                       }))
                                     }
                                   >
+
                                     <CollapsibleTrigger
-                                      className="flex items-center gap-2 text-xs sm:text-sm font-medium"
+                                      className="flex items-center gap-2 text-xs sm:text-sm font-medium cursor-pointer"
                                       aria-label={`Toggle ${isMeaningless ? 'irrelevant reply' : `reply ${index + 1}`}`}
                                     >
+                                      <MailOpen className='text-muted-foreground h-4 w-4 flex-shrink-0 sm:h-4 sm:w-4' />
                                       <span>{isMeaningless ? 'Irrelevant Reply' : `Reply ${index + 1}`}</span>
                                       {isMeaningless && (
                                         <Badge variant="destructive" className="text-xs cursor-pointer">
                                           Low Quality
                                         </Badge>
                                       )}
+
                                     </CollapsibleTrigger>
-                                    <CollapsibleContent className="mt-2 border-l-2 pl-4">
+                                    <CollapsibleContent className="mt-2 ml-1.5 border-l-2 pl-4">
                                       <div className="flex flex-col gap-2">
                                         <p className="text-xs sm:text-sm">
                                           <strong>From:</strong> <span className='text-foreground'> {reply.from} </span>
@@ -556,11 +559,14 @@ const LeadViewModal = ({ isOpen, onClose, lead }: ViewModalProps) => {
                                         </div>
                                         {reply.attachments && reply.attachments.length > 0 && (
                                           <div className="text-xs sm:text-sm">
-                                            <strong>Attachments:</strong>
-                                            <ul className="mt-1 list-disc pl-5">
+                                            <div className='flex items-center gap-1'>
+                                              <Paperclip className="text-muted-foreground h-4 w-4 flex-shrink-0 sm:h-4 sm:w-4" /> <strong> Attachments:</strong>
+
+                                            </div>
+                                            <ul className="list-disc pl-5">
                                               {reply.attachments.map((attachment, idx) => (
-                                                <li key={idx} className="flex my-2 items-center gap-4">
-                                                  <span>{attachment.filename?.slice(0, 25)} ({(attachment.size / 1024).toFixed(2)} KB)</span>
+                                                <li key={idx} className="flex mb-2 items-center capitalize gap-2">
+                                                  {idx + 1}.<span>{attachment.filename?.slice(0, 20)} ({(attachment.size / 1024).toFixed(2)} KB)</span>
                                                   {attachment.path && (
                                                     <Button
                                                       variant="outline"
@@ -568,7 +574,7 @@ const LeadViewModal = ({ isOpen, onClose, lead }: ViewModalProps) => {
                                                       onClick={() => window.open(import.meta.env.VITE_IMAGE_BASE_URL + '/' + attachment.path, '_blank')}
                                                       aria-label={`Download ${attachment.filename}`}
                                                     >
-                                                      <Download className="h-3 w-3  mr-1" />
+                                                      <Download className="h-3 w-3  md:mr-1" />
                                                       <span className='hidden md:block'>Download </span>
                                                     </Button>
                                                   )}
@@ -578,7 +584,19 @@ const LeadViewModal = ({ isOpen, onClose, lead }: ViewModalProps) => {
                                           </div>
                                         )}
                                       </div>
+                                      <div className='ml-4 mt-1'>
+
+                                        <Button
+                                          variant="outline"
+                                          size="sm"
+
+                                        >
+                                          <Send />
+                                          Replay</Button>
+                                      </div>
+
                                     </CollapsibleContent>
+
                                   </Collapsible>
                                 );
                               })}
