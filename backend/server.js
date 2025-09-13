@@ -149,7 +149,7 @@ app.get('/track/open', async (req, res) => {
           body: `Your mail opened at ${coldMail?.openedAt?.toLocaleTimeString('en-IN', {
             timeZone: 'Asia/Kolkata',
           })}`,
-          imageUrl: 'https://i.ibb.co/9HNGW34B/file-000000001558622fbac255717a10c528.png',
+          imageUrl: 'https://i.ibb.co/7xbdLrHb/cold-mail-notification.png',
           pageLink: 'ai-automation/lead',
         });
       } else {
@@ -257,6 +257,14 @@ const generateFakeTask = () => {
     priority: faker.helpers.arrayElement(priorities),
     createdBy: '68ad521d790753c2dd5ab757',
     isDeleted: false,
+    startDate: faker.date.between({
+      from: new Date('2024-01-01T00:00:00.000Z'),
+      to: new Date('2025-06-16T23:59:59.999Z'),
+    }),
+    endDate: faker.date.between({
+      from: new Date('2024-01-01T00:00:00.000Z'),
+      to: new Date('2025-06-16T23:59:59.999Z'),
+    }),
     createdAt: faker.date.between({
       from: new Date('2024-01-01T00:00:00.000Z'),
       to: new Date('2025-06-16T23:59:59.999Z'),
@@ -271,8 +279,6 @@ const migrateTasks = async () => {
 
     await Task.insertMany(fakeTasks);
     console.log(`Inserted ${fakeTasks.length} fake tasks`);
-
-    console.log('Disconnected from MongoDB');
   } catch (err) {
     console.error('Migration failed:', err);
     process.exit(1);
@@ -609,7 +615,7 @@ async function listenForMessages() {
               body: replyText
                 ? replyText.substring(0, 100) + (replyText.length > 100 ? '…' : '')
                 : 'Check the reply in your lead.',
-              imageUrl: 'https://i.ibb.co/9HNGW34B/file-000000001558622fbac255717a10c528.png',
+              imageUrl: 'https://i.ibb.co/7xbdLrHb/cold-mail-notification.png',
               pageLink: 'ai-automation/lead',
             });
 
