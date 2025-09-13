@@ -174,6 +174,7 @@ export function AreaChartComponent() {
                 <ChartTooltipContent
                   labelFormatter={(value) => {
                     return new Date(value).toLocaleDateString('en-US', {
+                      timeZone: 'Asia/Kolkata',
                       month: 'short',
                       day: 'numeric',
                     });

@@ -66,6 +66,7 @@ export default function Notification({ className = '' }: NotificationProps) {
   const handleNotificationClick = (notification: NotificationItem) => {
     if (notification.path) {
       navigate(notification.path);
+      handleClearNotification(notification._id)
     }
   };
 
@@ -99,6 +100,7 @@ export default function Notification({ className = '' }: NotificationProps) {
           notificationData.map((notification) => (
             <DropdownMenuItem
               key={notification._id}
+              onClick={() => handleNotificationClick(notification)}
               className="hover:bg-accent relative flex cursor-pointer flex-col items-start p-3"
             >
               {/* Header Row: Title + Badge + X Icon */}
@@ -124,7 +126,7 @@ export default function Notification({ className = '' }: NotificationProps) {
                 <div className="font-medium">{notification.title}</div>
               </div>
 
-              <div className="w-full" onClick={() => handleNotificationClick(notification)}>
+              <div className="w-full">
                 <div className="text-muted-foreground mb-1 text-sm">{notification.body}</div>
                 <div className="text-muted-foreground text-xs">
                   {moment(notification.createdAt).format('DD MMM YYYY, hh:mm A')}

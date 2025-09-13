@@ -4,10 +4,12 @@
 
 @custom-variant dark (&:is(.dark *));
 
+/* Base styles */
 body {
   font-family: 'Poppins', sans-serif;
 }
 
+/* Theme variables */
 @theme inline {
   --radius-sm: calc(var(--radius) - 4px);
   --radius-md: calc(var(--radius) - 2px);
@@ -45,41 +47,10 @@ body {
   --color-sidebar-border: var(--sidebar-border);
   --color-sidebar-ring: var(--sidebar-ring);
   --animate-shiny-text: shiny-text 8s infinite;
-  @keyframes shiny-text {
-    0%,
-    90%,
-    100% {
-      background-position: calc(-100% - var(--shiny-width)) 0;
-    }
-    30%,
-    60% {
-      background-position: calc(100% + var(--shiny-width)) 0;
-    }
-  }
-  --animate-pulse: pulse var(--duration) ease-out infinite;
-  @keyframes pulse {
-    0%,
-    100% {
-      boxshadow: 0 0 0 0 var(--pulse-color);
-    }
-    50% {
-      boxshadow: 0 0 0 8px var(--pulse-color);
-    }
-  }
-  --animate-shine: shine var(--duration) infinite linear;
-  @keyframes shine {
-    0% {
-      background-position: 0% 0%;
-    }
-    50% {
-      background-position: 100% 100%;
-    }
-    to {
-      background-position: 0% 0%;
-    }
-  }
+  --animate-shine: shine var(--duration, 3s) infinite linear;
 }
 
+/* Light theme variables */
 :root {
   --radius: 0.75rem;
   --background: oklch(1 0 0);
@@ -122,6 +93,7 @@ body {
   --sidebar-ring: oklch(0.705 0.213 47.604);
 }
 
+/* Dark theme variables */
 .dark {
   --background: oklch(0.141 0.005 285.823);
   --foreground: oklch(0.985 0 0);
@@ -163,6 +135,7 @@ body {
   --sidebar-ring: oklch(0.646 0.222 41.116);
 }
 
+/* Base layer for global styles */
 @layer base {
   * {
     @apply border-border outline-ring/50;
@@ -170,20 +143,54 @@ body {
   body {
     @apply bg-background text-foreground;
   }
+  input[type='date']::-webkit-calendar-picker-indicator {
+    @apply hidden;
+  }
+  input[type='date'] {
+    -moz-appearance: textfield;
+  }
+  input[type='tel'] {
+    -moz-appearance: textfield;
+    appearance: none;
+  }
 }
 
+/* Utilities layer for custom utilities */
 @layer utilities {
   .scrollbar-hide {
     -ms-overflow-style: none;
     scrollbar-width: none;
   }
-
   .scrollbar-hide::-webkit-scrollbar {
     display: none;
   }
 }
 
-/* Bell shake animation */
+/* Animations */
+@keyframes shiny-text {
+  0%,
+  90%,
+  100% {
+    background-position: calc(-100% - var(--shiny-width, 100px)) 0;
+  }
+  30%,
+  60% {
+    background-position: calc(100% + var(--shiny-width, 100px)) 0;
+  }
+}
+
+@keyframes shine {
+  0% {
+    background-position: 0% 0%;
+  }
+  50% {
+    background-position: 100% 100%;
+  }
+  100% {
+    background-position: 0% 0%;
+  }
+}
+
 @keyframes bell-shake {
   0%,
   100% {
@@ -197,11 +204,6 @@ body {
   }
 }
 
-.animate-bell-shake {
-  animation: bell-shake 0.5s ease-in-out infinite;
-}
-
-/* Badge scale animation */
 @keyframes badge-scale {
   0% {
     transform: scale(0);
@@ -217,50 +219,6 @@ body {
   }
 }
 
-.animate-badge-scale {
-  animation: badge-scale 0.3s ease-out;
-}
-
-@media (prefers-reduced-motion: reduce) {
-  .animate-bell-shake,
-  .animate-badge-scale {
-    animation: none;
-  }
-}
-
-.fc-theme-standard td,
-.fc-theme-standard th {
-  border: 0 solid transparent !important;
-}
-
-.fc .fc-scrollgrid,
-.fc .fc-scrollgrid-section,
-.fc .fc-col-header-cell,
-.fc .fc-daygrid-day {
-  border: 0 solid transparent !important;
-}
-
-.fc .fc-scrollgrid-section-sticky > * {
-  background: transparent !important;
-}
-
-.fc .fc-daygrid-day.fc-day-today {
-  background-color: transparent;
-}
-
-@layer base {
-  input[type='date']::-webkit-calendar-picker-indicator {
-    @apply hidden;
-  }
-  input[type='date'] {
-    -moz-appearance: textfield;
-  }
-  input[type='tel'] {
-    -moz-appearance: textfield;
-    appearance: none;
-  }
-}
-
 @keyframes pop {
   0% {
     transform: scale(1);
@@ -273,28 +231,73 @@ body {
   }
 }
 
+/* Animation classes */
+.animate-shiny-text {
+  animation: var(--animate-shiny-text);
+}
+
+.animate-shine {
+  animation: var(--animate-shine);
+}
+
+.animate-bell-shake {
+  animation: bell-shake 0.5s ease-in-out infinite;
+}
+
+.animate-badge-scale {
+  animation: badge-scale 0.3s ease-out;
+}
+
 .badge-pop {
   animation: pop 0.3s ease-in-out;
 }
 
-/* Tooltip container */
+/* Respect reduced motion preferences */
+@media (prefers-reduced-motion: reduce) {
+  .animate-shiny-text,
+  .animate-shine,
+  .animate-bell-shake,
+  .animate-badge-scale,
+  .badge-pop {
+    animation: none;
+  }
+}
+
+/* FullCalendar customizations */
+.fc-theme-standard td,
+.fc-theme-standard th,
+.fc .fc-scrollgrid,
+.fc .fc-scrollgrid-section,
+.fc .fc-col-header-cell,
+.fc .fc-daygrid-day {
+  border: 0 solid transparent !important;
+}
+
+.fc .fc-scrollgrid-section-sticky > * {
+  background: transparent !important;
+}
+
+/* .fc .fc-daygrid-day.fc-day-today {
+  background-color: transparent;
+} */
+
+/* Tooltip styles */
 [data-tooltip] {
   position: relative;
   @apply cursor-pointer;
 }
 
-/* Tooltip bubble */
 [data-tooltip]::before {
   content: attr(data-tooltip);
   position: absolute;
-  bottom: calc(100% + 8px); /* Spacing from element */
+  bottom: calc(100% + 8px);
   left: 50%;
   transform: translateX(-50%);
-  background-color: var(--color-primary); /* Use Shadcn's popover color */
-  color: whitesmoke; /* Use Shadcn's popover foreground */
+  background-color: var(--color-primary);
+  color: whitesmoke;
   padding: 6px 10px;
-  border-radius: var(--radius-md); /* Use Shadcn's medium radius */
-  font-size: 0.75rem; /* text-xs */
+  border-radius: var(--radius-md);
+  font-size: 0.75rem;
   line-height: 1rem;
   white-space: nowrap;
   opacity: 0;
@@ -306,7 +309,6 @@ body {
   z-index: 50;
 }
 
-/* Tooltip arrow */
 [data-tooltip]::after {
   content: '';
   position: absolute;
@@ -315,13 +317,12 @@ body {
   transform: translateX(-50%);
   border-width: 6px;
   border-style: solid;
-  border-color: var(--color-primary) transparent transparent transparent; /* Match bubble background */
+  border-color: var(--color-primary) transparent transparent transparent;
   opacity: 0;
   transition: opacity 0.2s ease-in-out;
   z-index: 50;
 }
 
-/* Show on hover/focus */
 [data-tooltip]:hover::before,
 [data-tooltip]:hover::after,
 [data-tooltip]:focus::before,
@@ -329,7 +330,6 @@ body {
   opacity: 1;
 }
 
-/* Respect reduced motion preferences */
 @media (prefers-reduced-motion: reduce) {
   [data-tooltip]::before,
   [data-tooltip]::after {
@@ -337,7 +337,7 @@ body {
   }
 }
 
-/* For WebKit browsers (Chrome, Safari, Edge) */
+/* Scrollbar styles */
 ::-webkit-scrollbar {
   width: 6px;
 }
@@ -355,7 +355,6 @@ body {
   background: rgba(255, 255, 255, 0.4);
 }
 
-/* For Firefox */
 * {
   scrollbar-width: thin;
   scrollbar-color: rgba(255, 255, 255, 0.2) transparent;
