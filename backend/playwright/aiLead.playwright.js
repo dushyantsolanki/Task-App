@@ -843,38 +843,38 @@ async function scrapeCompany(companyName, userId) {
     });
 
     // Handle cookie popup
-    async function handleCookiePopup() {
-      try {
-        const cookieSelectors = [
-          'button[id*="accept"]',
-          'button:contains("Accept")',
-          'button:contains("Agree ")',
-          'button:contains("Allow")',
-          'button[class*="cookie"]',
-          'a[href*="cookie"]',
-          'button[data-testid*="cookie"]',
-        ];
+    // async function handleCookiePopup() {
+    //   try {
+    //     const cookieSelectors = [
+    //       'button[id*="accept"]',
+    //       'button:contains("Accept")',
+    //       'button:contains("Agree ")',
+    //       'button:contains("Allow")',
+    //       'button[class*="cookie"]',
+    //       'a[href*="cookie"]',
+    //       'button[data-testid*="cookie"]',
+    //     ];
 
-        for (const selector of cookieSelectors) {
-          const cookieButton = await page.$(selector);
-          if (cookieButton) {
-            await cookieButton.click();
-            console.log('Cookie popup accepted');
-            sendAILeadStatus({
-              type: 'ai_lead_status',
-              recipient: userId,
-              statusMsg: `AI has accepted the cookie consent popup.`,
-            });
-            await sleep(500 + Math.random() * 500);
-            return true;
-          }
-        }
-        return false;
-      } catch (e) {
-        console.log('No cookie popup found or error handling cookie popup:', e.message);
-        return false;
-      }
-    }
+    //     for (const selector of cookieSelectors) {
+    //       const cookieButton = await page.$(selector);
+    //       if (cookieButton) {
+    //         await cookieButton.click();
+    //         console.log('Cookie popup accepted');
+    //         sendAILeadStatus({
+    //           type: 'ai_lead_status',
+    //           recipient: userId,
+    //           statusMsg: `AI has accepted the cookie consent popup.`,
+    //         });
+    //         await sleep(500 + Math.random() * 500);
+    //         return true;
+    //       }
+    //     }
+    //     return false;
+    //   } catch (e) {
+    //     console.log('No cookie popup found or error handling cookie popup:', e.message);
+    //     return false;
+    //   }
+    // }
 
     // Step 1: Scrape BING MAPS (not Google)
     sendAILeadStatus({
@@ -892,7 +892,7 @@ async function scrapeCompany(companyName, userId) {
     });
 
     // Handle cookie popup after page load
-    await handleCookiePopup();
+    // await handleCookiePopup();
 
     // Check for captcha
     if (await detectAndHandleCaptcha(page, userId)) {
