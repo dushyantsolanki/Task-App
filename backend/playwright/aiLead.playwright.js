@@ -842,6 +842,40 @@ async function scrapeCompany(companyName, userId) {
       statusMsg: `AI has launched a secure browser instance for data collection.`,
     });
 
+    // Handle cookie popup
+    async function handleCookiePopup() {
+      try {
+        const cookieSelectors = [
+          'button[id*="accept"]',
+          'button:contains("Accept")',
+          'button:contains("Agree ")',
+          'button:contains("Allow")',
+          'button[class*="cookie"]',
+          'a[href*="cookie"]',
+          'button[data-testid*="cookie"]',
+        ];
+
+        for (const selector of cookieSelectors) {
+          const cookieButton = await page.$(selector);
+          if (cookieButton) {
+            await cookieButton.click();
+            console.log('Cookie popup accepted');
+            sendAILeadStatus({
+              type: 'ai_lead_status',
+              recipient: userId,
+              statusMsg: `AI has accepted the cookie consent popup.`,
+            });
+            await sleep(500 + Math.random() * 500);
+            return true;
+          }
+        }
+        return false;
+      } catch (e) {
+        console.log('No cookie popup found or error handling cookie popup:', e.message);
+        return false;
+      }
+    }
+
     // Step 1: Scrape BING MAPS (not Google)
     sendAILeadStatus({
       type: 'ai_lead_status',
@@ -857,6 +891,9 @@ async function scrapeCompany(companyName, userId) {
       timeout: 30000,
     });
 
+    // Handle cookie popup after page load
+    await handleCookiePopup();
+
     // Check for captcha
     if (await detectAndHandleCaptcha(page, userId)) {
       console.log('Handling CAPTCHA challenges, resuming scraping');
@@ -871,6 +908,30 @@ async function scrapeCompany(companyName, userId) {
     await randomMouseMovement(page, 3);
 
     await page.screenshot({ path: 'bing-maps-scrape-error.png', fullPage: true });
+    // Check for multiple results and select the first one
+    sendAILeadStatus({
+      type: 'ai_lead_status',
+      recipient: userId,
+      statusMsg: `AI is checking for multiple results and selecting the first one if necessary.`,
+    });
+
+    const results = await page.$$('ul.b_vList.b_divsec li');
+    if (results.length > 1) {
+      console.log(`Multiple results found (${results.length}), selecting the first one`);
+      const firstResultLink = await page.$('ul.b_vList.b_divsec li a.listings-item');
+      if (firstResultLink) {
+        // Click the first result to navigate to its details page
+        await firstResultLink.click();
+        await page.waitForNavigation({ waitUntil: 'domcontentloaded', timeout: 30000 });
+        // Handle cookie popup again after navigating to the details page
+        await handleCookiePopup();
+      } else {
+        throw new Error('No valid first result link found on Bing Maps.');
+      }
+    } else if (results.length === 0) {
+      throw new Error('No results found on Bing Maps for the given company name.');
+    }
+
     // Wait for business info module to appear
     sendAILeadStatus({
       type: 'ai_lead_status',
@@ -924,7 +985,7 @@ async function scrapeCompany(companyName, userId) {
       }
     }
 
-    // Step 2: Scrape website for contact info (unchanged)
+    // Step 2: Scrape website for contact info
     if (result.website) {
       console.log(
         `Collecting company profile details (name, address, category, phone) from ${result.website}`,
@@ -935,6 +996,8 @@ async function scrapeCompany(companyName, userId) {
         statusMsg: `AI is navigating to the company's website for deeper analysis.`,
       });
       await page.goto(result.website, { waitUntil: 'domcontentloaded', timeout: 60000 });
+      // Handle cookie popup on the website
+      await handleCookiePopup();
       sendAILeadStatus({
         type: 'ai_lead_status',
         recipient: userId,
