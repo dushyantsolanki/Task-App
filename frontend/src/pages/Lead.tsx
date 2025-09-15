@@ -609,7 +609,7 @@ function Lead() {
           </div>
         </div>
 
-        <div className="scrollbar-hide max-h-[calc(100vh-20rem)]  overflow-y-auto rounded-lg border">
+        <div className="scrollbar-hide max-h-[calc(100vh-20rem)] min-h-[10rem] overflow-y-auto rounded-lg border">
           <Table>
             <TableHeader className="bg-muted/40">
               {table.getHeaderGroups().map((headerGroup) => (
