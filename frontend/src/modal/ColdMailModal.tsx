@@ -18,6 +18,7 @@ import {
     SelectValue,
 } from '@/components/ui/select';
 import type { ITemplates } from '@/pages/Lead';
+import { Send } from 'lucide-react';
 
 export interface IColdMail {
     recipient: string;
@@ -141,7 +142,7 @@ export const ColdMailModal = ({
                     </DialogClose>
                     <Button type="submit" form="cold-mail-form" className="w-full sm:w-auto" disabled={formik.isSubmitting}>
                         {formik.isSubmitting ? <><span className="border-white mr-2 h-4 w-4 animate-spin rounded-full border-2 border-t-transparent"></span>
-                            Please wait...</> : "Save"}
+                            Please wait...</> : <div className='flex items-center justify-center gap-2'> <Send /> <h3>Send Mail </h3> </div>}
                     </Button>
                 </DialogFooter>
             </DialogContent>
