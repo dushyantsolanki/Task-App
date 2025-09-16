@@ -6,6 +6,7 @@ import { forgotPassTemplate } from './forgotPassTemplate.js';
 import logger from '../../configs/pino.config.js';
 import portfolioQueryCopyTemplate from './portfolioQueryCopyTemplate.js';
 import portfolioQueryTemplate from './portfolioQueryTemplate.js';
+import path from 'path';
 dotenv.config();
 
 const transporter = nodemailer.createTransport({
