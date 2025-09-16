@@ -80,6 +80,20 @@ router.get('/logout', verifyToken, logout);
 router.get('/user-lookup', verifyToken, getAllUsersLookup);
 router.put('/profile/:id', updateProfile);
 router.patch('/profile/reset-password/:id', verifyToken, resetProfilePassword);
-router.patch('/profile/picture', verifyToken, upload.single('avatar'), updateProfilePicture);
+router.patch(
+  '/profile/picture',
+  verifyToken,
+  (req, res, next) => {
+    upload.single('avatar')(req, res, function (err) {
+      if (err instanceof multer.MulterError) {
+        return res.status(400).json({ success: false, message: err.message });
+      } else if (err) {
+        return res.status(400).json({ success: false, message: err.message });
+      }
+      next();
+    });
+  },
+  updateProfilePicture,
+);
 
 export default router;

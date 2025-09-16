@@ -1,6 +1,8 @@
 import mongoose from 'mongoose';
 import logger from '../configs/pino.config.js';
 import Template from '../models/template.model.js';
+import path from 'path';
+import fs from 'fs';
 
 export const addTemplate = async (req, res) => {
   try {
@@ -10,10 +12,18 @@ export const addTemplate = async (req, res) => {
       return res.status(400).json({ success: false, message: 'All fields are required' });
     }
 
+    const attachments = req?.files?.map((file) => ({
+      filename: file.filename,
+      url: `/medias/templates/${file.filename}`,
+      mimetype: file.mimetype,
+      size: file.size,
+    }));
+
     const template = await Template.create({
       name,
       subject,
       body,
+      attachments,
       createdBy: req.user?.userId,
     });
 
@@ -74,17 +84,47 @@ export const getTemplates = async (req, res) => {
 export const updateTemplate = async (req, res) => {
   try {
     const { id } = req.params;
-    const { name, subject, body } = req.body;
+    let { name, subject, body, existingAttachments = [] } = req.body;
+    existingAttachments = JSON.parse(existingAttachments);
 
-    const template = await Template.findByIdAndUpdate(
-      new mongoose.Types.ObjectId(id),
-      { name, subject, body },
-      { new: true, runValidators: true },
-    );
-
+    const template = await Template.findById(id);
     if (!template) {
       return res.status(404).json({ success: false, message: 'Template not found' });
     }
+
+    let attachments = [];
+
+    const removed = template.attachments.filter(
+      (att) => !existingAttachments.some((ex) => ex.url === att.url),
+    );
+
+    removed.forEach((att) => {
+      const filePath = path.join(process.cwd(), att.url);
+      if (fs.existsSync(filePath)) {
+        fs.unlinkSync(filePath);
+      }
+    });
+
+    attachments = template.attachments.filter((att) =>
+      existingAttachments.some((ex) => ex.url === att.url),
+    );
+
+    if (req.files && req.files.length > 0) {
+      const newFiles = req.files.map((file) => ({
+        filename: file.filename,
+        url: `/medias/templates/${file.filename}`,
+        mimetype: file.mimetype,
+        size: file.size,
+      }));
+      attachments = [...attachments, ...newFiles];
+    }
+
+    template.name = name || template.name;
+    template.subject = subject || template.subject;
+    template.body = body || template.body;
+    template.attachments = attachments;
+
+    await template.save();
 
     return res.status(200).json({
       success: true,

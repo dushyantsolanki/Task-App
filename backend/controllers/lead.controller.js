@@ -463,7 +463,14 @@ export const sendColdMail = async (req, res) => {
 
     const htmlBody = await textToHtml(template.body, coldMail._id);
 
-    const info = await sendColdGmail(email, 'cold_mail', '', template.subject, htmlBody);
+    const info = await sendColdGmail(
+      email,
+      'cold_mail',
+      '',
+      template.subject,
+      htmlBody,
+      template?.attachments,
+    );
 
     coldMail.messageId = info.messageId;
     await coldMail.save();

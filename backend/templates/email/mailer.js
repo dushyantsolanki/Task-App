@@ -86,14 +86,24 @@ const sendPortfolioQueryMail = async (name, to, message, purpose) => {
   }
 };
 
-const sendColdGmail = async (to, purpose, senderName, subject, html) => {
+const sendColdGmail = async (to, purpose, senderName, subject, html, templateAttachments = []) => {
   let mailOptions;
+  const attachments =
+    templateAttachments.length > 0
+      ? templateAttachments.map((att) => ({
+          filename: att.filename,
+          path: path.resolve('medias', 'templates', att.filename),
+          contentType: att.mimetype,
+        }))
+      : [];
+
   if (purpose === 'cold_mail') {
     mailOptions = {
-      from: `"${senderName}" <` + process.env.EMAIL_USER + '>',
+      from: process.env.EMAIL_USER,
       to,
       subject,
       html,
+      ...(attachments.length > 0 && { attachments }),
     };
   }
 

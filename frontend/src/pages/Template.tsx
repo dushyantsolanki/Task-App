@@ -39,6 +39,9 @@ interface Template {
   name: string;
   subject: string;
   body: string;
+  files?: FileList | null;
+  attachments?: any
+  existingAttachments?: any
   createdBy: {
     _id: string;
     avatar: string;
@@ -115,15 +118,34 @@ function Template() {
 
   const addTemplate = async (
     template: Partial<Template>,
-    resetForm: any,
-    onClose: any,
+    files: File[],
+    resetForm: () => void,
+    onClose: () => void,
     setSubmitting: (bool: boolean) => void,
+    setSelectedFiles: ([]) => void,
   ) => {
     try {
-      const response = await AxiousInstance.post('/template', template);
+      setSubmitting(true);
+      const formData = new FormData();
+      formData.append('name', template.name || '');
+      formData.append('subject', template.subject || '');
+      formData.append('body', template.body || '');
+
+
+      files.forEach((file) => {
+        formData.append('attachments', file);
+      });
+
+      const response = await AxiousInstance.post('/template', formData, {
+        headers: {
+          'Content-Type': 'multipart/form-data',
+        },
+      });
+
       if (response.status === 201) {
         resetForm();
         onClose();
+        setSelectedFiles([])
         toast.success(response.data.message || 'Template added successfully');
         await getAllTemplates(pagination.pageIndex, pagination.pageSize, nameFilter);
       }
@@ -136,20 +158,41 @@ function Template() {
 
   const updateTemplate = async (
     template: Template,
-    resetForm: any,
-    onClose: any,
+    files: File[],
+    resetForm: () => void,
+    onClose: () => void,
     setSubmitting: (bool: boolean) => void,
+    setSelectedFiles: ([]) => void,
   ) => {
     try {
-      const response = await AxiousInstance.put(`/template/${initialValues?._id}`, template);
+      setSubmitting(true);
+      const formData = new FormData();
+      formData.append('name', template.name);
+      formData.append('subject', template.subject);
+      formData.append('body', template.body);
+      files.forEach((file) => {
+        formData.append('attachments', file);
+      });
+
+      formData.append('existingAttachments', JSON.stringify(template.existingAttachments));
+
+      const response = await AxiousInstance.put(`/template/${initialValues?._id}`, formData, {
+        headers: {
+          'Content-Type': 'multipart/form-data',
+        },
+      });
+
       if (response.status === 200) {
         resetForm();
         onClose();
+        setSelectedFiles([])
         toast.success(response.data.message || 'Template updated successfully');
         await getAllTemplates(pagination.pageIndex, pagination.pageSize, nameFilter);
       }
     } catch (error: any) {
-      toast.error(error.response?.data?.message || 'Failed to update template');
+      const errorMessage = error.response?.data?.message || 'Failed to update template';
+      toast.error(errorMessage);
+      throw new Error(errorMessage);
     } finally {
       setSubmitting(false);
     }
