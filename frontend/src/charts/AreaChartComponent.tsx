@@ -106,11 +106,46 @@ export function AreaChartComponent() {
     };
   }, [on, off]);
 
+  // Render nothing or a loading state until data is available
+  if (filteredData.length === 0) {
+    return (
+      <Card className="pt-0">
+        <CardHeader className="flex items-center gap-2 space-y-0 border-b py-5 sm:flex-row">
+          <div className="grid flex-1 gap-1">
+            <CardTitle className="text-xl md:text-2xl">Task Status</CardTitle>
+          </div>
+          <Select value={timeRange} onValueChange={setTimeRange}>
+            <SelectTrigger
+              className="w-34 rounded-lg sm:ml-auto sm:flex"
+              aria-label="Select a time range"
+            >
+              <SelectValue placeholder="Select time range" />
+            </SelectTrigger>
+            <SelectContent className="rounded-xl">
+              <SelectItem value="week" className="rounded-lg">
+                This Week
+              </SelectItem>
+              <SelectItem value="month" className="rounded-lg">
+                This Month
+              </SelectItem>
+              <SelectItem value="year" className="rounded-lg">
+                This Year
+              </SelectItem>
+            </SelectContent>
+          </Select>
+        </CardHeader>
+        <CardContent className="px-2 pt-4 sm:px-6 sm:pt-6 text-center">
+          <h2 className='text-2xl font-medium'>No Data Found</h2>
+        </CardContent>
+      </Card>
+    );
+  }
+
   return (
     <Card className="pt-0">
       <CardHeader className="flex items-center gap-2 space-y-0 border-b py-5 sm:flex-row">
         <div className="grid flex-1 gap-1">
-          <CardTitle className="text-xl md:text-2xl">Task Status </CardTitle>
+          <CardTitle className="text-xl md:text-2xl">Task Status</CardTitle>
         </div>
         <Select value={timeRange} onValueChange={setTimeRange}>
           <SelectTrigger
@@ -134,7 +169,8 @@ export function AreaChartComponent() {
       </CardHeader>
       <CardContent className="px-2 pt-4 sm:px-6 sm:pt-6">
         <ChartContainer config={chartConfig} className="aspect-auto h-[250px] w-full">
-          <AreaChart data={filteredData}>
+          <AreaChart
+            data={filteredData}      >
             <defs>
               <linearGradient id="fillPending" x1="0" y1="0" x2="0" y2="1">
                 <stop offset="5%" stopColor="var(--color-pending)" stopOpacity={0.8} />
@@ -189,6 +225,9 @@ export function AreaChartComponent() {
               fill="url(#fillPending)"
               stroke="var(--color-pending)"
               stackId="a"
+              isAnimationActive={true}
+              animationDuration={1200}
+              animationEasing="ease-in-out"
             />
             <Area
               dataKey="processing"
@@ -196,6 +235,9 @@ export function AreaChartComponent() {
               fill="url(#fillProcessing)"
               stroke="var(--color-processing)"
               stackId="a"
+              isAnimationActive={true}
+              animationDuration={1200}
+              animationEasing="ease-in-out"
             />
             <Area
               dataKey="success"
@@ -203,6 +245,9 @@ export function AreaChartComponent() {
               fill="url(#fillSuccess)"
               stroke="var(--color-success)"
               stackId="a"
+              isAnimationActive={true}
+              animationDuration={1200}
+              animationEasing="ease-in-out"
             />
             <Area
               dataKey="failed"
@@ -210,6 +255,9 @@ export function AreaChartComponent() {
               fill="url(#fillFailed)"
               stroke="var(--color-failed)"
               stackId="a"
+              isAnimationActive={true}
+              animationDuration={1200}
+              animationEasing="ease-in-out"
             />
             <ChartLegend content={<ChartLegendContent />} />
           </AreaChart>

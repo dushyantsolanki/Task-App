@@ -33,9 +33,9 @@ const chartConfig = {
 
 const statusMap: Record<string, string> = {
   new: 'new',
+  lost: "lost",
   contacted: 'contacted',
   interested: 'interested',
-  'not interested': 'not interested',
   'follow-up later': 'follow up',
 };
 
