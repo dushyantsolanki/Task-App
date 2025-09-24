@@ -16,6 +16,13 @@ const transporter = nodemailer.createTransport({
     pass: process.env.EMAIL_PASS,
   },
 });
+const transporterColdMail = nodemailer.createTransport({
+  service: 'gmail',
+  auth: {
+    user: process.env.TEST_USER_EMAIL,
+    pass: process.env.TEST_USER_PASS,
+  },
+});
 
 const sendVerificationMail = async (to, surname, OTP, expiredIn, purpose) => {
   let html;
@@ -100,7 +107,7 @@ const sendColdGmail = async (to, purpose, senderName, subject, html, templateAtt
 
   if (purpose === 'cold_mail') {
     mailOptions = {
-      from: process.env.EMAIL_USER,
+      from: process.env.TEST_USER_EMAIL,
       to,
       subject,
       html,
@@ -109,7 +116,7 @@ const sendColdGmail = async (to, purpose, senderName, subject, html, templateAtt
   }
 
   try {
-    const info = await transporter.sendMail(mailOptions);
+    const info = await transporterColdMail.sendMail(mailOptions);
     logger.info({ func: 'sendColdMail', message: `${info.response}` });
 
     return info;
