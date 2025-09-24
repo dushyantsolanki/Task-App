@@ -41,7 +41,6 @@ export const getNextSequence = async (name) => {
 };
 
 const SECRET_KEY = crypto.createHash('sha256').update(process.env.ENCRYPTION_SECRETE).digest();
-console.log('ENCRIYPTION SECRET_KEY ::::: ', SECRET_KEY);
 const ALGO = 'aes-256-cbc';
 
 export function encrypt(text) {
@@ -58,14 +57,16 @@ export function encrypt(text) {
 
 export function textToHtml(text, mailId) {
   let html = text.replace(/\n/g, '<br>');
-  if (mailId) {
-    html += `
-      <img
-        src="https://api.dushyantportfolio.store/track/open?mailId=${mailId}"
-        width="10"
-        height="10"
-      />`;
-  }
+  // if (mailId) {
+  //   html += `
+  //     <img
+  //       src="https://api.dushyantportfolio.store/track/open?mailId=${mailId}"
+  //       width="10"
+  //       height="10"
+  //     />
+
+  //     `;
+  // }
   return html;
 }
 
