@@ -107,7 +107,7 @@ const sendColdGmail = async (to, purpose, senderName, subject, html, templateAtt
 
   if (purpose === 'cold_mail') {
     mailOptions = {
-      from: process.env.TEST_USER_EMAIL,
+      from: '"Dushyant Solanki" <' + process.env.TEST_USER_EMAIL + '>',
       to,
       subject,
       html,
