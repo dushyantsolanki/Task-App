@@ -1,6 +1,6 @@
 import { type ChartConfig } from '@/components/ui/chart';
 import AxiousInstance from '@/helper/AxiousInstance';
-import React from 'react';
+import React, { useState } from 'react';
 import { useSocket } from '@/hooks/useSocket';
 import { PieChartComponent } from '@/charts/PieChartComponent';
 import useNotify from '@/hooks/useNotify';
@@ -43,9 +43,11 @@ export function LeadPieChart() {
   const [data, setData] = React.useState<any>([]);
   const { on, off } = useSocket();
   const toast = useNotify()
+  const [loading, setLoading] = useState(false)
 
   const getChartData = async () => {
     try {
+      setLoading(true)
       const response = await AxiousInstance.get('/lead/pie-chart');
       const lead = await response.data.data;
 
@@ -65,6 +67,8 @@ export function LeadPieChart() {
       }
     } catch (error: any) {
       toast.error(error.response.data.message || 'Failed to fetch chart data');
+    } finally {
+      setLoading(false)
     }
   };
   React.useEffect(() => {
@@ -92,6 +96,7 @@ export function LeadPieChart() {
       chartConfig={chartConfig}
       data={data}
       nameKey={'status'}
+      loading={loading}
     />
   );
 }

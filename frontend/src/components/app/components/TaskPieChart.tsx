@@ -1,6 +1,6 @@
 import { type ChartConfig } from '@/components/ui/chart';
 import AxiousInstance from '@/helper/AxiousInstance';
-import React from 'react';
+import React, { useState } from 'react';
 import { useSocket } from '@/hooks/useSocket';
 import { PieChartComponent } from '@/charts/PieChartComponent';
 import useNotify from '@/hooks/useNotify';
@@ -31,9 +31,11 @@ export function TaskPieChart() {
   const [data, setData] = React.useState<any>([]);
   const { on, off } = useSocket();
   const toast = useNotify()
+  const [loading, setLoading] = useState(false)
 
   const getChartData = async () => {
     try {
+      setLoading(true)
       const response = await AxiousInstance.get('/task/status-lookup-pie');
       const task = await response.data.data;
       if (response.status === 200) {
@@ -47,6 +49,9 @@ export function TaskPieChart() {
       }
     } catch (error: any) {
       toast.error(error.response.data.message || 'Failed to fetch chart data');
+    }
+    finally {
+      setLoading(false)
     }
   };
   React.useEffect(() => {
@@ -74,6 +79,7 @@ export function TaskPieChart() {
       chartConfig={chartConfig}
       data={data}
       nameKey={'status'}
+      loading={loading}
     />
   );
 }

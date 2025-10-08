@@ -10,6 +10,7 @@ import {
 } from '@/components/ui/chart';
 import { Badge } from '@/components/ui/badge';
 import { TrendingUp } from 'lucide-react';
+import { Spinner } from '@/components/ui/kibo-ui/spinner';
 
 interface Props {
   title: string;
@@ -17,9 +18,10 @@ interface Props {
   data: any;
   nameKey: string;
   trend?: { value: string; className?: string }; // Optional trend prop
+  loading: boolean
 }
 
-export function PieChartComponent({ title, chartConfig, data, nameKey, trend }: Props) {
+export function PieChartComponent({ title, chartConfig, data, nameKey, trend, loading }: Props) {
   function isAllCountsZero(data: { status: string; count: number; fill: string }[]): boolean {
     return data.every(item => item.count === 0);
   }
@@ -45,7 +47,7 @@ export function PieChartComponent({ title, chartConfig, data, nameKey, trend }: 
           config={chartConfig}
           className="[&_.recharts-text]:fill-background mx-auto aspect-square max-h-[300px]"
         >
-          {data?.length && !isAllCountsZero(data) ? (
+          {loading ? <div className='h-full w-full flex items-center justify-center'> <Spinner className="text-primary h-8 w-8" /> </div> : data?.length && !isAllCountsZero(data) ? (
             <PieChart>
               <ChartTooltip content={<ChartTooltipContent hideLabel />} />
               <Pie

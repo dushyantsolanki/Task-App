@@ -19,6 +19,7 @@ import {
 import AxiousInstance from '@/helper/AxiousInstance';
 import { useSocket } from '@/hooks/useSocket';
 import useNotify from '@/hooks/useNotify';
+import { Spinner } from '@/components/ui/kibo-ui/spinner';
 
 const chartConfig = {
   tasks: {
@@ -46,11 +47,13 @@ export function AreaChartComponent() {
   const [timeRange, setTimeRange] = React.useState<string>('year');
   const [filteredData, setFilteredData] = React.useState([]);
   const [data, setData] = React.useState<any>([]);
+  const [isLoading, setIsLoading] = React.useState<boolean>(true); // Add loading state
   const { on, off } = useSocket();
-  const toast = useNotify()
+  const toast = useNotify();
 
   const getChartData = async () => {
     try {
+      setIsLoading(true); // Set loading to true when fetching starts
       const response = await AxiousInstance.get('/task/status-lookup-area');
       const task = await response.data.data;
       if (response.status === 200) {
@@ -58,6 +61,8 @@ export function AreaChartComponent() {
       }
     } catch (error: any) {
       toast.error(error.response.data.message || 'Failed to fetch chart data');
+    } finally {
+      setIsLoading(false); // Set loading to false when fetching completes (success or error)
     }
   };
 
@@ -106,6 +111,41 @@ export function AreaChartComponent() {
     };
   }, [on, off]);
 
+  // Show spinner while loading
+  if (isLoading) {
+    return (
+      <Card className="pt-0">
+        <CardHeader className="flex items-center gap-2 space-y-0 border-b py-5 sm:flex-row">
+          <div className="grid flex-1 gap-1">
+            <CardTitle className="text-xl md:text-2xl">Task Status</CardTitle>
+          </div>
+          <Select value={timeRange} onValueChange={setTimeRange}>
+            <SelectTrigger
+              className="w-34 rounded-lg sm:ml-auto sm:flex"
+              aria-label="Select a time range"
+            >
+              <SelectValue placeholder="Select time range" />
+            </SelectTrigger>
+            <SelectContent className="rounded-xl">
+              <SelectItem value="week" className="rounded-lg">
+                This Week
+              </SelectItem>
+              <SelectItem value="month" className="rounded-lg">
+                This Month
+              </SelectItem>
+              <SelectItem value="year" className="rounded-lg">
+                This Year
+              </SelectItem>
+            </SelectContent>
+          </Select>
+        </CardHeader>
+        <CardContent className="px-2 pt-4 sm:px-6 sm:pt-6 flex justify-center items-center">
+          <Spinner className="text-primary h-8 w-8" />
+        </CardContent>
+      </Card>
+    );
+  }
+
   // Render nothing or a loading state until data is available
   if (filteredData.length === 0) {
     return (
@@ -135,7 +175,7 @@ export function AreaChartComponent() {
           </Select>
         </CardHeader>
         <CardContent className="px-2 pt-4 sm:px-6 sm:pt-6 text-center">
-          <h2 className='text-2xl font-medium'>No Data Found</h2>
+          <h2 className="text-2xl font-medium">No Data Found</h2>
         </CardContent>
       </Card>
     );
@@ -169,8 +209,7 @@ export function AreaChartComponent() {
       </CardHeader>
       <CardContent className="px-2 pt-4 sm:px-6 sm:pt-6">
         <ChartContainer config={chartConfig} className="aspect-auto h-[250px] w-full">
-          <AreaChart
-            data={filteredData}      >
+          <AreaChart data={filteredData}>
             <defs>
               <linearGradient id="fillPending" x1="0" y1="0" x2="0" y2="1">
                 <stop offset="5%" stopColor="var(--color-pending)" stopOpacity={0.8} />
