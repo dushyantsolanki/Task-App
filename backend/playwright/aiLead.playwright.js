@@ -799,94 +799,94 @@ async function extractContactInfo(page) {
   }
 }
 
-async function findAndScrapeCareerPage(page, userId) {
-  const careerKeywords = [
-    'career',
-    'careers',
-    'job',
-    'jobs',
-    'hiring',
-    'work-with-us',
-    'join-us',
-    'opportunities',
-    'employment',
-    'talent',
-    'apply',
-    'recruitment',
-    'we-are-hiring',
-    'openings',
-    'positions',
-  ];
+// async function findAndScrapeCareerPage(page, userId) {
+//   const careerKeywords = [
+//     'career',
+//     'careers',
+//     'job',
+//     'jobs',
+//     'hiring',
+//     'work-with-us',
+//     'join-us',
+//     'opportunities',
+//     'employment',
+//     'talent',
+//     'apply',
+//     'recruitment',
+//     'we-are-hiring',
+//     'openings',
+//     'positions',
+//   ];
 
-  try {
-    sendAILeadStatus({
-      type: 'ai_lead_status',
-      recipient: userId,
-      statusMsg: `AI is searching for a careers or jobs page on the website.`,
-    });
+//   try {
+//     sendAILeadStatus({
+//       type: 'ai_lead_status',
+//       recipient: userId,
+//       statusMsg: `AI is searching for a careers or jobs page on the website.`,
+//     });
 
-    const links = await page.$$eval('a[href]', (anchors) =>
-      anchors.map((a) => ({
-        text: (a.textContent || '').trim().toLowerCase(),
-        href: a.href || '',
-      })),
-    );
+//     const links = await page.$$eval('a[href]', (anchors) =>
+//       anchors.map((a) => ({
+//         text: (a.textContent || '').trim().toLowerCase(),
+//         href: a.href || '',
+//       })),
+//     );
 
-    const careerLink = links.find((link) =>
-      careerKeywords.some(
-        (keyword) => link.text.includes(keyword) || link.href.toLowerCase().includes(keyword),
-      ),
-    );
+//     const careerLink = links.find((link) =>
+//       careerKeywords.some(
+//         (keyword) => link.text.includes(keyword) || link.href.toLowerCase().includes(keyword),
+//       ),
+//     );
 
-    if (!careerLink || !careerLink.href) {
-      sendAILeadStatus({
-        type: 'ai_lead_status',
-        recipient: userId,
-        statusMsg: `AI did not find a careers page. Proceeding with homepage data only.`,
-      });
-      return null;
-    }
+//     if (!careerLink || !careerLink.href) {
+//       sendAILeadStatus({
+//         type: 'ai_lead_status',
+//         recipient: userId,
+//         statusMsg: `AI did not find a careers page. Proceeding with homepage data only.`,
+//       });
+//       return null;
+//     }
 
-    sendAILeadStatus({
-      type: 'ai_lead_status',
-      recipient: userId,
-      statusMsg: `AI found a careers page: ${careerLink.href}. Scraping contact info from it.`,
-    });
+//     sendAILeadStatus({
+//       type: 'ai_lead_status',
+//       recipient: userId,
+//       statusMsg: `AI found a careers page: ${careerLink.href}. Scraping contact info from it.`,
+//     });
 
-    await page.goto(careerLink.href, { waitUntil: 'domcontentloaded', timeout: 60000 });
+//     await page.goto(careerLink.href, { waitUntil: 'domcontentloaded', timeout: 60000 });
 
-    if (await detectAndHandleCaptcha(page)) {
-      console.log('CAPTCHA handled on career page, resuming');
-      sendAILeadStatus({
-        type: 'ai_lead_status',
-        recipient: userId,
-        statusMsg: `AI handled a CAPTCHA on the careers page and is continuing.`,
-      });
-    }
+//     if (await detectAndHandleCaptcha(page)) {
+//       console.log('CAPTCHA handled on career page, resuming');
+//       sendAILeadStatus({
+//         type: 'ai_lead_status',
+//         recipient: userId,
+//         statusMsg: `AI handled a CAPTCHA on the careers page and is continuing.`,
+//       });
+//     }
 
-    await sleep(1000 + Math.random() * 2500);
-    await randomMouseMovement(page, 3);
-    await humanScroll(page);
+//     await sleep(1000 + Math.random() * 2500);
+//     await randomMouseMovement(page, 3);
+//     await humanScroll(page);
 
-    const careerContactInfo = await extractContactInfo(page);
+//     const careerContactInfo = await extractContactInfo(page);
 
-    sendAILeadStatus({
-      type: 'ai_lead_status',
-      recipient: userId,
-      statusMsg: `AI extracted ${careerContactInfo.emails.length} email(s) from the careers page.`,
-    });
+//     sendAILeadStatus({
+//       type: 'ai_lead_status',
+//       recipient: userId,
+//       statusMsg: `AI extracted ${careerContactInfo.emails.length} email(s) from the careers page.`,
+//     });
 
-    return careerContactInfo.emails;
-  } catch (err) {
-    console.warn('Error scraping career page:', err.message);
-    sendAILeadStatus({
-      type: 'ai_lead_status',
-      recipient: userId,
-      statusMsg: `AI encountered an issue scraping the careers page but will proceed with homepage data.`,
-    });
-    return null;
-  }
-}
+//     return careerContactInfo.emails;
+//   } catch (err) {
+//     console.warn('Error scraping career page:', err.message);
+//     sendAILeadStatus({
+//       type: 'ai_lead_status',
+//       recipient: userId,
+//       statusMsg: `AI encountered an issue scraping the careers page but will proceed with homepage data.`,
+//     });
+//     return null;
+//   }
+// }
 
 async function scrapeCompany(companyName, userId) {
   console.log(`Initiating scraper for: ${companyName}`);
@@ -1046,22 +1046,27 @@ async function scrapeCompany(companyName, userId) {
       await randomMouseMovement(page, 4);
       await humanScroll(page);
 
-      const homepageContactInfo = await extractContactInfo(page);
-      let allEmails = [...homepageContactInfo.emails];
-      let allPhones = [...new Set([...result.phones, ...homepageContactInfo.phones])];
+      // const homepageContactInfo = await extractContactInfo(page);
+      // let allEmails = [...homepageContactInfo.emails];
+      // let allPhones = [...new Set([...result.phones, ...homepageContactInfo.phones])];
 
-      const careerEmails = await findAndScrapeCareerPage(page, userId);
-      if (careerEmails && careerEmails.length > 0) {
-        allEmails = [...new Set([...allEmails, ...careerEmails])];
-        sendAILeadStatus({
-          type: 'ai_lead_status',
-          recipient: userId,
-          statusMsg: `AI merged ${careerEmails.length} additional email(s) from the careers page.`,
-        });
-      }
+      // const careerEmails = await findAndScrapeCareerPage(page, userId);
+      // if (careerEmails && careerEmails.length > 0) {
+      //   allEmails = [...new Set([...allEmails, ...careerEmails])];
+      //   sendAILeadStatus({
+      //     type: 'ai_lead_status',
+      //     recipient: userId,
+      //     statusMsg: `AI merged ${careerEmails.length} additional email(s) from the careers page.`,
+      //   });
+      // }
 
-      result.emails = allEmails;
-      result.phones = allPhones;
+      // result.emails = allEmails;
+      // result.phones = allPhones;
+
+      const contactInfo = await extractContactInfo(page);
+
+      result.emails = contactInfo.emails;
+      result.phones = [...new Set([...result.phones, ...contactInfo.phones])];
     } else {
       sendAILeadStatus({
         type: 'ai_lead_status',
