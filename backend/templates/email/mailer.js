@@ -19,8 +19,8 @@ const transporter = nodemailer.createTransport({
 const transporterColdMail = nodemailer.createTransport({
   service: 'gmail',
   auth: {
-    user: process.env.TEST_USER_EMAIL,
-    pass: process.env.TEST_USER_PASS,
+    user: process.env.EMAIL_USER,
+    pass: process.env.EMAIL_PASS,
   },
 });
 
@@ -107,7 +107,7 @@ const sendColdGmail = async (to, purpose, senderName, subject, html, templateAtt
 
   if (purpose === 'cold_mail') {
     mailOptions = {
-      from: '"Dushyant Solanki" <' + process.env.TEST_USER_EMAIL + '>',
+      from: '"Dushyant Solanki" <' + process.env.EMAIL_USER + '>',
       to,
       subject,
       html,
