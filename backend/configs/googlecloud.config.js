@@ -63,4 +63,4 @@ async function listLabels(auth) {
   });
 }
 
-authorize().then(listLabels).catch(console.error);
+// authorize().then(listLabels).catch(console.error);
