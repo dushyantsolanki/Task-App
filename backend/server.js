@@ -60,7 +60,7 @@ app.use(requestIp.mw());
 chromium.use(stealth());
 
 const pubsub = new PubSub({
-  projectId: 'taskmate-cb773',
+  projectId: 'taskmate-pubsub',
   keyFilename: './service.json',
 });
 
@@ -499,7 +499,7 @@ app.get('/api/v1/overview', async (req, res) => {
 });
 
 async function listenForMessages() {
-  const subscription = pubsub.subscription('gmail-replies-sub');
+  const subscription = pubsub.subscription('gmail-sub');
 
   subscription.on('message', async (message) => {
     try {
@@ -541,6 +541,7 @@ async function listenForMessages() {
           }
           return body;
         }
+
         const replyText = getBody(fullMsg.data.payload);
 
         function findAttachments(parts = []) {
@@ -638,7 +639,7 @@ async function listenForMessages() {
   });
 }
 
-listenForMessages();
+await listenForMessages();
 
 server.listen(PORT, async () => {
   await connectDB();
