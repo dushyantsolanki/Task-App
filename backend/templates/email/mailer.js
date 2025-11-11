@@ -19,8 +19,8 @@ const transporter = nodemailer.createTransport({
 const transporterColdMail = nodemailer.createTransport({
   service: 'gmail',
   auth: {
-    user: process.env.EMAIL_USER,
-    pass: process.env.EMAIL_PASS,
+    user: process.env.TEST_USER_EMAIL,
+    pass: process.env.TEST_USER_PASS,
   },
 });
 
@@ -42,7 +42,7 @@ const sendVerificationMail = async (to, surname, OTP, expiredIn, purpose) => {
   }
 
   const mailOptions = {
-    from: '"Take Mate" <' + process.env.EMAIL_USER + '>',
+    from: '"Take Mate" <' + process.env.TEST_USER_EMAIL + '>',
     to,
     subject: 'Verify Your Task Mate Account',
     html,
