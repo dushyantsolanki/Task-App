@@ -600,6 +600,7 @@ async function listenForMessages() {
             });
 
             await coldMail.save();
+            message.ack();
 
             await sendNotification({
               senderId: coldMail?.leadId?.createdBy?.toString(),
@@ -630,8 +631,6 @@ async function listenForMessages() {
           }
         }
       }
-
-      message.ack();
     } catch (err) {
       console.error('❌ Error processing message:', err);
       message.nack();
