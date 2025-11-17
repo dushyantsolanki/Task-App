@@ -1,13 +1,11 @@
 name: Deploy to EC2
 
 on:
-  push:
-    branches: [main]
-  workflow_dispatch: #manual trigger
+  workflow_dispatch:
 
 jobs:
   build:
-    name: Build Application
+    name: Build Project
     runs-on: ubuntu-latest
 
     steps:
@@ -20,20 +18,30 @@ jobs:
           node-version: "20.13.1"
           cache: "npm"
 
-      - name: Install dependencies
-        run: npm ci
-
-      - name: Build TypeScript
-        run: npm run build
-
-      - name: Create deployment package (without node_modules)
+      # Install + build frontend
+      - name: Install frontend dependencies
         run: |
-          mkdir -p deploy
-          cp -r dist deploy/
-          cp -r src deploy/
-          cp package*.json deploy/
-          # Copy .env.example if exists
-          [ -f .env.example ] && cp .env.example deploy/ || echo "No .env.example found"
+          cd frontend
+          npm ci
+
+      - name: Build frontend
+        run: |
+          cd frontend
+          npm run build
+
+      # Create deployment package
+      - name: Create deployment package
+        run: |
+          mkdir -p deploy/backend
+          mkdir -p deploy/frontend
+
+          # Copy backend
+          cp -r backend/* deploy/backend/
+
+          # Copy built frontend
+          cp -r frontend/dist deploy/frontend/
+
+          # Tar everything
           tar -czf deploy.tar.gz -C deploy .
 
       - name: Upload build artifact
@@ -60,133 +68,61 @@ jobs:
           EC2_USERNAME: ${{ secrets.EC2_USERNAME }}
           SSH_PRIVATE_KEY: ${{ secrets.EC2_SSH_KEY }}
         run: |
-          # Create SSH key file
           echo "$SSH_PRIVATE_KEY" > private_key.pem
           chmod 600 private_key.pem
 
-          # Copy deployment package to EC2
           scp -i private_key.pem -o StrictHostKeyChecking=no \
             deploy.tar.gz ${EC2_USERNAME}@${EC2_HOST}:/tmp/
 
-          # SSH into EC2 and deploy
           ssh -i private_key.pem -o StrictHostKeyChecking=no \
             ${EC2_USERNAME}@${EC2_HOST} << 'EOF'
-            
-            # Navigate to app directory
-            cd /Task-App/backend
 
-            # Fix ownership first (important!)
-            echo "Fixing directory ownership..."
-            sudo chown -R $USER:$USER /Task-App/backend
-            
-            
-            # Backup current version
-            if [ -d "dist" ]; then
-              timestamp=$(date +%Y%m%d_%H%M%S)
-              mkdir -p backups
-              tar -czf backups/backup_${timestamp}.tar.gz dist package.json .env 2>/dev/null || true
-              # Keep only last 5 backups
-              ls -t backups/backup_*.tar.gz 2>/dev/null | tail -n +6 | xargs -r rm
-            fi
-            
-            # Extract new version (this will overwrite existing files)
-            echo "Extracting new deployment package..."
-            tar --overwrite -xzf /tmp/deploy.tar.gz -C /Task-App/backend
+            cd /Task-App
+
+            echo "Cleaning old backend and frontend..."
+            rm -rf backend
+            rm -rf frontend
+
+            echo "Extracting package..."
+            tar -xzf /tmp/deploy.tar.gz
             rm /tmp/deploy.tar.gz
 
-            # Fix ownership after extraction
-            sudo chown -R $USER:$USER /Task-App/backend
-            
-            
-            # Install production dependencies on the server
-            echo ""
-            echo "Installing production dependencies..."
+            cd backend
+
+            echo "Installing backend dependencies..."
             npm ci
-            
-            # Create .env file if needed (only on first deploy)
+
+            # Create env if missing
             if [ ! -f .env ]; then
-              echo "Creating default .env file..."
-              echo "NODE_ENV=production" > .env
-              echo "PORT=3000" >> .env
+              echo "PORT=3000" > .env
+              echo "NODE_ENV=production" >> .env
             fi
-            
-            # Create logs directory
-            mkdir -p logs
-            
-            # Zero-downtime reload with PM2
-            if pm2 describe taskmate-backend > /dev/null 2>&1; then
-              echo "Reloading PM2 app (zero-downtime)..."
-              sudo pm2 reload server.js --update-env
+
+            # Start with PM2
+            if pm2 describe task-app > /dev/null 2>&1; then
+              pm2 restart task-app
             else
-              echo "Starting new PM2 process..."
-              sudo pm2 start server.js
+              pm2 start server.js --name task-app
             fi
-            
-            # Save PM2 process list
-            sudo pm2 save
-           
+
+            pm2 save
+
           EOF
 
-          # Cleanup
           rm private_key.pem
 
       - name: Verify deployment
         env:
           EC2_HOST: ${{ secrets.EC2_HOST }}
         run: |
-          echo "Waiting for application to start..."
+          echo "Waiting for server..."
           sleep 10
 
-          # Check if app responds via nginx (try multiple times)
-          for i in {1..2}; do
-            echo "Attempt $i of 2..."
-            response=$(curl -s -o /dev/null -w "%{http_code}" http://${EC2_HOST} 2>/dev/null || echo "000")
-            
-            if [ "$response" = "200" ] || [ "$response" = "301" ] || [ "$response" = "302" ]; then
-              echo "✅ Deployment successful! App is responding with status: $response"
-              exit 0
-            fi
-            
-            echo "Got response: $response, waiting 5 seconds..."
-            sleep 5
-          done
+          response=$(curl -s -o /dev/null -w "%{http_code}" http://${EC2_HOST})
 
-          echo "❌ Deployment verification failed after 2 attempts"
-          echo "Please check PM2 logs on the server"
-          exit 1
-
-      - name: Rollback on failure
-        if: failure()
-        env:
-          EC2_HOST: ${{ secrets.EC2_HOST }}
-          EC2_USERNAME: ${{ secrets.EC2_USERNAME }}
-          SSH_PRIVATE_KEY: ${{ secrets.EC2_SSH_KEY }}
-        run: |
-          echo "🔄 Attempting to rollback to previous version..."
-
-          echo "$SSH_PRIVATE_KEY" > private_key.pem
-          chmod 600 private_key.pem
-
-          ssh -i private_key.pem -o StrictHostKeyChecking=no \
-            ${EC2_USERNAME}@${EC2_HOST} << 'EOF'
-            
-            cd /Task-App/backend
-
-            # Fix ownership first (important!)
-            sudo chown -R $USER:$USER /Task-App/backend
-            
-            # Find latest backup
-            latest_backup=$(ls -t backups/backup_*.tar.gz 2>/dev/null | head -1)
-            
-            if [ -n "$latest_backup" ]; then
-              echo "Found backup: $latest_backup"
-              tar -xzf "$latest_backup" -C /Task-App/backend
-              npm ci
-              pm2 reload server.js
-              echo "✅ Rolled back to previous version"
-            else
-              echo "⚠️ No backup found, cannot rollback"
-            fi
-          EOF
-
-          rm private_key.pem
+          if [ "$response" -ge 200 ] && [ "$response" -lt 400 ]; then
+            echo "Deployment successful"
+          else
+            echo "Deployment failed with status $response"
+            exit 1
+          fi
