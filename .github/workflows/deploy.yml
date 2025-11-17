@@ -74,9 +74,9 @@ jobs:
           scp -i private_key.pem -o StrictHostKeyChecking=no deploy.tar.gz ${EC2_USERNAME}@${EC2_HOST}:/tmp/
 
           ssh -i private_key.pem -o StrictHostKeyChecking=no ${EC2_USERNAME}@${EC2_HOST} << 'EOF'
-            cd ~/Task-App/backend
+            cd /home/ubuntu/Task-App/backend
 
-            sudo chown -R $USER:$USER /Task-App/backend
+            sudo chown -R $USER:$USER /home/ubuntu/Task-App/backend
 
             # Backup old dist (optional)
             if [ -d "dist" ]; then
@@ -89,8 +89,8 @@ jobs:
             tar --overwrite -xzf /tmp/deploy.tar.gz -C /Task-App
             rm /tmp/deploy.tar.gz
 
-            sudo chown -R $USER:$USER /Task-App/backend
-            cd ~/Task-App/backend
+            sudo chown -R $USER:$USER /home/ubuntu/Task-App/backend
+            cd /home/ubuntu/Task-App/backend
 
             echo "Installing dependencies..."
             npm install
