@@ -499,13 +499,10 @@ app.get('/api/v1/overview', async (req, res) => {
 });
 
 async function listenForMessages() {
-  const subscription = pubsub.subscription('gmail-sub', {
-    autoExtendAckDeadline: false,
-  });
+  const subscription = pubsub.subscription('gmail-sub');
 
   subscription.on('message', async (message) => {
     try {
-      message.modifyAckDeadline(30);
       const auth = await authorize();
       const gmail = google.gmail({ version: 'v1', auth });
 
