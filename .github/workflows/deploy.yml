@@ -1,11 +1,13 @@
 name: Deploy to EC2
 
 on:
+  push:
+    branches: [main]
   workflow_dispatch:
 
 jobs:
   build:
-    name: Build Project
+    name: Build Application
     runs-on: ubuntu-latest
 
     steps:
@@ -16,9 +18,14 @@ jobs:
         uses: actions/setup-node@v4
         with:
           node-version: "20.13.1"
-          cache: "npm"
 
-      # Install + build frontend
+      # BACKEND
+      - name: Install backend dependencies
+        run: |
+          cd backend
+          npm ci
+
+      # FRONTEND
       - name: Install frontend dependencies
         run: |
           cd frontend
@@ -29,19 +36,21 @@ jobs:
           cd frontend
           npm run build
 
-      # Create deployment package
+      # PACKAGE EVERYTHING FOR DEPLOYMENT
       - name: Create deployment package
         run: |
-          mkdir -p deploy/backend
-          mkdir -p deploy/frontend
+          mkdir -p deploy
 
           # Copy backend
-          cp -r backend/* deploy/backend/
+          cp -r backend deploy/backend
 
-          # Copy built frontend
+          # Copy frontend build only
+          mkdir -p deploy/frontend
           cp -r frontend/dist deploy/frontend/
 
-          # Tar everything
+          # Extra: copy .env.example if exists
+          [ -f backend/.env.example ] && cp backend/.env.example deploy/backend/.env.example
+
           tar -czf deploy.tar.gz -C deploy .
 
       - name: Upload build artifact
@@ -71,42 +80,44 @@ jobs:
           echo "$SSH_PRIVATE_KEY" > private_key.pem
           chmod 600 private_key.pem
 
-          scp -i private_key.pem -o StrictHostKeyChecking=no \
-            deploy.tar.gz ${EC2_USERNAME}@${EC2_HOST}:/tmp/
+          scp -i private_key.pem -o StrictHostKeyChecking=no deploy.tar.gz ${EC2_USERNAME}@${EC2_HOST}:/tmp/
 
-          ssh -i private_key.pem -o StrictHostKeyChecking=no \
-            ${EC2_USERNAME}@${EC2_HOST} << 'EOF'
+          ssh -i private_key.pem -o StrictHostKeyChecking=no ${EC2_USERNAME}@${EC2_HOST} << 'EOF'
+            cd /Task-App/backend
 
-            cd /Task-App
+            sudo chown -R $USER:$USER /Task-App/backend
 
-            echo "Cleaning old backend and frontend..."
-            rm -rf backend
-            rm -rf frontend
+            if [ -d "dist" ]; then
+              timestamp=$(date +%Y%m%d_%H%M%S)
+              mkdir -p backups
+              tar -czf backups/backup_${timestamp}.tar.gz dist package.json .env 2>/dev/null || true
+              ls -t backups/backup_*.tar.gz 2>/dev/null | tail -n +6 | xargs -r rm
+            fi
 
             echo "Extracting package..."
-            tar -xzf /tmp/deploy.tar.gz
+            tar --overwrite -xzf /tmp/deploy.tar.gz -C /Task-App
             rm /tmp/deploy.tar.gz
 
-            cd backend
+            sudo chown -R $USER:$USER /Task-App/backend
 
             echo "Installing backend dependencies..."
+            cd /Task-App/backend
             npm ci
 
-            # Create env if missing
             if [ ! -f .env ]; then
-              echo "PORT=3000" > .env
-              echo "NODE_ENV=production" >> .env
+              echo "NODE_ENV=production" > .env
+              echo "PORT=3000" >> .env
             fi
 
-            # Start with PM2
-            if pm2 describe task-app > /dev/null 2>&1; then
-              pm2 restart task-app
+            mkdir -p logs
+
+            if pm2 describe taskmate-backend > /dev/null 2>&1; then
+              sudo pm2 reload server.js --update-env
             else
-              pm2 start server.js --name task-app
+              sudo pm2 start server.js
             fi
 
-            pm2 save
-
+            sudo pm2 save
           EOF
 
           rm private_key.pem
@@ -115,14 +126,47 @@ jobs:
         env:
           EC2_HOST: ${{ secrets.EC2_HOST }}
         run: |
-          echo "Waiting for server..."
+          echo "Waiting for application..."
           sleep 10
 
-          response=$(curl -s -o /dev/null -w "%{http_code}" http://${EC2_HOST})
+          for i in {1..2}; do
+            echo "Attempt $i..."
+            response=$(curl -s -o /dev/null -w "%{http_code}" http://${EC2_HOST} || echo "000")
+            if [ "$response" = "200" ] || [ "$response" = "301" ] || [ "$response" = "302" ]; then
+              echo "Deployment successful: $response"
+              exit 0
+            fi
+            echo "Got: $response; retrying..."
+            sleep 5
+          done
 
-          if [ "$response" -ge 200 ] && [ "$response" -lt 400 ]; then
-            echo "Deployment successful"
-          else
-            echo "Deployment failed with status $response"
-            exit 1
-          fi
+          echo "Deployment failed"
+          exit 1
+
+      - name: Rollback on failure
+        if: failure()
+        env:
+          EC2_HOST: ${{ secrets.EC2_HOST }}
+          EC2_USERNAME: ${{ secrets.EC2_USERNAME }}
+          SSH_PRIVATE_KEY: ${{ secrets.EC2_SSH_KEY }}
+        run: |
+          echo "$SSH_PRIVATE_KEY" > private_key.pem
+          chmod 600 private_key.pem
+
+          ssh -i private_key.pem -o StrictHostKeyChecking=no ${EC2_USERNAME}@${EC2_HOST} << 'EOF'
+            cd /Task-App/backend
+            sudo chown -R $USER:$USER /Task-App/backend
+
+            latest_backup=$(ls -t backups/backup_*.tar.gz 2>/dev/null | head -1)
+
+            if [ -n "$latest_backup" ]; then
+              tar -xzf "$latest_backup" -C /Task-App/backend
+              npm ci
+              pm2 reload server.js
+              echo "Rollback complete"
+            else
+              echo "No backup found"
+            fi
+          EOF
+
+          rm private_key.pem
