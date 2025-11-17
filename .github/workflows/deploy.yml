@@ -21,7 +21,7 @@ jobs:
       - name: Install backend dependencies
         run: |
           cd backend
-          npm ci
+          npm install
 
       # BUILD BACKEND (only if you use TypeScript, else remove)
       - name: Build backend
@@ -93,7 +93,7 @@ jobs:
             cd /Task-App/backend
 
             echo "Installing dependencies..."
-            npm ci
+            npm install
 
             if [ ! -f .env ]; then
               echo "NODE_ENV=production" > .env
