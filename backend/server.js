@@ -47,6 +47,7 @@ app.use(
     origin: [
       'http://localhost:5173',
       'http://localhost:3000',
+      'https://fullstack-dev-dushyant-portfolio.vercel.app',
       'https://taskmate.dushyantportfolio.store',
       'https://portfolio-dev-dushyant.vercel.app',
     ],
