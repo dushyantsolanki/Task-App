@@ -640,7 +640,7 @@ async function listenForMessages() {
   });
 }
 
-await listenForMessages();
+// await listenForMessages();
 
 server.listen(PORT, async () => {
   await connectDB();
