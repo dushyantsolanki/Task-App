@@ -1,20 +1,19 @@
 import { useState } from 'react';
-import { Input } from '@/components/ui/input';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Skeleton } from '@/components/ui/skeleton';
 import { Avatar, AvatarImage, AvatarFallback } from '@/components/ui/avatar';
-import { Image, Loader2, Search as SearchIcon, Video } from 'lucide-react';
+import { ArrowUp, Image, Square, Video } from 'lucide-react';
 import ReactMarkdown from 'react-markdown';
 import remarkGfm from 'remark-gfm';
 // import TypingAnimation from "@/components/magicui/typing-animation";
-import { ShineBorder } from '@/components/magicui/shine-border';
 import { useAuthStore } from '@/store/authStore';
 import { Tooltip, TooltipContent, TooltipTrigger } from '@/components/ui/tooltip';
 import { ImageZoom } from '@/components/ui/kibo-ui/image-zoom';
 import SEO from '@/components/app/components/SEO';
 import { VideoPlayer, VideoPlayerContent, VideoPlayerControlBar, VideoPlayerMuteButton, VideoPlayerPlayButton, VideoPlayerSeekBackwardButton, VideoPlayerSeekForwardButton, VideoPlayerTimeDisplay, VideoPlayerTimeRange, VideoPlayerVolumeRange } from "@/components/ui/kibo-ui/video-player";
 import AxiousInstance from '@/helper/AxiousInstance';
+import { PromptInput, PromptInputAction, PromptInputActions, PromptInputTextarea } from '@/components/ui/prompt-input';
 
 interface Source {
   title: string;
@@ -161,9 +160,6 @@ export function Search() {
     }
   };
 
-  const handleKeyDown = (e: React.KeyboardEvent) => {
-    if (e.key === 'Enter') handleSearch();
-  };
 
   return (
     <>
@@ -174,7 +170,7 @@ export function Search() {
         type="website"
       />
 
-      <div className="relative w-full min-h-screen/2 mx-auto flex flex-col gap-6 bg-[--color-background] transition-colors duration-300">
+      <div className="relative w-full min-h-screen/2 mx-auto flex flex-col gap-6 bg-background transition-colors duration-300">
 
         {/* Welcome Message (shown only when no search has been performed) */}
         {!hasSearched && !results && !loading && (
@@ -209,36 +205,42 @@ export function Search() {
             </div>
           </div>
         ) : hasSearched ? (
-          <div className="text-center text-[--color-muted-foreground] flex-grow">No results found. Try a different query.</div>
+          <div className="text-center text-[--color-muted-foreground] flex grow">No results found. Try a different query.</div>
         ) : null}
 
         {/* Error */}
         {error && <div className="text-[--color-destructive] text-center">{error}</div>}
 
         {/* Fixed Bottom Search Bar */}
-        <div className="fixed bottom-4 left-0 right-0 w-[100vw] md:w-[50vw]  mx-auto px-4">
-          <div className="flex gap-2 bg-[--color-card] p-3 rounded-3xl shadow-lg backdrop-blur-sm border border-[--color-border] transition-all duration-300 hover:shadow-xl">
-            <ShineBorder shineColor={["#A07CFE", "#FE8FB5", "#FFBE7B"]} />
-            <Input
-              type="text"
-              placeholder="Search for anything..."
-              value={query}
-              onChange={(e) => setQuery(e.target.value)}
-              onKeyDown={handleKeyDown}
-              className="text-base bg-transparent border-none focus:ring-0 focus-visible:ring-0 text-[--color-foreground] placeholder-[--color-muted-foreground] transition-colors duration-300"
-            />
-            <Button
-              onClick={handleSearch}
-              disabled={loading || !query.trim()}
-              className="bg-[--color-primary] text-[--color-primary-foreground] hover:bg-[--color-primary]/90 rounded-[--radius-md] transition-all duration-300"
-            >
-              {loading ? (
-                <Loader2 className="w-6 h-6 animate-spin" />
-              ) : (
-                <SearchIcon className="w-6 h-6" />
-              )}
-            </Button>
-          </div>
+        <div className={`${!results?.summary ? 'mt-50' : '-mt-10'} flex justify-center`}>
+
+          <PromptInput
+            value={query}
+            onValueChange={setQuery}
+            isLoading={loading}
+            onSubmit={handleSearch}
+            className="w-2xl"
+          >
+            <PromptInputTextarea placeholder="Ask me anything..." />
+            <PromptInputActions className="justify-end pt-2">
+              <PromptInputAction
+                tooltip={loading ? "Stop generation" : "Send message"}
+              >
+                <Button
+                  variant="default"
+                  size="icon"
+                  className="h-8 w-8 rounded-full"
+                  onClick={handleSearch}
+                >
+                  {loading ? (
+                    <Square className="size-5 fill-current" />
+                  ) : (
+                    <ArrowUp className="size-5" />
+                  )}
+                </Button>
+              </PromptInputAction>
+            </PromptInputActions>
+          </PromptInput>
         </div>
       </div>
 
