@@ -164,16 +164,11 @@ app.get('/track/open', async (req, res) => {
     }
   }
 
-  const svg = `
-<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-gallery-vertical-end-icon lucide-gallery-vertical-end"><path d="M7 2h10"/><path d="M5 6h14"/><rect width="18" height="12" x="3" y="10" rx="2"/></svg>
-`;
+  const icon = fs.readFileSync('./public/logo.png');
 
-  const svgBase64 = Buffer.from(svg).toString('base64');
   res.setHeader('Cache-Control', 'no-cache, no-store, must-revalidate');
-  res.setHeader('Pragma', 'no-cache');
-  res.setHeader('Expires', '0');
-  const pixel = Buffer.from(svgBase64, 'base64');
-  res.end(pixel);
+  res.setHeader('Content-Type', 'image/png');
+  res.end(icon);
 });
 
 app.get('/medias/:folder/:filename', (req, res) => {
