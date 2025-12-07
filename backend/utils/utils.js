@@ -57,16 +57,14 @@ export function encrypt(text) {
 
 export function textToHtml(text, mailId) {
   let html = text.replace(/\n/g, '<br>');
-  // if (mailId) {
-  //   html += `
-  //     <img
-  //       src="https://api.dushyantportfolio.store/track/open?mailId=${mailId}"
-  //       width="10"
-  //       height="10"
-  //     />
-
-  //     `;
-  // }
+  if (mailId) {
+    html += `
+  <span style="display:flex; align-items:center;">
+    <img src="https://api.dushyantportfolio.store/track/open?mailId=${mailId}" width="20" height="20" />
+    Tracking By Taskmate
+  </span>
+`;
+  }
   return html;
 }
 
