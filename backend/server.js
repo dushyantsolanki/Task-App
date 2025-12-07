@@ -127,53 +127,52 @@ app.get('/track/open', async (req, res) => {
     });
 
     if (coldMail) {
+      // Ignore if too soon after creation (anti-false positive)
       const timeSinceCreate = Date.now() - coldMail.createdAt.getTime();
-
       if (timeSinceCreate < 5000) {
-        // ignore prefetch
+        // <5 seconds, likely prefetch/send artifact
       } else if (coldMail.status === 'sent') {
         coldMail.status = 'opened';
-        coldMail.openedAt = new Date();
+        coldMail.openedAt = new Date(); // Add field for first open time
         await coldMail.save();
-
         await sendNotification({
-          senderId: coldMail.leadId?.createdBy?.toString(),
-          userIds: coldMail.leadId?.createdBy?.toString(),
+          senderId: coldMail?.leadId?.createdBy?.toString(),
+          userIds: coldMail?.leadId?.createdBy?.toString(),
           type: 'Mail Status',
           path: 'ai-automation/lead',
           title: `${coldMail.recipients} opened your mail.`,
           body: `${coldMail.recipients} opened your mail.`,
           eventType: 'notification',
         });
-
         await sendFirebaseNotification({
           mode: 'creator',
-          creatorId: coldMail.leadId?.createdBy?.toString(),
-          title: `Your mail opened by ${coldMail.recipients}`,
-          body: `Your mail opened at ${coldMail.openedAt.toLocaleTimeString('en-IN', {
+          creatorId: coldMail?.leadId?.createdBy?.toString(),
+          title: `Your mail opened by ${coldMail?.recipients}`,
+          body: `Your mail opened at ${coldMail?.openedAt?.toLocaleTimeString('en-IN', {
             timeZone: 'Asia/Kolkata',
           })}`,
           imageUrl: 'https://i.ibb.co/7xbdLrHb/cold-mail-notification.png',
           pageLink: 'ai-automation/lead',
         });
       } else {
+        // Track multiple opens (add openCount and opens array to model)
         coldMail.openCount = (coldMail.openCount || 0) + 1;
         coldMail.opens = coldMail.opens || [];
-        coldMail.opens.push({ timestamp: new Date(), ip, country: geo?.name });
+        coldMail.opens.push({ timestamp: new Date(), ip: ip, country: geo?.name });
         await coldMail.save();
       }
     }
   }
 
-  const pixel = Buffer.from(
-    'iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAQAAAC1HAwCAAAAC0lEQVR42mP8/x8AAusB9YwNnWcAAAAASUVORK5CYII=',
-    'base64',
-  );
+  const svg = `
+<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-gallery-vertical-end-icon lucide-gallery-vertical-end"><path d="M7 2h10"/><path d="M5 6h14"/><rect width="18" height="12" x="3" y="10" rx="2"/></svg>
+`;
 
-  res.setHeader('Content-Type', 'image/png');
+  const svgBase64 = Buffer.from(svg).toString('base64');
   res.setHeader('Cache-Control', 'no-cache, no-store, must-revalidate');
   res.setHeader('Pragma', 'no-cache');
   res.setHeader('Expires', '0');
+  const pixel = Buffer.from(svgBase64, 'base64');
   res.end(pixel);
 });
 
