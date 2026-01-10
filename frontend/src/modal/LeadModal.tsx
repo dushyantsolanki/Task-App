@@ -207,6 +207,9 @@ const LeadModal = ({ isOpen, onClose, initialValues, handleAdd, handleEdit }: Mo
   };
 
   const handleAILeadGenerate = async () => {
+
+    toast.warning('We are working on it')
+    return
     setLoading(true)
     try {
       const response = await AxiousInstance.post(`/lead/ai-lead`, { name: formik.values.title })
