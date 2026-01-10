@@ -14,6 +14,7 @@ import SEO from '@/components/app/components/SEO';
 import { VideoPlayer, VideoPlayerContent, VideoPlayerControlBar, VideoPlayerMuteButton, VideoPlayerPlayButton, VideoPlayerSeekBackwardButton, VideoPlayerSeekForwardButton, VideoPlayerTimeDisplay, VideoPlayerTimeRange, VideoPlayerVolumeRange } from "@/components/ui/kibo-ui/video-player";
 import AxiousInstance from '@/helper/AxiousInstance';
 import { PromptInput, PromptInputAction, PromptInputActions, PromptInputTextarea } from '@/components/ui/prompt-input';
+import useNotify from '@/hooks/useNotify';
 
 interface Source {
   title: string;
@@ -41,6 +42,7 @@ export function Search() {
   const [hasSearched, setHasSearched] = useState(false);
   const { user } = useAuthStore();
   const userName = user?.name || 'Guest';
+  const toast = useNotify()
 
   function SkeletonLoader({ hasSearched }: { hasSearched: boolean }) {
     return (
@@ -141,6 +143,8 @@ export function Search() {
 
   const handleSearch = async () => {
     if (!query.trim()) return;
+    toast.warning('We are working on it.')
+    return
     setLoading(true);
     setError(null);
     setHasSearched(true);
@@ -231,6 +235,7 @@ export function Search() {
                   size="icon"
                   className="h-8 w-8 rounded-full"
                   onClick={handleSearch}
+
                 >
                   {loading ? (
                     <Square className="size-5 fill-current" />
