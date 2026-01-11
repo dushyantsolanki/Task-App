@@ -39,7 +39,6 @@ import {
 } from '@/components/ui/table';
 import { Badge } from '@/components/ui/badge';
 import { cn } from '@/lib/utils';
-import { XBreadcrumb } from '@/components/custom/XBreadcrumb';
 import AxiousInstance from '@/helper/AxiousInstance';
 import LeadModal from '@/modal/LeadModal';
 import LeadViewModal from '@/modal/LeadViewModal';
@@ -559,12 +558,7 @@ function Lead() {
         url="https://taskmate.dushyantportfolio.store/ai-automation/lead"
         type="website"
       />
-      <XBreadcrumb
-        items={[
-          { label: 'Dashboard', link: '/dashboard' },
-          { label: 'Lead Automation', link: '/lead' },
-        ]}
-      />
+
       <div className="p-2">
         <div className="mb-6">
           <div className="flex w-full items-center justify-between gap-4 sm:w-auto">

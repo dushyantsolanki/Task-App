@@ -26,7 +26,6 @@ import {
   TableHeader,
   TableRow,
 } from '@/components/ui/table';
-import { XBreadcrumb } from '@/components/custom/XBreadcrumb';
 import AxiousInstance from '@/helper/AxiousInstance';
 import { cn } from '@/lib/utils';
 import TemplateModal from '@/modal/TemplateModal';
@@ -415,12 +414,7 @@ function Template() {
         url="https://taskmate.dushyantportfolio.store/ai-automation/template"
         type="website"
       />
-      <XBreadcrumb
-        items={[
-          { label: 'Dashboard', link: '/dashboard' },
-          { label: 'Templates', link: '/templates' },
-        ]}
-      />
+
       <div className="p-2">
         <div className="mb-6">
           <div className="flex w-full items-center justify-between gap-4 sm:w-auto">

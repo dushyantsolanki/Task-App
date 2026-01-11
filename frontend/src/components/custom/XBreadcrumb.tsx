@@ -24,25 +24,24 @@ export const XBreadcrumb: React.FC<CustomBreadcrumbProps> = ({ items }) => {
   const lastIndex = items.length - 1;
 
   return (
-    <div className="mb-8 flex items-center gap-2">
-      <Breadcrumb>
-        <BreadcrumbList>
-          {items.map((item, index) => (
-            <React.Fragment key={item.label}>
-              <BreadcrumbItem className={index !== lastIndex ? 'hidden md:block' : ''}>
-                {index === lastIndex || !item.link ? (
-                  <BreadcrumbPage>{item.label}</BreadcrumbPage>
-                ) : (
-                  <BreadcrumbLink asChild>
-                    <Link to={item.link}>{item.label}</Link>
-                  </BreadcrumbLink>
-                )}
-              </BreadcrumbItem>
-              {index < lastIndex && <BreadcrumbSeparator className="hidden md:block" />}
-            </React.Fragment>
-          ))}
-        </BreadcrumbList>
-      </Breadcrumb>
-    </div>
+
+    <Breadcrumb>
+      <BreadcrumbList>
+        {items.map((item, index) => (
+          <React.Fragment key={item.label}>
+            <BreadcrumbItem className={index !== lastIndex ? 'hidden md:block' : ''}>
+              {index === lastIndex || !item.link ? (
+                <BreadcrumbPage>{item.label}</BreadcrumbPage>
+              ) : (
+                <BreadcrumbLink asChild>
+                  <Link to={item.link}>{item.label}</Link>
+                </BreadcrumbLink>
+              )}
+            </BreadcrumbItem>
+            {index < lastIndex && <BreadcrumbSeparator className="hidden md:block" />}
+          </React.Fragment>
+        ))}
+      </BreadcrumbList>
+    </Breadcrumb>
   );
 };

@@ -29,9 +29,14 @@ const AuthLayout: React.FC = () => {
           </div>
         </div>
       </div>
+      {/* Center vertical divider */}
+      <div className="absolute left-1/2 top-1/2 hidden lg:block">
+        <div className="-translate-x-1/2 -translate-y-1/2 h-80 w-1 rounded-4xl bg-muted-foreground/40"></div>
+      </div>
 
       {/* Right Image Panel */}
-      <div className="border-0 relative hidden lg:block">
+
+      <div className="relative hidden lg:block">
         {/* <img
           loading="lazy"
           src="https://cdnb.artstation.com/p/assets/images/images/008/558/509/4k/mo-yan-jhin7-new8-final-final-layers-1.jpg"

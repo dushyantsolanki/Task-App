@@ -6,16 +6,26 @@ import { Outlet } from 'react-router-dom';
 import { useAuthStore } from '@/store/authStore';
 import Notification from '@/components/app/components/Notification';
 import { ThemeSwitcher } from '@/components/app/components/ThemeSwitcher';
+import { Separator } from '@/components/ui/separator';
+import { XBreadcrumb } from '@/components/custom/XBreadcrumb';
+import { useBreadcrumbs } from '@/hooks/useBreadcrumbs';
 
 export default function DashboardLayout() {
   const { user } = useAuthStore();
+  const breadcrumbs = useBreadcrumbs();
   return (
     <SidebarProvider>
       <AppSidebar />
       <SidebarInset>
-        <header className="bg-background/50 border-muted/50 sticky top-0 z-10 mb-4 flex h-20 shrink-0 items-center gap-2 border-b shadow-sm backdrop-blur-sm transition-[width,height] ease-linear group-has-[[data-collapsible=icon]]/sidebar-wrapper:h-18">
+        <header className="bg-background/50 border-muted/50 sticky top-0 z-10 mb-4 flex h-20 shrink-0 items-center gap-2 border-b backdrop-blur-sm transition-[width,height] ease-linear group-has-data-[collapsible=icon]/sidebar-wrapper:h-18">
           <div className="flex items-center gap-2 px-4">
             <SidebarTrigger className="-ml-1" />
+            <Separator
+              orientation="vertical"
+              className="mr-2 data-[orientation=vertical]:h-4"
+            />
+            <XBreadcrumb items={breadcrumbs} />
+
           </div>
 
           {/* Right side content */}

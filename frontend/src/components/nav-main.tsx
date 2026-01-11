@@ -29,7 +29,7 @@ export function NavMain({
 
   return (
     <SidebarGroup>
-      <SidebarGroupLabel>Platform</SidebarGroupLabel>
+      <SidebarGroupLabel></SidebarGroupLabel>
       <SidebarMenu>
         {items.map((item) => {
           const isParentActive =
@@ -72,11 +72,10 @@ export function NavMain({
                             <SidebarMenuSubButton asChild>
                               <Link
                                 to={subItem.url}
-                                className={`block w-full rounded-md px-2 py-1.5 text-left transition-colors ${
-                                  isActive
-                                    ? '!text-primary'
-                                    : 'text-muted-foreground hover:bg-accent hover:text-foreground'
-                                }`}
+                                className={`block w-full rounded-md px-2 py-1.5 text-left transition-colors ${isActive
+                                  ? 'text-primary!'
+                                  : 'text-muted-foreground hover:bg-accent hover:text-foreground'
+                                  }`}
                               >
                                 {subItem.title}
                               </Link>

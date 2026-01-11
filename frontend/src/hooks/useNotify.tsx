@@ -41,11 +41,11 @@ const useNotify = () => {
         {/* Left Accent Bar */}
         <div
           className={`absolute left-0 top-1/2 w-1 h-6 -translate-y-1/2 
-                     bg-gradient-to-b ${colors.accent} rounded-r-full opacity-80`}
+                     bg-linear-to-b ${colors.accent} rounded-r-full opacity-80`}
         />
 
         {/* Icon */}
-        <div className={`relative z-10 flex-shrink-0 ${colors.iconColor}`}>
+        <div className={`relative z-10 shrink-0 ${colors.iconColor}`}>
           {icon}
         </div>
 

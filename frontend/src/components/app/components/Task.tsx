@@ -52,7 +52,6 @@ import { Badge } from '@/components/ui/badge';
 import { cn } from '@/lib/utils';
 import { XInputField } from '@/components/custom/XInputField';
 import { XTextareaField } from '@/components/custom/XTextareaField';
-import { XBreadcrumb } from '@/components/custom/XBreadcrumb';
 import AxiousInstance from '@/helper/AxiousInstance';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { Checkbox } from '@/components/ui/checkbox';
@@ -679,12 +678,6 @@ export default function () {
         description="View and manage all your tasks efficiently with TaskMate."
         url="https://taskmate.dushyantportfolio.store/task"
         type="website"
-      />
-      <XBreadcrumb
-        items={[
-          { label: 'Dashboard', link: '/dashboard' },
-          { label: 'Task', link: '/task' },
-        ]}
       />
       <div className="p-2">
         <div className="mb-6">

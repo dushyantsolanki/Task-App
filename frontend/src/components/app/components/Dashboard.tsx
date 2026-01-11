@@ -20,7 +20,7 @@ export function Dashboard() {
           <LeadPieChart />
         </div>
 
-        <div className="bg-muted/50 min-h-[100vh] flex-1 rounded-xl">
+        <div className="bg-muted/50 min-h-screen flex-1 rounded-xl">
           <BigCalendar />{' '}
         </div>
       </div>
